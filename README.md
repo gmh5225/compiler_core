@@ -8,7 +8,7 @@
 - Stanford Seminar Presenting Rust: https://www.youtube.com/watch?v=O5vzLKg7y-k&ab_channel=StanfordOnline
 ------------------------------------
 # Resources
- - Textbook: https://suif.stanford.edu/dragonbook/
+ - Textbook: Alfred V. Aho, Monica S. Lam, Ravi Sethi, and Jefrey D. Ullman. Compilers: Principles, Techniques, & Tools. Pearson Education, second edition, 2007
  - LLVM API: https://llvm.org/doxygen/group__LLVMC.html
 ------------------------------------
 # Infrastructure

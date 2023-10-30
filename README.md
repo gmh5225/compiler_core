@@ -2,6 +2,9 @@
 - Independent Study sponsored by Aaron Cass.
 - Students: Caleb L'Italien, John Daly
 ------------------------------------
+# Goals
+- Compile basic parts of C
+------------------------------------
 # Rust
 - Documentation: https://doc.rust-lang.org/book/
 - Rustlings: https://github.com/rust-lang/rustlings
@@ -11,9 +14,10 @@
  - Textbook: Alfred V. Aho, Monica S. Lam, Ravi Sethi, and Jefrey D. Ullman. Compilers: Principles, Techniques, & Tools. Pearson Education, second edition, 2007
  - LLVM API: https://llvm.org/doxygen/group__LLVMC.html
  - Flex: https://www.cs.virginia.edu/~cr4bd/flex-manual/Introduction.html#Introduction
+    - Flex patterns (for recognizing tokens): https://www.cs.virginia.edu/~cr4bd/flex-manual/Patterns.html#Patterns
+ - Bison: https://www.gnu.org/software/bison/manual/bison.html
 ------------------------------------
 # Infrastructure
-- TODO: Decide what language to compile (C is probably a good choice for simplicity)
 - TODO: Create syllabus/schedule
 - TODO: Decide meeting times
 - TODO: Decide whether to write lexer/parser or generate

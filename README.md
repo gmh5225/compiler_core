@@ -22,7 +22,7 @@
 - TODO: Decide meeting times
 - TODO: Decide whether to write lexer/parser or generate
 ------------------------------------
-# Programming
+# General TODO
 - TODO: Create lexer/parser (generated or from scratch)
 - TODO: Type-checking
 - TODO: Symbol Table and Scope Management

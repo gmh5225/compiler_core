@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Step 1: Compile the lexer
-flex ../lexer.l
+flex ../lexer.lex
 gcc lex.yy.c -o output
 
 # Step 2: A function to test each keyword
@@ -41,5 +41,8 @@ test_keyword "struct" "struct keyword"
 test_keyword "switch" "switch keyword"
 test_keyword "void" "void keyword"
 test_keyword "while" "while keyword"
+test_keyword "abcdefg" "identifier"
+test_keyword "0.9" "double"
+test_keyword "1" "integer"
 
 rm lex.yy.c output

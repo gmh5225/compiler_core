@@ -7,6 +7,8 @@
 /* constants */
 
 ID [a-zA-Z_][a-zA-Z0-9_]* 
+DOUBLE [0-9]+.[0-9]*
+INTEGER [0-9]+
 
 /* rules (alphabetical) */
 %%
@@ -34,7 +36,10 @@ switch {printf("switch keyword");}
 void {printf("void keyword");}
 while {printf("while keyword");}
 
-{ID} {printf("Identifier\n");}
+{ID} {printf("identifier");}
+{DOUBLE} {printf("double");}
+{INTEGER} {printf("integer");}
+
 . {printf("Invalid token\n");}
 \n {return 0;}
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-flex lexer.l
+flex ../lexer.lex
 
 gcc lex.yy.c -o output
 

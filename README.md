@@ -10,6 +10,7 @@
 # Resources
  - Textbook: Alfred V. Aho, Monica S. Lam, Ravi Sethi, and Jefrey D. Ullman. Compilers: Principles, Techniques, & Tools. Pearson Education, second edition, 2007
  - LLVM API: https://llvm.org/doxygen/group__LLVMC.html
+ - Flex: https://www.cs.virginia.edu/~cr4bd/flex-manual/Introduction.html#Introduction
 ------------------------------------
 # Infrastructure
 - TODO: Decide what language to compile (C is probably a good choice for simplicity)

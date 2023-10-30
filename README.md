@@ -20,10 +20,9 @@
 # Infrastructure
 - TODO: Create syllabus/schedule
 - TODO: Decide meeting times
-- TODO: Decide whether to write lexer/parser or generate
 ------------------------------------
 # General TODO
-- TODO: Create lexer/parser (generated or from scratch)
+- TODO: Create lexer/parser
 - TODO: Type-checking
 - TODO: Symbol Table and Scope Management
 - TODO: Memory Management

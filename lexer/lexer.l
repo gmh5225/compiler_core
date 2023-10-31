@@ -1,5 +1,7 @@
 %{
-    /* definitions */
+    /* definitions, header files, macros etc. */
+    int yylex (void);
+    void yyerror (char const *);
 %}
 
 /*%option c++*/
@@ -10,7 +12,7 @@ ID [a-zA-Z_][a-zA-Z0-9_]*
 DOUBLE [0-9]+.[0-9]*
 INTEGER [0-9]+
 
-/* rules (alphabetical) */
+/* rules */
 %%
 case {printf("case keyword");}
 char {printf("char keyword");}
@@ -36,20 +38,31 @@ switch {printf("switch keyword");}
 void {printf("void keyword");}
 while {printf("while keyword");}
 
+"=" {printf("equal");}
+"==" {printf("double equal");}
+"!=" {printf("does not equal");}
+"<" {printf("less than");}
+"<=" {printf("less than or equal to");}
+">" {printf("greater than");}
+">=" {printf("greater than or equal to");}
+"(" {printf("left paren");}
+")" {printf("right paren");}
+"{" {printf("left bracket");}
+"}" {printf("right bracket");}
+"." {printf("dot");}
+"," {printf("comma");}
+"+" {printf("plus");}
+"-" {printf("minus");}
+"*" {printf("mult");}
+"/" {printf("divisor");}
+
 {ID} {printf("identifier");}
 {DOUBLE} {printf("double");}
-{INTEGER} {printf("integer");}
+{INTEGER} {yylval.num = atoi(yytext); return INTEGER;}
 
-. {printf("Invalid token\n");}
-\n {return 0;}
+\n {return EOL;}
+. {printf("Invalid token"); yyterminate();}
 
 %%
 
 yywrap() {}
-
-int main() {
-    printf("Enter string: ");
-    yylex();
-
-    return 0;
-}

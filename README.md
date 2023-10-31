@@ -4,6 +4,8 @@
 ------------------------------------
 # Goals
 - Compile basic parts of C
+- Create the frontend in C++ (to utilize flex/bison)
+- Create the backend in Rust, and generate LLVM IR
 ------------------------------------
 # Rust
 - Documentation: https://doc.rust-lang.org/book/

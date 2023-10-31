@@ -29,8 +29,7 @@
 │   │   │   └── register_alloc.rs  # Register allocation functions
 │   │   ├── runtime/
 │   │   │   ├── mod.rs             # Module file for runtime support
-│   │   │   ├── memory.rs          # Memory allocation functions
-│   │   │   └── garbage_collector.rs # If your language has garbage collection
+│   │   │   └── memory.rs          # Memory allocation functions
 │   │   ├── debug/
 │   │   │   ├── mod.rs             # Module file for debugging facilities
 │   │   │   └── symbols.rs         # Symbol resolution for debugging

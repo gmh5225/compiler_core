@@ -1,10 +1,12 @@
 %{
     /* definitions, header files, macros etc. */
+    #include <stdio.h>
+    #include <stdlib.h>
     int yylex (void);
     void yyerror (char const *);
 %}
 
-/*%option c++*/
+%option c++
 
 /* constants */
 

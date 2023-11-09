@@ -4,6 +4,8 @@
     #include <stdlib.h>
     int yylex (void);
     void yyerror (char const *);
+    #define SAVE_TOKEN yylval.string = new std::string(yytext, yyleng)
+    #define TOKEN(t) (yylval.token = t)
 %}
 
 %option c++

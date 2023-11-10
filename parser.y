@@ -10,7 +10,8 @@
 
 %token EOL 
 %token<num> INTEGER
-%token<num> exp;
+%type<num> exp
+%token PLUS
 
 /* rules */
 
@@ -31,5 +32,10 @@ exp:
 int main() {
     yyparse();
 
+    return 0;
+}
+
+int yyerror(char* s) {
+    printf("ERROR: %s\n", s);
     return 0;
 }

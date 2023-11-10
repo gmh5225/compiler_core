@@ -1544,7 +1544,7 @@ int main() {
     return 0;
 }
 
-yyerror(char* s) {
+int yyerror(char* s) {
     printf("ERROR: %s\n", s);
     return 0;
 }

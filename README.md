@@ -19,6 +19,13 @@
     - Flex patterns (for recognizing tokens): https://www.cs.virginia.edu/~cr4bd/flex-manual/Patterns.html#Patterns
  - Bison: https://www.gnu.org/software/bison/manual/bison.html
 ------------------------------------
+# LLVM
+- Download: https://releases.llvm.org/download.html#3.5
+- Documentation: https://releases.llvm.org/17.0.1/docs/index.html
+- To fix path on MacOS (Apple Sillicon chip):
+   - echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
+   - source ~/.zshrc
+   - llvm-config --version
 # Infrastructure
 - TODO: Create syllabus/schedule
 - TODO: Decide meeting times

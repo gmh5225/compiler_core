@@ -26,12 +26,12 @@
    - echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
    - source ~/.zshrc
    - llvm-config --version
+------------------------------------
 # Infrastructure
 - TODO: Create syllabus/schedule
 - TODO: Decide meeting times
 ------------------------------------
 # General TODO
-- TODO: Create lexer/parser
 - TODO: Type-checking
 - TODO: Symbol Table and Scope Management
 - TODO: Memory Management
@@ -40,3 +40,4 @@
 - TODO: Linking
 - TODO: Optimizations
 - TODO: Error Handling/Debugging
+- TODO: Figure out if LLVM can work on all machines

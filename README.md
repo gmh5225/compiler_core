@@ -32,6 +32,7 @@
    - source ~/.zshrc
    - llvm-config --version
 - Developer package: https://packages.ubuntu.com/jammy/llvm-14-dev
+   - This is written only for Debian-based OS's. We'll need to find a workaround here, right now I'm thinking Docker images.
 ------------------------------------
 # Infrastructure
 - TODO: Create syllabus/schedule

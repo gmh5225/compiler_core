@@ -5,15 +5,19 @@ docker pull ubuntu
 
 docker run -i -t ubuntu /bin/bash
 
-apt install curl
+apt install curl -y
 
-apt install aptitude
+apt install aptitude -y
 
-apt install llvm-dev
+apt install llvm-dev -y
 
 apt install g++ -y
 
-apt install llvm
+apt install llvm -y
+
+apt install bison -y
+
+apt install flex -y
 
 apt update
 

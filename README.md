@@ -1,11 +1,16 @@
 # Compiler Design
 - Independent Study sponsored by Aaron Cass.
-- Students: Caleb L'Italien, John Daly
+- Students: Caleb L'Italien, John Daly, Thomas Breimer (tentatively)
 ------------------------------------
 # Goals
 - Compile basic parts of C
 - Create the frontend in C++ (to utilize flex/bison)
 - Create the backend in Rust, and generate LLVM IR
+- Make the project workable on all types of machines
+------------------------------------
+# C++
+- Documentation: https://en.cppreference.com/w/cpp
+- Basic tutorials: https://cplusplus.com/doc/tutorial/
 ------------------------------------
 # Rust
 - Documentation: https://doc.rust-lang.org/book/
@@ -26,6 +31,7 @@
    - echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
    - source ~/.zshrc
    - llvm-config --version
+- Developer package: https://packages.ubuntu.com/jammy/llvm-14-dev
 ------------------------------------
 # Infrastructure
 - TODO: Create syllabus/schedule

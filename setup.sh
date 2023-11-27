@@ -7,6 +7,18 @@ docker run -i -t ubuntu /bin/bash
 
 apt install curl
 
-echo "deb http://us.archive.ubuntu.com/ubuntu/ jammy main universe" >> /etc/apt/sources.list
+apt install aptitude
+
+apt install llvm-dev
+
+apt install g++ -y
+
+apt install llvm
 
 apt update
+
+docker run -v /Users/caleblitalien/compiler-design:/home/compiler-design -it ubuntu bash
+
+cd /home/compiler-design
+
+g++ -o parser `llvm-config --libs core jit native --cxxflags --ldflags` *.cpp

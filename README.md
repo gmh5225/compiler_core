@@ -3,14 +3,9 @@
 - Students: Caleb L'Italien, John Daly, Thomas Breimer (tentatively)
 ------------------------------------
 # Goals
-- Compile basic parts of C
-- Create the frontend in C++ (to utilize flex/bison)
-- Create the backend in Rust, and generate LLVM IR
+- Compile basic parts of custom language
+- Generate LLVM IR using Rust
 - Make the project workable on all types of machines
-------------------------------------
-# C++
-- Documentation: https://en.cppreference.com/w/cpp
-- Basic tutorials: https://cplusplus.com/doc/tutorial/
 ------------------------------------
 # Rust
 - Documentation: https://doc.rust-lang.org/book/
@@ -27,12 +22,6 @@
 # LLVM
 - Download: https://releases.llvm.org/download.html#3.5
 - Documentation: https://releases.llvm.org/17.0.1/docs/index.html
-- To fix path on MacOS (Apple Sillicon chip):
-   - echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
-   - source ~/.zshrc
-   - llvm-config --version
-- Developer package: https://packages.ubuntu.com/jammy/llvm-14-dev
-   - This is written only for Debian-based OS's. We'll need to find a workaround here, right now I'm thinking Docker images.
 ------------------------------------
 # Infrastructure
 - TODO: Create syllabus/schedule

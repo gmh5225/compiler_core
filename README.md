@@ -20,6 +20,7 @@
  - Bison: https://www.gnu.org/software/bison/manual/bison.html
 ------------------------------------
 # LLVM
+- Use verison 17
 - Download: https://releases.llvm.org/download.html#3.5
 - Documentation: https://releases.llvm.org/17.0.1/docs/index.html
 ------------------------------------
@@ -36,4 +37,3 @@
 - TODO: Linking
 - TODO: Optimizations
 - TODO: Error Handling/Debugging
-- TODO: Figure out if LLVM can work on all machines

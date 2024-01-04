@@ -22,18 +22,21 @@ impl Lexer {
         }
     }
 
-    /// Lexer driver
-    pub fn lex(input: &str) {
+    /// Returns a vector of tokens
+    pub fn lex(input: &str) -> Vec<token::Token> {
         let mut lexer = Lexer::new(input.chars().collect());
+        let mut tokens = Vec::new();
         lexer.read_char();
 
         loop {
             let token = lexer.next_token();
             if token == token::Token::EOF {
+                tokens.push(token);
                 break;
             }
-            println!("{:?}", token);
+            tokens.push(token);
         }
+        tokens
     }
     
     /// Advances the currently read character
@@ -116,9 +119,9 @@ mod tests {
     #[test]
     fn basic_test() {
         let input = "let a = 5;";
-        let mut lexer = Lexer::new(input.chars().collect());
+        let tokens = Lexer::lex(input);
 
-        let expected_tokens = [
+        let expected_tokens = vec![
             token::Token::LET,
             token::Token::IDENTIFIER(vec!['a']),
             token::Token::EQUAL('='),
@@ -127,9 +130,6 @@ mod tests {
             token::Token::EOF,
         ];
 
-        for expected in expected_tokens.iter() {
-            let token = lexer.next_token();
-            assert_eq!(&token, expected);
-        }
+        assert_eq!(tokens, expected_tokens);
     }
 }

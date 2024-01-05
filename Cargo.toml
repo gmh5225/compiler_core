@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 llvm-sys = "170"
+lazy_static = "1.4"
+once_cell = "1.7"

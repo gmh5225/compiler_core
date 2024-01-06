@@ -19,13 +19,20 @@ impl<'a> Parser<'a> {
     } 
     
     pub fn parse(input: Vec<Token>) -> Option<AST> {
-        let mut parser: Parser = Parser::new(&input);
-        let mut ast = AST::new(ASTNode::new(SyntaxElement::FileExpression));  
+        let mut parser = Parser::new(&input);
+        let mut root_children = Vec::new();  
 
         while parser.current < input.len() {
-            parser.parse_expression();
+            if let Some(expr) = parser.parse_expression() {
+                root_children.push(expr);  
+            } else {
+                return None;  
+            }
         }
-        Some(ast)
+
+        let mut root = ASTNode::new(SyntaxElement::FileExpression);
+        root.children = root_children;
+        Some(AST::new(root))  
     }
 
     fn parse_expression(&mut self) -> Option<ASTNode> {
@@ -103,4 +110,38 @@ impl<'a> Parser<'a> {
             None
         }
     }
-} 
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn basic_test() {
+        let tokens = vec![
+            Token::INT(vec!['1', '2', '3']),
+            Token::PLUS,
+            Token::INT(vec!['4', '5', '6']),
+        ];
+        let ast: Option<AST> = Parser::parse(tokens);
+
+        let literal_1 = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "123".to_string()));
+        let literal_2 = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "456".to_string()));
+
+        let binary_expr = ASTNode::new(SyntaxElement::BinaryExpression {
+            left: Box::new(literal_1),
+            operator: "+".to_string(),
+            right: Box::new(literal_2),
+        });
+
+        let mut expected_ast = AST {
+            root: ASTNode::new(SyntaxElement::FileExpression),
+        };
+        expected_ast.root.children.push(binary_expr);
+
+        assert!(ast.is_some(), "Parsed AST was None");
+        assert_eq!(ast.unwrap(), expected_ast);
+    }
+
+}
+

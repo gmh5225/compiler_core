@@ -14,14 +14,14 @@ extern crate llvm_sys as llvm;
 //     }
 // }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DataType {
     Integer,
     Float,
     Boolean,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SyntaxElement {
     FileExpression,
     Literal(DataType, String),
@@ -42,12 +42,12 @@ pub enum SyntaxElement {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)] // may need to implement partialeq or eq at some point
 pub struct AST {
-    root: ASTNode,
+    pub root: ASTNode,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ASTNode {
     pub element: SyntaxElement,
     pub children: Vec<ASTNode>,

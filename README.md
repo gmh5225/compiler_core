@@ -15,9 +15,6 @@
 # Resources
  - Textbook: Alfred V. Aho, Monica S. Lam, Ravi Sethi, and Jefrey D. Ullman. Compilers: Principles, Techniques, & Tools. Pearson Education, second edition, 2007
  - LLVM API: https://llvm.org/doxygen/group__LLVMC.html
- - Flex: https://www.cs.virginia.edu/~cr4bd/flex-manual/Introduction.html#Introduction
-    - Flex patterns (for recognizing tokens): https://www.cs.virginia.edu/~cr4bd/flex-manual/Patterns.html#Patterns
- - Bison: https://www.gnu.org/software/bison/manual/bison.html
 ------------------------------------
 # LLVM
 - Use verison 17

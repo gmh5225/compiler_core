@@ -6,6 +6,8 @@ use frontend::syntax::token::Token;
 
 use std::io::{self, Write};
 
+use crate::frontend::{syntax::ast::AST, parser::Parser};
+
 fn print_ready() {
     let stderr = io::stderr();
     let mut handle = stderr.lock();
@@ -20,20 +22,13 @@ fn read_user_input() -> String {
 }
 
 fn main_loop() {
-    // Loop until end of file
+    // Command line interpreter
     loop {
         print_ready();
-        let user_input = read_user_input();
-        if user_input.is_empty() || user_input == "exit" {
-            break;
-        }
+        let user_input: String = read_user_input();
         let tokens: Vec<Token> = Lexer::lex(&user_input);
-        println!("{:?}", tokens);
-        // match cur_tok {
-        //     Token::EOF => return,
-        //     ';' => advance_token(),
-        //     _ => handle_top_level_expression(),
-        // }
+        let ast: Option<AST> = Parser::parse(tokens);
+        println!("{:?}", ast);
     }
 }
 

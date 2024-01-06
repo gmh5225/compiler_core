@@ -1,37 +1,71 @@
 extern crate llvm_sys as llvm;
-use std::collections::HashMap;
-use std::ffi::CString;
 
-pub trait ASTNode {
-    fn codegen(&self) -> llvm::prelude::LLVMValueRef;
+// enum ASTNodeType {
+//     NumericalExpr(NumExpr),
+// }
+
+// struct NumExpr {
+//     val: f64,
+// }
+
+// impl NumExpr {
+//     fn new(val : f64) -> Self {
+//         NumExpr { val }
+//     }
+// }
+
+#[derive(Debug, Clone, Copy)]
+pub enum DataType {
+    Integer,
+    Float,
+    Boolean,
 }
 
-struct NumExpr {
-    val: f64,
+#[derive(Debug, Clone)]
+pub enum SyntaxElement {
+    FileExpression,
+    Literal(DataType, String),
+    Variable(String),
+    BinaryExpression {
+        left: Box<ASTNode>,
+        operator: String,
+        right: Box<ASTNode>,
+    },
+    IfStatement {
+        condition: Box<ASTNode>,
+        then_branch: Box<ASTNode>,
+        else_branch: Box<ASTNode>,
+    }, 
+    Assignment {
+        variable: String,
+        value: Box<ASTNode>,
+    },
 }
 
-impl NumExpr {
-    fn new(val : f64) -> Self {
-        NumExpr { val }
+#[derive(Debug)]
+pub struct AST {
+    root: ASTNode,
+}
+
+#[derive(Debug, Clone)]
+pub struct ASTNode {
+    pub element: SyntaxElement,
+    pub children: Vec<ASTNode>,
+}
+
+impl AST {
+    pub fn new(root: ASTNode) -> Self {
+        AST { 
+            root 
+        }
     }
 }
 
-impl ASTNode for NumExpr {
-    fn codegen(&self) -> llvm::prelude::LLVMValueRef {
-        let context = unsafe {
-            llvm::core::LLVMContextCreate()
-        };
-        let builder = unsafe {
-            llvm::core::LLVMCreateBuilderInContext(context)
-        };
-        let module = unsafe {
-            let module_name = CString::new("module_name").expect("Failed to create CString");
-            llvm::core::LLVMModuleCreateWithNameInContext(module_name.as_ptr(), context) 
-        };
-        let named_values: HashMap<String, llvm::prelude::LLVMValueRef> = HashMap::new();
-        unsafe {
-            let ty = llvm::core::LLVMDoubleTypeInContext(context);
-            llvm_sys::core::LLVMConstReal(ty, self.val)
+impl ASTNode {
+    pub fn new(element: SyntaxElement) -> Self {
+        ASTNode {
+            element,
+            children: Vec::new(),
         }
     }
 }

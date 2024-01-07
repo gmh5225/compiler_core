@@ -3,7 +3,9 @@ Converts tokens into an AST
 */
 
 use crate::frontend::syntax::token::Token;
-use crate::frontend::syntax::ast::{AST, ASTNode, SyntaxElement, DataType};
+use crate::frontend::syntax::{ ast::{AST, ASTNode}, 
+                               syntax_element::SyntaxElement, 
+                               data_type:: DataType };
 
 pub struct Parser<'a> {
     input: &'a Vec<Token>,

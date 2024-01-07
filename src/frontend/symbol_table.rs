@@ -1,3 +1,7 @@
+/*
+Stores values and their names, accounting for scope with a stack
+ */
+
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy)]

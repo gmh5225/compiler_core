@@ -11,7 +11,9 @@ use std::{ffi::CString, collections::HashMap};
 // }
 
 use llvm_sys::{core, prelude::*};
-use crate::frontend::syntax::ast::{AST, ASTNode, SyntaxElement, DataType};
+use crate::frontend::syntax::{ ast::{AST, ASTNode}, 
+                               syntax_element::SyntaxElement, 
+                               data_type:: DataType };
 
 pub struct IRGenerator {
     context: LLVMContextRef,

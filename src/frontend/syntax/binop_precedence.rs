@@ -1,3 +1,7 @@
+/*
+Defines the precedence of binary operations
+ */
+
 use std::collections::HashMap;
 
 pub fn binop_precedence() -> HashMap<char, i32> {

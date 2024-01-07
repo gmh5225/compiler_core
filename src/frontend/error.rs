@@ -1,3 +1,7 @@
+/*
+Errors in the compilation process
+ */
+
 #[derive(Debug)]
 pub enum ErrorType {    
     /// Binary operation has incompatible types

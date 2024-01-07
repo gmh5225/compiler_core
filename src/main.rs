@@ -24,11 +24,12 @@ fn read_user_input() -> String {
 
 fn main_loop() {
     // Command line interpreter
+    // TODO: End execution at any step if errors
     loop {
         print_ready();
         let user_input: String = read_user_input();
-        let tokens: Vec<Token> = Lexer::lex(&user_input);
-        let ast: Option<AST> = Parser::parse(tokens);
+        let tokens: Vec<Token> = Lexer::lex(&user_input); // switch to Vec<ErrorType>
+        let ast: Option<AST> = Parser::parse(tokens); // switch to Vec<ErrorType>
         if let Some(ast) = ast {
             let sem_analysis: Vec<ErrorType> = SemAnalysis::sem_analysis(ast);
         }

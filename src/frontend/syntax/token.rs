@@ -1,8 +1,7 @@
 /*
 Defines acceptable tokens in the program
  */
-#[derive(PartialEq)]
-#[derive(Debug)]
+#[derive(PartialEq, Debug)]
 pub enum Token {
     ERROR,
     EOF,

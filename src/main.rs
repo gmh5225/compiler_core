@@ -1,3 +1,12 @@
+/*
+Program driver
+    Goal capabilities:
+        - Command line interpreter
+        - Compile to LLVM IR/.o
+        - Automated execution of .o
+        - Regression testing
+ */
+
 pub mod frontend;
 pub mod backend;
 
@@ -28,8 +37,8 @@ fn main_loop() {
     loop {
         print_ready();
         let user_input: String = read_user_input();
-        let tokens: Vec<Token> = Lexer::lex(&user_input); // switch to Vec<ErrorType>
-        let ast: Option<AST> = Parser::parse(tokens); // switch to Vec<ErrorType>
+        let tokens: Vec<Token> = Lexer::lex(&user_input); // switch to Result(Vec<Token>, Vec<ErrorType>)
+        let ast: Option<AST> = Parser::parse(tokens); // switch to Result(AST, Vec<ErrorType>)
         if let Some(ast) = ast {
             let sem_analysis: Vec<ErrorType> = SemAnalysis::sem_analysis(ast);
         }

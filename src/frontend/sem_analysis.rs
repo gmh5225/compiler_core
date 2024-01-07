@@ -2,10 +2,10 @@
 Checks an AST for semantic correctness
  */
 
- use crate::frontend::syntax::{ ast::{AST, ASTNode}, 
+use crate::frontend::syntax::{ ast::{AST, ASTNode}, 
                                 syntax_element::SyntaxElement, 
                                 data_type:: DataType };
- use crate::frontend::error::ErrorType;
+use crate::frontend::error::ErrorType;
 
 use crate::frontend::symbol_table::{SymbolTableStack, SymbolTable};
 

@@ -21,6 +21,9 @@
 - Download: https://releases.llvm.org/download.html#3.5
 - Documentation: https://releases.llvm.org/17.0.1/docs/index.html
 ------------------------------------
+# Linker
+- https://linker.iecc.com/
+------------------------------------
 # Infrastructure
 - TODO: Create syllabus/schedule
 - TODO: Decide meeting times

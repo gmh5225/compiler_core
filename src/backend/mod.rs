@@ -1,2 +1,3 @@
-pub mod ir_codegen;
-pub mod object_codegen;
+pub mod linker;
+pub mod code_generation;
+pub mod execution_engine;

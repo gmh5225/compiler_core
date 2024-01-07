@@ -44,7 +44,7 @@ impl SemAnalysis {
                 errors.push(ErrorType::InvalidAssignment {
                     target: "FileExpression".to_string()
                 })
-            }
+            },
             SyntaxElement::Literal(data_type, 
                                    value) => {
             },
@@ -81,9 +81,9 @@ impl SemAnalysis {
             SyntaxElement::Initialization { variable, 
                                             value } => {
                 
-            }
-            SyntaxElement::Assignment{variable, 
-                                        value} => {
+            }, 
+            SyntaxElement::Assignment{ variable, 
+                                        value } => {
                 if !self.is_variable_defined(variable) {
                     errors.push(ErrorType::UndefinedVariable {
                         variable_name: variable.clone()

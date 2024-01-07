@@ -18,6 +18,8 @@ use crate::frontend::{ syntax::{ ast::AST, token::Token },
                        sem_analysis::SemAnalysis,
                        error::ErrorType };
 
+use crate::backend::code_generation::ir_codegen::IRGenerator;
+
 fn print_ready() {
     let stderr = io::stderr();
     let mut handle = stderr.lock();
@@ -40,7 +42,10 @@ fn main_loop() {
         let tokens: Vec<Token> = Lexer::lex(&user_input); // switch to Result(Vec<Token>, Vec<ErrorType>)
         let ast: Option<AST> = Parser::parse(tokens); // switch to Result(AST, Vec<ErrorType>)
         if let Some(ast) = ast {
-            let sem_analysis: Vec<ErrorType> = SemAnalysis::sem_analysis(ast);
+            let sem_analysis_errors: Vec<ErrorType> = SemAnalysis::sem_analysis(ast.clone());
+            if sem_analysis_errors.len() == 0 {
+                let generated_ir = IRGenerator::generate_ir(&ast);
+            }
         }
     }
 }

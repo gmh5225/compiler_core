@@ -4,10 +4,9 @@ Represents an abstract syntax tree
 
 extern crate llvm_sys as llvm;
 use std::fmt;
-use crate::frontend::syntax::{ syntax_element::SyntaxElement,
-                               data_type::DataType, };
+use crate::frontend::syntax::syntax_element::SyntaxElement;
 
-#[derive(Debug, PartialEq)] // may need to implement partialeq or eq at some point
+#[derive(Debug, PartialEq, Clone)] // may need to implement partialeq or eq at some point
 pub struct AST {
     pub root: ASTNode,
 }

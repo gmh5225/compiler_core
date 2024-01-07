@@ -1,12 +1,13 @@
 pub mod frontend;
 pub mod backend;
 
-use frontend::lexer::Lexer;
-use frontend::syntax::token::Token;
-
 use std::io::{self, Write};
 
-use crate::frontend::{syntax::ast::AST, parser::Parser};
+use crate::frontend::{ syntax::{ ast::AST, token::Token }, 
+                       parser::Parser, 
+                       lexer::Lexer, 
+                       sem_analysis::SemAnalysis,
+                       error::ErrorType };
 
 fn print_ready() {
     let stderr = io::stderr();
@@ -28,7 +29,9 @@ fn main_loop() {
         let user_input: String = read_user_input();
         let tokens: Vec<Token> = Lexer::lex(&user_input);
         let ast: Option<AST> = Parser::parse(tokens);
-        println!("{:?}", ast);
+        if let Some(ast) = ast {
+            let sem_analysis: Vec<ErrorType> = SemAnalysis::sem_analysis(ast);
+        }
     }
 }
 

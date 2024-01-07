@@ -1,1 +1,0 @@
-// type checking, scope resolution, rule-based violations

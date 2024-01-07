@@ -17,7 +17,7 @@
  - LLVM API: https://llvm.org/doxygen/group__LLVMC.html
 ------------------------------------
 # LLVM
-- Use verison 17
+- Use version 17
 - Download: https://releases.llvm.org/download.html#3.5
 - Documentation: https://releases.llvm.org/17.0.1/docs/index.html
 ------------------------------------
@@ -26,11 +26,14 @@
 - TODO: Decide meeting times
 ------------------------------------
 # General TODO
-- TODO: Type-checking
-- TODO: Symbol Table and Scope Management
-- TODO: Memory Management
-- TODO: Preprocessor
-- TODO: Runtime Library
-- TODO: Linking
-- TODO: Optimizations
-- TODO: Error Handling/Debugging
+- TODO: Expand Token
+- TODO: Expand DataType
+- TODO: Expand SyntaxElement
+- TODO: Expand node_analysis (SemAnalysis)
+- TODO: Expand ErrorType
+- TODO: OPTIMIZE.md
+- TODO: IRGenerator
+- TODO: Execution Engine
+- TODO: OGenerator
+- TODO: Linker
+- TODO: Regression Testing

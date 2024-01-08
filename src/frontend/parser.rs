@@ -2,11 +2,13 @@
 Converts tokens into an AST
 */
 
-use crate::frontend::syntax::token::Token;
-use crate::frontend::syntax::{ ast::{AST, ASTNode}, 
+use crate::frontend::syntax::{ token::Token ,
+                               ast::{ AST, ASTNode }, 
                                syntax_element::SyntaxElement, 
-                               data_type:: DataType };
+                               data_type::DataType };
 
+
+/// Parses an input of tokens into an AST   
 pub struct Parser<'a> {
     input: &'a Vec<Token>,
     current: usize,
@@ -33,7 +35,7 @@ impl<'a> Parser<'a> {
         }
 
         let mut root = ASTNode::new(SyntaxElement::FileExpression);
-        root.children = root_children;
+        root.add_children(root_children);
         Some(AST::new(root))  
     }
 
@@ -47,7 +49,7 @@ impl<'a> Parser<'a> {
                     let right_expr = self.parse_expression(); 
 
                     if let Some(right) = right_expr {
-                        if let Some(SyntaxElement::Variable(var_name)) = left_expr.clone().map(|node| node.element) {
+                        if let Some(SyntaxElement::Variable(var_name)) = left_expr.clone().map(|node| node.get_element()) {
                             return Some(ASTNode::new(SyntaxElement::Assignment {
                                 variable: var_name,
                                 value: Box::new(right),
@@ -135,11 +137,9 @@ mod tests {
             operator: "+".to_string(),
             right: Box::new(literal_2),
         });
-
-        let mut expected_ast = AST {
-            root: ASTNode::new(SyntaxElement::FileExpression),
-        };
-        expected_ast.root.children.push(binary_expr);
+        let mut root = ASTNode::new(SyntaxElement::FileExpression);
+        root.add_child(binary_expr);
+        let expected_ast = AST::new(root);
 
         assert!(ast.is_some(), "Parsed AST was None");
         assert_eq!(ast.unwrap(), expected_ast);

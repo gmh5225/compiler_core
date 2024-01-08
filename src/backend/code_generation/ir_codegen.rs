@@ -39,16 +39,16 @@ impl IRGenerator {
 
     pub fn generate_ir(ast: &AST) -> LLVMModuleRef {
         let mut ir_generator: IRGenerator = IRGenerator::new();
-        let root: ASTNode = ast.root.clone();
-        ir_generator.generate_node_ir(&ast.root);
-        for child in &root.children {
+        let root: ASTNode = ast.get_root().clone();
+        ir_generator.generate_node_ir(&ast.get_root());
+        for child in &root.get_children() {
             ir_generator.generate_node_ir(&child);
         };
         ir_generator.module
     }
 
     fn generate_node_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
-        let generated_ir: LLVMValueRef = match &node.element {
+        let generated_ir: LLVMValueRef = match &node.get_element() {
             SyntaxElement::FileExpression => {
                  std::ptr::null_mut()
             }
@@ -90,7 +90,7 @@ impl IRGenerator {
             _ => unimplemented!("unimplemented expression")
         };
 
-        for child in &node.children {
+        for child in &node.get_children() {
             self.generate_node_ir(child);
         };
         generated_ir
@@ -157,22 +157,21 @@ impl IRGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::frontend::syntax::{syntax_element::SyntaxElement, data_type::DataType};
-
     #[test]
     fn basic_test() {
+        // NOTE: IR basic test passing does not necessarily mean success, check output.ll\n");
+
         let left_node = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "5".to_string()));
         let right_node = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "3".to_string()));
-        let binary_expr = ASTNode {
-            element: SyntaxElement::BinaryExpression {
+        let binary_expr = ASTNode::new(
+            SyntaxElement::BinaryExpression {
                 left: Box::new(left_node),
                 operator: "+".to_string(),
                 right: Box::new(right_node),
             },
-            children: vec![],
-        };
-        let mut root_node = ASTNode::new(SyntaxElement::FileExpression);
-        root_node.children.push(binary_expr);
+        );
+        let root_node = ASTNode::new(SyntaxElement::FileExpression);
+        root_node.get_children().push(binary_expr);
         let ast = AST::new(root_node);
 
         IRGenerator::write_ir_to_file(IRGenerator::generate_ir(&ast))

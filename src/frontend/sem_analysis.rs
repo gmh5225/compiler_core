@@ -2,13 +2,13 @@
 Checks an AST for semantic correctness
  */
 
-use crate::frontend::syntax::{ ast::{AST, ASTNode}, 
-                                syntax_element::SyntaxElement, 
-                                data_type:: DataType };
-use crate::frontend::error::ErrorType;
+use crate::frontend::{ syntax::{ ast::{ AST, ASTNode }, 
+                                 syntax_element::SyntaxElement, 
+                                 data_type:: DataType },
+                       error::ErrorType,
+                       symbol_table::{ SymbolTableStack, SymbolTable } };
 
-use crate::frontend::symbol_table::{SymbolTableStack, SymbolTable};
-
+/// Checks a given AST for semantic correctness
 pub struct SemAnalysis {
     input: AST,
     scope_stack: SymbolTableStack
@@ -28,10 +28,10 @@ impl SemAnalysis {
         semantic_analysis.scope_stack.push(SymbolTable::new());
 
         let mut errors: Vec<ErrorType> = Vec::new();
-        let root: ASTNode = semantic_analysis.input.root.clone();
+        let root: ASTNode = semantic_analysis.input.get_root().clone();
 
-        if let SyntaxElement::FileExpression = root.element {
-            for child in &root.children {
+        if let SyntaxElement::FileExpression = root.get_element() {
+            for child in &root.get_children() {
                 semantic_analysis.node_analysis(child, &mut errors);
             }        
         }
@@ -39,7 +39,7 @@ impl SemAnalysis {
     }
 
     fn node_analysis(&mut self, node: &ASTNode, errors: &mut Vec<ErrorType>) {
-        match &node.element {
+        match &node.get_element() {
             SyntaxElement::FileExpression => {
                 errors.push(ErrorType::InvalidAssignment {
                     target: "FileExpression".to_string()
@@ -92,13 +92,13 @@ impl SemAnalysis {
                 self.node_analysis(value, errors);
             },
         }
-        for child in &node.children {
+        for child in &node.get_children() {
             self.node_analysis(child, errors);
         }
     }
 
     fn is_zero(&self, node: &ASTNode) -> bool {
-        match &node.element {
+        match &node.get_element() {
             SyntaxElement::Literal(DataType::Integer, value) => {
                 value.parse::<i64>().map_or(false, |num| num == 0)
             },
@@ -113,14 +113,14 @@ impl SemAnalysis {
         if let Some(top_table) = self.scope_stack.peek() {
             return top_table.get(variable).is_some();
         }
-        panic!("No scope defined")
+        panic!("No scope defined");
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::frontend::syntax::{ ast::{AST, ASTNode}, 
+    use crate::frontend::syntax::{ ast::{ AST, ASTNode }, 
                                    syntax_element::SyntaxElement, 
                                    data_type:: DataType };
     #[test]
@@ -135,7 +135,7 @@ mod tests {
         });
 
         let mut root_node = ASTNode::new(SyntaxElement::FileExpression);
-        root_node.children.push(division_expr);
+        root_node.add_child(division_expr);
 
         let ast = AST::new(root_node);
 

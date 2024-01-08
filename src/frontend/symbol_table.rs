@@ -3,21 +3,19 @@ Stores values and their names, accounting for scope with a stack
  */
 
 use std::collections::HashMap;
+use crate::frontend::syntax::data_type::DataType;
 
-#[derive(Debug, Clone, Copy)]
-pub enum DataType {
-    Integer,
-    Float,
-    Boolean,
-}
-
+/// A stack of symbol tables, used to represent different levels of scope
 pub struct SymbolTableStack {
     elements: Vec<SymbolTable>,
 }
+
+/// Initialized values in a scope
 pub struct SymbolTable {
-    values : HashMap<String, SymbolInfo>,
+    values: HashMap<String, SymbolInfo>,
 }
 
+/// Information on a symbol in a symboltable
 pub struct SymbolInfo {
     data_type: DataType,
 }

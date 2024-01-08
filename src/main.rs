@@ -35,7 +35,6 @@ fn read_user_input() -> String {
 
 fn main_loop() {
     // Command line interpreter
-    // TODO: End execution at any step if errors
     loop {
         print_ready();
         let user_input: String = read_user_input();
@@ -45,7 +44,12 @@ fn main_loop() {
             let sem_analysis_errors: Vec<ErrorType> = SemAnalysis::sem_analysis(ast.clone());
             if sem_analysis_errors.len() == 0 {
                 let generated_ir = IRGenerator::generate_ir(&ast);
+                println!("{:?}", generated_ir);
+            } else {
+                panic!("{:?}", sem_analysis_errors);
             }
+        } else {
+            panic!("Unsuccessfully tried to make AST");
         }
     }
 }

@@ -12,13 +12,12 @@ pub mod backend;
 
 use std::io::{self, Write};
 
-use crate::frontend::{ syntax::{ ast::AST, token::Token }, 
+use crate::{ frontend::{ syntax::{ ast::AST, token::Token }, 
                        parser::Parser, 
                        lexer::Lexer, 
                        sem_analysis::SemAnalysis,
-                       error::ErrorType };
-
-use crate::backend::code_generation::ir_codegen::IRGenerator;
+                       error::ErrorType },
+              backend::code_generation::ir_codegen::IRGenerator };
 
 fn print_ready() {
     let stderr = io::stderr();
@@ -34,25 +33,42 @@ fn read_user_input() -> String {
 }
 
 fn main_loop() {
-    // Command line interpreter
     loop {
         print_ready();
         let user_input: String = read_user_input();
-        let tokens: Vec<Token> = Lexer::lex(&user_input); // switch to Result(Vec<Token>, Vec<ErrorType>)
-        let ast: Option<AST> = Parser::parse(tokens); // switch to Result(AST, Vec<ErrorType>)
-        if let Some(ast) = ast {
-            let sem_analysis_errors: Vec<ErrorType> = SemAnalysis::sem_analysis(ast.clone());
-            if sem_analysis_errors.len() == 0 {
-                let generated_ir = IRGenerator::generate_ir(&ast);
-                println!("{:?}", generated_ir);
-            } else {
-                panic!("{:?}", sem_analysis_errors);
+
+        let tokens: Result<Vec<Token>, Vec<ErrorType>> = Lexer::lex(&user_input);
+        match tokens {
+            Ok(tokens) => {
+                let ast_result: Result<AST, Vec<ErrorType>> = Parser::parse(tokens);
+                match ast_result {
+                    Ok(ast) => {
+                        let sem_analysis_errors: Vec<ErrorType> = SemAnalysis::sem_analysis(ast.clone());
+                        if sem_analysis_errors.is_empty() {
+                            let generated_ir = IRGenerator::generate_ir(&ast);
+                            println!("{:?}", generated_ir);
+                        } else {
+                            for error in sem_analysis_errors {
+                                println!("Error: {:?}", error);
+                            }
+                        }
+                    },
+                    Err(parser_errors) => {
+                        for error in parser_errors {
+                            println!("Parser Error: {:?}", error);
+                        }
+                    }
+                }
+            },
+            Err(lexer_errors) => {
+                for error in lexer_errors {
+                    println!("Lexer Error: {:?}", error);
+                }
             }
-        } else {
-            panic!("Unsuccessfully tried to make AST");
         }
     }
 }
+
 
 fn main() {
     main_loop();

@@ -2,12 +2,12 @@
 Converts raw text into lexemes
 */
 
-use crate::frontend::syntax::token;
+use crate::frontend::syntax::token::{ Token, get_token };
+use crate::frontend::error::ErrorType;
 
 pub struct Lexer {
     input: Vec<char>, // Source code
     pub position: usize, // Current position in source code
-    pub read_position: usize, // Next character to read
     pub current: char, // Current character being read
 }
 
@@ -17,40 +17,40 @@ impl Lexer {
         Self {
             input: input,
             position: 0,
-            read_position: 0,
-            current: '0'
+            current: '~',
         }
     }
 
     /// Returns a vector of tokens
-    pub fn lex(input: &str) -> Vec<token::Token> {
+    pub fn lex(input: &str) -> Result<Vec<Token>, Vec<ErrorType>> {
         let mut lexer = Lexer::new(input.chars().collect());
         let mut tokens = Vec::new();
-        lexer.read_char();
+        lexer.current = lexer.input[0];
 
         loop {
             let token = lexer.next_token();
-            if token == token::Token::EOF {
+            if token == Token::EOF {
                 tokens.push(token);
                 break;
             }
             tokens.push(token);
         }
-        tokens
+        Ok(tokens)
     }
     
     /// Advances the currently read character
     pub fn read_char(&mut self) {
-        if self.read_position >= self.input.len() {
-            self.current = '0';
+        self.position += 1;
+        if self.position >= self.input.len() {
+            // println!("{:?}", self.position);
+            // println!("{:?}", self.current);
+            // println!("{:?}", self.input[self.position]);
+            self.current = '~';
         } else {
-            self.current = self.input[self.read_position];
+            self.current = self.input[self.position];
         }
-        self.position = self.read_position;
-        self.read_position += 1;
     }
 
-    
     /// Ignores whitespace
     pub fn skip_whitespace(&mut self) {
         if matches!(self.current, ' ' | '\t' | '\n' | '\r') {
@@ -58,23 +58,22 @@ impl Lexer {
         }
     }
 
-    
     /// Returns the current token type and advances to the next token
-    pub fn next_token(&mut self) -> token::Token {
+    pub fn next_token(&mut self) -> Token {
         self.skip_whitespace();
 
         let tok = match self.current {
-            '=' => token::Token::EQUAL,
-            '+' => token::Token::PLUS,
-            '-' => token::Token::MINUS,
-            ';' => token::Token::SEMICOLON,
-            '0' => token::Token::EOF,
+            '=' => Token::EQUAL,
+            '+' => Token::PLUS,
+            '-' => Token::MINUS,
+            ';' => Token::SEMICOLON,
+            '~' => Token::EOF,
             _ if is_letter(self.current) => {
                 let identifier = self.read_identifier();
-                token::get_token(&identifier).unwrap_or_else(|_| token::Token::IDENTIFIER(identifier))
+                get_token(&identifier).unwrap_or_else(|_| Token::IDENTIFIER(identifier))
             },
-            _ if is_digit(self.current) => token::Token::INT(self.read_number()),
-            _ => token::Token::ERROR,
+            _ if is_digit(self.current) => Token::INT(self.read_number()),
+            _ => Token::ERROR,
         };
 
         self.read_char();
@@ -100,7 +99,8 @@ impl Lexer {
         while self.position < self.input.len() && predicate(self.current) {
             self.read_char();
         }
-        self.input[start_pos..self.position].to_vec()
+        self.position = self.position - 1; // hacky solution, fix later
+        self.input[start_pos..self.position + 1].to_vec() 
     }
 }
 
@@ -118,18 +118,22 @@ mod tests {
     use super::*;
     #[test]
     fn basic_test() {
-        let input = "let a = 5 ;"; // fix this later
-        let tokens = Lexer::lex(input);
+        let input = "let aaaa= 5444;"; 
+        let tokens_result = Lexer::lex(input);
 
         let expected_tokens = vec![
-            token::Token::LET,
-            token::Token::IDENTIFIER(vec!['a']),
-            token::Token::EQUAL,
-            token::Token::INT(vec!['5']),
-            token::Token::SEMICOLON,
-            token::Token::EOF,
+            Token::LET,
+            Token::IDENTIFIER(vec!['a', 'a', 'a', 'a']),
+            Token::EQUAL,
+            Token::INT(vec!['5', '4', '4', '4']),
+            Token::SEMICOLON,
+            Token::EOF,
         ];
+        if let Ok(tokens) = tokens_result {
+            assert_eq!(tokens, expected_tokens);
+        } else {
+            panic!("Lexer failed to make tokens");
+        }
 
-        assert_eq!(tokens, expected_tokens);
     }
 }

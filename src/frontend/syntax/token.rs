@@ -19,6 +19,16 @@ pub enum Token {
     RETURN,
     MINUS,
     EQUAL,
+    FUNCTION,
+    RIGHTBRACKET, // }
+    LEFTBRACKET, // {
+    COMMA,
+    COLON,
+
+    /// Tokens for type annotations, not actual types. See data_type for acceptable types
+    TYPEDINTEGER,
+    TYPEDFLOAT,
+    TYPEDBOOLEAN,
 }
 
 pub fn get_token(raw_text: &Vec<char>) -> Result<Token, String> {
@@ -30,6 +40,7 @@ pub fn get_token(raw_text: &Vec<char>) -> Result<Token, String> {
         "if" => Ok(Token::IF),
         "else" => Ok(Token::ELSE),
         "return" => Ok(Token::RETURN),
+        "fn" => Ok(Token::FUNCTION),
         _ => Err(String::from("Unexpected keyword"))
     }
 }

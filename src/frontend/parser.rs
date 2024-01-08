@@ -22,6 +22,7 @@ impl<'a> Parser<'a> {
         }
     } 
     
+    /// Parses an input of tokens into an AST, or returns a vector of errors
     pub fn parse(input: Vec<Token>) -> Result<AST, Vec<ErrorType>> {
         let mut parser = Parser::new(&input);
         let mut root_children = Vec::new();  
@@ -37,8 +38,9 @@ impl<'a> Parser<'a> {
         Ok(AST::new(root))
     }
 
+    /// Parses expressions (expressions are SyntaxElements made up of more than 1 token)
     fn parse_expression(&mut self) -> Option<ASTNode> {
-        let left_expr = self.parse_primary();
+        let left_expr = self.parse_primitive();
 
         if self.current < self.input.len() {
             match self.input.get(self.current) {
@@ -74,7 +76,10 @@ impl<'a> Parser<'a> {
                         }));
                     }
                 },
-                _ => (),
+                Some(Token::FUNCTION) => {
+                    self.current += 1;
+                }  
+                _ => unimplemented!("Unimplemented expression"),
             };
         }
 
@@ -82,7 +87,8 @@ impl<'a> Parser<'a> {
     }
 
 
-    fn parse_primary(&mut self) -> Option<ASTNode> {
+    /// Parses primitives and identifiers, used as a base for recursion of parse_expression
+    fn parse_primitive(&mut self) -> Option<ASTNode> {
         if self.current >= self.input.len() {
            return None;
         }
@@ -105,7 +111,7 @@ impl<'a> Parser<'a> {
                 Token::FALSE => { 
                     self.current += 1;     
                     Some(ASTNode::new(SyntaxElement::Literal(DataType::Boolean, "false".to_string())))
-                }, 
+                },
                 _ => None
             }
         } else {
@@ -113,6 +119,7 @@ impl<'a> Parser<'a> {
         }
     }
 }
+
 
 #[cfg(test)]
 mod tests {

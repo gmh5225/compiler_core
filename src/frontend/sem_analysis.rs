@@ -91,6 +91,9 @@ impl SemAnalysis {
                 }
                 self.node_analysis(value, errors);
             },
+            SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
+
+            },
         }
         for child in &node.get_children() {
             self.node_analysis(child, errors);
@@ -116,6 +119,7 @@ impl SemAnalysis {
         panic!("No scope defined");
     }
 }
+
 
 #[cfg(test)]
 mod tests {

@@ -1,7 +1,7 @@
 extern crate llvm_sys as llvm;
-use std::{ffi::CString, collections::HashMap};
-use std::fs;
-use std::path::Path;
+use std::{ {ffi::CString, collections::HashMap},
+            fs,
+            path::Path, };
 
 use llvm::{core, prelude::*};
 use crate::frontend::syntax::{ ast::{AST, ASTNode}, 
@@ -51,14 +51,11 @@ impl IRGenerator {
         let generated_ir: LLVMValueRef = match &node.get_element() {
             SyntaxElement::FileExpression => {
                  std::ptr::null_mut()
-            }
+            },
             SyntaxElement::Literal(data_type,
                                     value) => {
                 self.generate_literal_ir(*data_type, value.to_string())                           
             },
-            // SyntaxElement::Variable(name) => {
-
-            // },
             SyntaxElement::BinaryExpression{ left,
                                              operator,
                                              right, } => {
@@ -74,19 +71,9 @@ impl IRGenerator {
                     
                 }                           
             },
-            // SyntaxElement::IfStatement{ condition,
-            //                             then_branch,
-            //                             else_branch, } => {
-
-            // },
-            // SyntaxElement::Initialization { variable,
-            //                                 value, } => {
-                                            
-            // },
-            // SyntaxElement::Assignment { variable,
-            //                             value, } => {
-
-            // },
+            SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
+                std::ptr::null_mut()
+            }
             _ => unimplemented!("unimplemented expression")
         };
 

@@ -7,6 +7,17 @@ use crate::frontend::syntax::{ data_type::DataType,
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct FunctionParameter {
+    name: String,
+    data_type: DataType,
+}
+impl fmt::Display for FunctionParameter {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}, {}", self.name, self.data_type)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum SyntaxElement {
     FileExpression,
     Literal(DataType, String),
@@ -28,7 +39,12 @@ pub enum SyntaxElement {
     Initialization {
         variable: String,
         value: Box<ASTNode>
-    }
+    },
+    FunctionDeclaration {
+        name: String,
+        parameters: Vec<FunctionParameter>,
+        return_type: Option<DataType>,
+    },
 }
 
 impl fmt::Display for SyntaxElement {
@@ -51,7 +67,14 @@ impl fmt::Display for SyntaxElement {
             SyntaxElement::Assignment { variable, value } => 
                 write!(f, "Assignment({}, {})", variable, value),
             SyntaxElement::Initialization { variable, value } => 
-                write!(f, "Assignment({}, {})", variable, value),
+                write!(f, "Initialization({}, {})", variable, value),
+                SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
+                    let return_type_str = match return_type {
+                        Some(rt) => rt.to_string(),
+                        None => "None".to_string(),
+                    };
+                    write!(f, "FunctionDeclaration(name: {}, parameters: {:?}, return_type: {})", name, parameters, return_type_str)
+                }
         }
     }
 }

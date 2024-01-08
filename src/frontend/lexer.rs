@@ -17,7 +17,7 @@ impl Lexer {
         Self {
             input: input,
             position: 0,
-            current: '~',
+            current: '~', // EOF token, set initially but not necessarily the first token
         }
     }
 
@@ -39,12 +39,9 @@ impl Lexer {
     }
     
     /// Advances the currently read character
-    pub fn read_char(&mut self) {
+    fn read_char(&mut self) {
         self.position += 1;
         if self.position >= self.input.len() {
-            // println!("{:?}", self.position);
-            // println!("{:?}", self.current);
-            // println!("{:?}", self.input[self.position]);
             self.current = '~';
         } else {
             self.current = self.input[self.position];
@@ -52,14 +49,14 @@ impl Lexer {
     }
 
     /// Ignores whitespace
-    pub fn skip_whitespace(&mut self) {
+    fn skip_whitespace(&mut self) {
         if matches!(self.current, ' ' | '\t' | '\n' | '\r') {
             self.read_char();
         }
     }
 
     /// Returns the current token type and advances to the next token
-    pub fn next_token(&mut self) -> Token {
+    fn next_token(&mut self) -> Token {
         self.skip_whitespace();
 
         let tok = match self.current {
@@ -67,6 +64,8 @@ impl Lexer {
             '+' => Token::PLUS,
             '-' => Token::MINUS,
             ';' => Token::SEMICOLON,
+            '{' => Token::LEFTBRACKET,
+            '}' => Token::RIGHTBRACKET,
             '~' => Token::EOF,
             _ if is_letter(self.current) => {
                 let identifier = self.read_identifier();
@@ -100,7 +99,7 @@ impl Lexer {
             self.read_char();
         }
         self.position = self.position - 1; // hacky solution, fix later
-        self.input[start_pos..self.position + 1].to_vec() 
+        self.input[start_pos..=self.position].to_vec() 
     }
 }
 
@@ -112,6 +111,7 @@ fn is_letter(current: char) -> bool {
 fn is_digit(current: char) -> bool {
     '0' <= current && current <= '9'
 }
+
 
 #[cfg(test)]
 mod tests {

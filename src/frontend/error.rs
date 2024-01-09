@@ -2,7 +2,7 @@
 Errors in the compilation process
  */
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ErrorType {    
     /// Binary operation has incompatible types
     TypeMismatch {
@@ -30,5 +30,10 @@ pub enum ErrorType {
     /// Invalid assignment to a target 
     InvalidAssignment {
         target: String,
+    },
+
+    /// Unrecognized token
+    UnrecognizedToken {
+        token: String,
     },
 }

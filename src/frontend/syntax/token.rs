@@ -1,34 +1,50 @@
 /*
 Defines acceptable tokens in the program
  */
+
 #[derive(PartialEq, Debug)]
 pub enum Token {
-    ERROR,
+    /// Misc
     EOF,
+    LET,
+    RETURN,
+
+    /// Multi-char
     INT(Vec<char>),
     IDENTIFIER(Vec<char>),
+
+    /// Binary operations
+    DIVIDE,
+    FLOORDIVISION,
+    MINUS,
     PLUS,
-    SEMICOLON,
-    LPAREN,
-    RPAREN,
-    LET,
-    TRUE,
-    FALSE,
+    EQUAL,
+
+    /// Scope changing
     IF,
     ELSE,
-    RETURN,
-    MINUS,
-    EQUAL,
     FUNCTION,
-    RIGHTBRACKET, // }
-    LEFTBRACKET, // {
+
+    /// Special chars
+    RBRACKET, // }
+    LBRACKET, // {
+    LPAREN, // (
+    RPAREN, // )
+    SEMICOLON,
     COMMA,
     COLON,
 
+    /// Boolean
+    LOGICALAND,
+    TRUE,
+    FALSE,
+    LESSTHAN,
+    GREATERTHAN,
+
     /// Tokens for type annotations, not actual types. See data_type for acceptable types
-    TYPEDINTEGER,
-    TYPEDFLOAT,
-    TYPEDBOOLEAN,
+    TINTEGER,
+    TFLOAT,
+    TBOOLEAN,
 }
 
 pub fn get_token(raw_text: &Vec<char>) -> Result<Token, String> {
@@ -41,6 +57,9 @@ pub fn get_token(raw_text: &Vec<char>) -> Result<Token, String> {
         "else" => Ok(Token::ELSE),
         "return" => Ok(Token::RETURN),
         "fn" => Ok(Token::FUNCTION),
+        "Integer" => Ok(Token::TINTEGER),
+        "Float" => Ok(Token::TFLOAT),
+        "Boolean" => Ok(Token::TBOOLEAN),
         _ => Err(String::from("Unexpected keyword"))
     }
 }

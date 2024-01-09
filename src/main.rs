@@ -47,6 +47,7 @@ fn main_loop() {
                         if sem_analysis_errors.is_empty() {
                             let generated_ir = IRGenerator::generate_ir(&ast);
                             println!("{:?}", generated_ir);
+                            // next, pass to execution engine
                         } else {
                             for error in sem_analysis_errors {
                                 println!("Error: {:?}", error);

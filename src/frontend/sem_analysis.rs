@@ -30,7 +30,7 @@ impl SemAnalysis {
         let mut errors: Vec<ErrorType> = Vec::new();
         let root: ASTNode = semantic_analysis.input.get_root().clone();
 
-        if let SyntaxElement::FileExpression = root.get_element() {
+        if let SyntaxElement::ModuleExpression = root.get_element() {
             for child in &root.get_children() {
                 semantic_analysis.node_analysis(child, &mut errors);
             }        
@@ -40,16 +40,10 @@ impl SemAnalysis {
 
     fn node_analysis(&mut self, node: &ASTNode, errors: &mut Vec<ErrorType>) {
         match &node.get_element() {
-            SyntaxElement::FileExpression => {
+            SyntaxElement::ModuleExpression => {
                 errors.push(ErrorType::InvalidAssignment {
-                    target: "FileExpression".to_string()
+                    target: "ModuleExpression".to_string()
                 })
-            },
-            SyntaxElement::Literal(data_type, 
-                                   value) => {
-            },
-            SyntaxElement::Variable(name) => {
-
             },
             SyntaxElement::BinaryExpression{left,
                                               operator, 
@@ -78,10 +72,6 @@ impl SemAnalysis {
                     self.scope_stack.pop();
                 }
             },
-            SyntaxElement::Initialization { variable, 
-                                            value } => {
-                
-            }, 
             SyntaxElement::Assignment{ variable, 
                                         value } => {
                 if !self.is_variable_defined(variable) {
@@ -91,9 +81,7 @@ impl SemAnalysis {
                 }
                 self.node_analysis(value, errors);
             },
-            SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
-
-            },
+            _ => unimplemented!("Unimplemented syntactic check")
         }
         for child in &node.get_children() {
             self.node_analysis(child, errors);
@@ -138,7 +126,7 @@ mod tests {
             right: Box::new(right_node),
         });
 
-        let mut root_node = ASTNode::new(SyntaxElement::FileExpression);
+        let mut root_node = ASTNode::new(SyntaxElement::ModuleExpression);
         root_node.add_child(division_expr);
 
         let ast = AST::new(root_node);

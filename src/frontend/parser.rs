@@ -6,7 +6,10 @@ use crate::frontend::{ error::ErrorType,
                        syntax::{ token::Token,
                                  ast::{ AST, ASTNode }, 
                                  syntax_element::SyntaxElement, 
-                                 data_type::DataType } };
+                                 data_type::DataType,
+                                 binop_precedence::* } }; // generally avoid wild card importing
+
+use super::syntax::syntax_element::FunctionParameter; 
 
 /// Parses an input of tokens into an AST   
 pub struct Parser<'a> {
@@ -26,101 +29,85 @@ impl<'a> Parser<'a> {
     pub fn parse(input: Vec<Token>) -> Result<AST, Vec<ErrorType>> {
         let mut parser = Parser::new(&input);
         let mut root_children = Vec::new();  
+        let mut errors: Vec<ErrorType> = Vec::new();
 
         while parser.current < input.len() {
-            if let Some(expr) = parser.parse_expression() {
-                root_children.push(expr);  
+            match parser.parse_top_level() { // parses top level expression and recursively parses ALL inner expressions
+                Ok(node) => {
+                    root_children.push(node);  
+                }
+                Err(error_types) => {
+                    errors.extend(error_types);
+                }
             } 
         }
 
-        let mut root = ASTNode::new(SyntaxElement::FileExpression);
+        let mut root = ASTNode::new(SyntaxElement::ModuleExpression);
         root.add_children(root_children);
-        Ok(AST::new(root))
+        if errors.is_empty() {
+            return Ok(AST::new(root));
+        }
+        Err(errors)
     }
 
-    /// Parses expressions (expressions are SyntaxElements made up of more than 1 token)
-    fn parse_expression(&mut self) -> Option<ASTNode> {
-        let left_expr = self.parse_primitive();
+    /// Parses top level expressions 
+    fn parse_top_level(&mut self) -> Result<ASTNode, Vec<ErrorType>> {
+        match self.input.get(self.current) {
+            Some(Token::FUNCTION(fn_name)) => {
+                self.current += 1; // consume function token
+                let identifier: String = fn_name.iter().collect();
 
-        if self.current < self.input.len() {
-            match self.input.get(self.current) {
-                Some(Token::EQUAL) => {
-                    self.current += 1; 
-                    let right_expr = self.parse_expression(); 
+                // delete this later and replace with recursive calls
+                let dummy_params = Vec::new();
 
-                    if let Some(right) = right_expr {
-                        if let Some(SyntaxElement::Variable(var_name)) = left_expr.clone().map(|node| node.get_element()) {
-                            return Some(ASTNode::new(SyntaxElement::Assignment {
-                                variable: var_name,
-                                value: Box::new(right),
-                            }));
-                        } else {
-                            return None; 
-                        }
-                    }
-                },
-                Some(Token::PLUS) | Some(Token::MINUS) => {
-                    let operator = match self.input.get(self.current) {
-                        Some(Token::PLUS) => "+",
-                        Some(Token::MINUS) => "-",
-                        _ => "", 
-                    };
-                    self.current += 1; 
-                    let right_expr = self.parse_expression(); 
-
-                    if let (Some(left), Some(right)) = (left_expr.clone(), right_expr) {
-                        return Some(ASTNode::new(SyntaxElement::BinaryExpression {
-                            left: Box::new(left),
-                            operator: operator.to_string(),
-                            right: Box::new(right),
-                        }));
-                    }
-                },
-                Some(Token::FUNCTION) => {
-                    self.current += 1;
-                }  
-                _ => unimplemented!("Unimplemented expression"),
-            };
-        }
-
-        left_expr
-    }
-
-
-    /// Parses primitives and identifiers, used as a base for recursion of parse_expression
-    fn parse_primitive(&mut self) -> Option<ASTNode> {
-        if self.current >= self.input.len() {
-           return None;
-        }
-        if let Some(token) = self.input.get(self.current) {
-            match token {
-                Token::INT(chars) => {
-                    let value_str: String = chars.iter().collect();
-                    self.current += 1;
-                    Some(ASTNode::new(SyntaxElement::Literal(DataType::Integer, value_str)))
-                },
-                Token::IDENTIFIER(chars) => {
-                    let name: String = chars.iter().collect();
-                    self.current += 1;
-                    Some(ASTNode::new(SyntaxElement::Variable(name)))
-                },
-                Token::TRUE => {
-                    self.current += 1;       
-                    Some(ASTNode::new(SyntaxElement::Literal(DataType::Boolean, "true".to_string())))
-                },
-                Token::FALSE => { 
-                    self.current += 1;     
-                    Some(ASTNode::new(SyntaxElement::Literal(DataType::Boolean, "false".to_string())))
-                },
-                _ => None
+                let root_element: SyntaxElement = SyntaxElement::FunctionDeclaration { 
+                    name: (identifier), parameters: (dummy_params), return_type: (None) 
+                };
+                let root: ASTNode = ASTNode::new(root_element);
+                Ok(root)
             }
-        } else {
-            None
+            _ => unimplemented!("Unimplemented top level expression"),
         }
     }
+
+    fn parse_expression(&mut self) {
+        // match self.input.get(self.current) {
+        //     Some()
+        // }
+
+    }
+
+    fn parse_initialization() {}
+
+    fn parse_assignment() {}
+
+    fn parse_function_declaration(&mut self) -> Result<(Vec<FunctionParameter>, DataType), ErrorType> {
+        // match self.input.get(self.current) {
+        //     Some(Token::LPAREN) => {
+        //         self.current += 1; // consume left paren
+        //         match self.input.get(self.current) {
+        //             Some(Token::IDENTIFIER(name)) => {
+                        
+        //             }
+        //             _ => unimplemented!("Add error type for reading params parser")
+        //         }
+
+        //     }
+        //     _ => unimplemented!("Add errortype here for function declaration in parser")
+        // }
+        Err(ErrorType::DevError{})
+    }
+
+    fn children_until(root: ASTNode, stop_at: Token) {
+
+    }
+
+    fn parse_binary_operation() {}
+
 }
 
 
+/// TESTS ///
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -142,7 +129,7 @@ mod tests {
             operator: "+".to_string(),
             right: Box::new(literal_2),
         });
-        let mut root = ASTNode::new(SyntaxElement::FileExpression);
+        let mut root = ASTNode::new(SyntaxElement::ModuleExpression);
         root.add_child(binary_expr);
         let expected_ast = AST::new(root);
 

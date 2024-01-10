@@ -4,7 +4,7 @@ Defines the precedence of binary operations
 
 use std::collections::HashMap;
 
-pub fn binop_precedence() -> HashMap<char, i32> {
+pub fn binop_precedence() -> &'static once_cell::sync::Lazy<HashMap<char, i32>> {
     static PRECEDENCE: once_cell::sync::Lazy<HashMap<char, i32>> = 
     once_cell::sync::Lazy::new(|| {
         let mut p = HashMap::new();

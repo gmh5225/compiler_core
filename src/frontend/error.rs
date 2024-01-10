@@ -36,4 +36,7 @@ pub enum ErrorType {
     UnrecognizedToken {
         token: String,
     },
+
+    /// Stand-in errors that need to be updated for better error handling
+    DevError {}
 }

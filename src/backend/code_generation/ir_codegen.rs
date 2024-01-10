@@ -1,10 +1,11 @@
 extern crate llvm_sys as llvm;
-use std::{ {ffi::CString, collections::HashMap},
+
+use std::{ { ffi::CString, collections::HashMap },
             fs,
             path::Path, };
 
 use llvm::{core, prelude::*};
-use crate::frontend::syntax::{ ast::{AST, ASTNode}, 
+use crate::frontend::syntax::{ ast::{ AST, ASTNode }, 
                                syntax_element::SyntaxElement, 
                                data_type:: DataType };
 
@@ -49,7 +50,7 @@ impl IRGenerator {
 
     fn generate_node_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
         let generated_ir: LLVMValueRef = match &node.get_element() {
-            SyntaxElement::FileExpression => {
+            SyntaxElement::ModuleExpression => {
                  std::ptr::null_mut()
             },
             SyntaxElement::Literal(data_type,
@@ -157,7 +158,7 @@ mod tests {
                 right: Box::new(right_node),
             },
         );
-        let root_node = ASTNode::new(SyntaxElement::FileExpression);
+        let root_node = ASTNode::new(SyntaxElement::ModuleExpression);
         root_node.get_children().push(binary_expr);
         let ast = AST::new(root_node);
 

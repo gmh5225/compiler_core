@@ -11,6 +11,7 @@ pub struct FunctionParameter {
     name: String,
     data_type: DataType,
 }
+
 impl fmt::Display for FunctionParameter {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}, {}", self.name, self.data_type)
@@ -19,7 +20,7 @@ impl fmt::Display for FunctionParameter {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SyntaxElement {
-    FileExpression,
+    ModuleExpression,
     Literal(DataType, String),
     Variable(String),
     BinaryExpression {
@@ -50,7 +51,7 @@ pub enum SyntaxElement {
 impl fmt::Display for SyntaxElement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SyntaxElement::FileExpression => write!(f, "FileExpression"),
+            SyntaxElement::ModuleExpression => write!(f, "ModuleExpression"),
             SyntaxElement::Literal(data_type, value) => write!(f, "Literal({:?}, {})", data_type, value),
             SyntaxElement::Variable(name) => write!(f, "Variable({})", name),
             SyntaxElement::BinaryExpression { left, operator, right } => 

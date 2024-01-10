@@ -2,16 +2,19 @@
 Defines acceptable tokens in the program
  */
 
+
+use crate::frontend::error::ErrorType;
+
 #[derive(PartialEq, Debug)]
 pub enum Token {
     /// Misc
     EOF,
     LET,
-    RETURN,
 
     /// Multi-char
     INT(Vec<char>),
     IDENTIFIER(Vec<char>),
+    FUNCTION(Vec<char>), // the vector is the name of the function
 
     /// Binary operations
     DIVIDE,
@@ -23,7 +26,7 @@ pub enum Token {
     /// Scope changing
     IF,
     ELSE,
-    FUNCTION,
+    RETURN,
 
     /// Special chars
     RBRACKET, // }
@@ -47,7 +50,7 @@ pub enum Token {
     TBOOLEAN,
 }
 
-pub fn get_token(raw_text: &Vec<char>) -> Result<Token, String> {
+pub fn get_token(raw_text: &Vec<char>) -> Result<Token, ErrorType> {
     let identifier: String = raw_text.into_iter().collect();
     match &identifier[..] {
         "let" => Ok(Token::LET),
@@ -56,10 +59,48 @@ pub fn get_token(raw_text: &Vec<char>) -> Result<Token, String> {
         "if" => Ok(Token::IF),
         "else" => Ok(Token::ELSE),
         "return" => Ok(Token::RETURN),
-        "fn" => Ok(Token::FUNCTION),
         "Integer" => Ok(Token::TINTEGER),
         "Float" => Ok(Token::TFLOAT),
         "Boolean" => Ok(Token::TBOOLEAN),
-        _ => Err(String::from("Unexpected keyword"))
+        _ => Err(ErrorType::UnrecognizedToken { token: String::from("Unrecognized token") }),
+    }
+}
+
+pub fn is_primitive(token: Token) -> bool {
+    match token {
+        Token::INT(_) => true,
+        Token::TRUE => true,
+        Token::FALSE => true,
+        Token::IDENTIFIER(_) => true,
+        _ => false,
+    }
+}
+pub fn is_operator(token: Token) -> bool {
+    match token {
+        Token::PLUS => true,
+        Token::MINUS => true,
+        Token::DIVIDE => true,
+        Token::FLOORDIVISION => true,
+        Token::GREATERTHAN => true,
+        Token::LESSTHAN => true,
+        Token::LOGICALAND => true,
+        _ => false,
+    }
+}
+
+pub fn is_type_notation(token: Token) -> bool {
+    match token {
+        Token::TINTEGER => true,
+        Token::TFLOAT => true,
+        Token::TBOOLEAN => true,
+        _ => false,
+    }
+}
+
+pub fn is_delimiter(token: Token) -> bool {
+    match token {
+        Token::SEMICOLON => true,
+        Token::RBRACKET => true,
+        _ => false,
     }
 }

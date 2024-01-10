@@ -96,7 +96,7 @@ impl Lexer {
 
             _ if is_letter(self.current) => {
                 let identifier = self.read_identifier();
-                Ok(get_token(&identifier).unwrap_or_else(|_| Token::IDENTIFIER(identifier)))
+                Ok(get_token(&identifier).unwrap_or_else(|_| Token::IDENTIFIER(identifier))) // i don't love this solution
             },
             _ if is_digit(self.current) => Ok(Token::INT(self.read_number())),
 
@@ -144,16 +144,18 @@ fn is_digit(current: char) -> bool {
     '0' <= current && current <= '9'
 }
 
+
+/// TESTS ///
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_keywords() {
-        let inputs = "let true false if else return fn";
+        let inputs = "let true false if else return fn abc";
         let expected = vec![
             Token::LET, Token::TRUE, Token::FALSE,
-            Token::IF, Token::ELSE, Token::RETURN, Token::FUNCTION, Token::EOF
+            Token::IF, Token::ELSE, Token::RETURN, Token::FUNCTION(vec!['a', 'b', 'c']), Token::EOF
         ];
         
         let result = Lexer::lex(inputs);
@@ -262,8 +264,7 @@ mod tests {
         let input = "fn add(a: Integer, b: Integer): Integer { return a + b; }";
         let result = Lexer::lex(input);
         let expected = vec![
-            Token::FUNCTION,
-            Token::IDENTIFIER(vec!['a', 'd', 'd']),
+            Token::FUNCTION(vec!['a', 'd', 'd']),
             Token::LPAREN,
             Token::IDENTIFIER(vec!['a']),
             Token::COLON,
@@ -292,8 +293,7 @@ mod tests {
         let input = "fn check(x: Integer) { if x > 0 { return true; } else { return false; } }";
         let result = Lexer::lex(input);
         let expected = vec![
-            Token::FUNCTION,
-            Token::IDENTIFIER(vec!['c', 'h', 'e', 'c', 'k']),
+            Token::FUNCTION(vec!['c', 'h', 'e', 'c', 'k']),
             Token::LPAREN,
             Token::IDENTIFIER(vec!['x']),
             Token::COLON,

@@ -26,7 +26,7 @@ impl<'a> Parser<'a> {
     
     /// Parses an input of tokens into an AST, or returns a vector of errors
     pub fn parse(input: Vec<Token>) -> Result<AST, Vec<ErrorType>> {
-        binop_precedence::binop_precedence();
+        binop_precedence::binop_precedence(); // this is probably important. use it somewhere
 
         let mut parser: Parser<'_> = Parser::new(&input);
         let mut root_children: Vec<ASTNode> = Vec::new();  

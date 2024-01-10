@@ -13,7 +13,7 @@ pub struct IRGenerator {
     context: LLVMContextRef,
     module: LLVMModuleRef,
     builder: LLVMBuilderRef,
-    named_values: HashMap<String, llvm::prelude::LLVMValueRef>
+    named_values: HashMap<String, LLVMValueRef>
 }
 
 impl IRGenerator {
@@ -40,8 +40,10 @@ impl IRGenerator {
 
     pub fn generate_ir(ast: &AST) -> LLVMModuleRef {
         let mut ir_generator: IRGenerator = IRGenerator::new();
+
         let root: ASTNode = ast.get_root().clone();
         ir_generator.generate_node_ir(&ast.get_root());
+
         for child in &root.get_children() {
             ir_generator.generate_node_ir(&child);
         };

@@ -147,23 +147,59 @@ impl IRGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn basic_test() {
-        // NOTE: IR basic test passing does not necessarily mean success, check output.ll\n");
+    use crate::backend::llvm::{
+        init::{create_basic_block, create_builder, create_context, create_module},
+        binops::build_add,
+        return_type::{int_return, void_return},
+        create_element::{create_function, void_type, int_type},
+        utils::{get_param, write_to_file, position_builder_at_end}
+    };
 
-        let left_node = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "5".to_string()));
-        let right_node = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "3".to_string()));
-        let binary_expr = ASTNode::new(
-            SyntaxElement::BinaryExpression {
-                left: Box::new(left_node),
-                operator: "+".to_string(),
-                right: Box::new(right_node),
-            },
-        );
-        let root_node = ASTNode::new(SyntaxElement::ModuleExpression);
-        root_node.get_children().push(binary_expr);
-        let ast = AST::new(root_node);
-
-        IRGenerator::write_ir_to_file(IRGenerator::generate_ir(&ast))
+    fn init() -> (*mut llvm::LLVMContext, *mut llvm::LLVMModule, *mut llvm::LLVMBuilder) {
+        let context: *mut llvm::LLVMContext = create_context();
+        let module: *mut llvm::LLVMModule = create_module("test_module", context);
+        let builder: *mut llvm::LLVMBuilder = create_builder(context); // basically a pointer to where the llvm ir will write
+        (context, module, builder)
     }
+
+    #[test]
+    fn test_basic_block_creation() {
+        let (context, module, builder) = init();
+
+        let return_type: *mut llvm::LLVMType = void_type(context);
+        let function: *mut llvm::LLVMValue = create_function("test_function", Some(return_type), &[], false, module);
+
+        let bb: *mut llvm::LLVMBasicBlock = create_basic_block(context, function, "entry");
+
+        position_builder_at_end(builder, bb);
+
+        void_return(builder);
+
+        write_to_file(module, "output_basic.ll");
+    }
+
+    #[test]
+    fn test_basic_add_expression() {
+        let (context, module, builder) = init();
+    
+        let int_type: *mut llvm::LLVMType = int_type(context);
+        let param_types: Vec<*mut llvm::LLVMType> = vec![int_type, int_type]; 
+    
+        let function: *mut llvm::LLVMValue = create_function("add", Some(int_type), &param_types, false, module);
+    
+        let bb: *mut llvm::LLVMBasicBlock = create_basic_block(context, function, "entry");
+        position_builder_at_end(builder, bb);
+    
+        let param_a: *mut llvm::LLVMValue = get_param(function, 0);
+        let param_b: *mut llvm::LLVMValue = get_param(function, 1);
+
+        let sum: CString = CString::new("sum").expect("Failed to create sum name");
+
+        let sum_build: *mut llvm::LLVMValue = build_add(builder, param_a, param_b, sum);
+    
+        int_return(builder, sum_build);
+    
+        write_to_file(module, "output_add.ll");
+    }
+    
 }

@@ -17,7 +17,7 @@ use crate::{ frontend::{ syntax::{ ast::AST, token::Token },
                        lexer::Lexer, 
                        sem_analysis::SemAnalysis,
                        error::ErrorType },
-              backend::code_generation::ir_codegen::IRGenerator };
+              backend::codegen::ir_codegen::IRGenerator };
 
 fn print_ready() {
     let stderr = io::stderr();

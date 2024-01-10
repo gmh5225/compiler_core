@@ -14,7 +14,7 @@ pub enum Token {
     /// Multi-char
     INT(Vec<char>),
     IDENTIFIER(Vec<char>),
-    FUNCTION(Vec<char>), // the vector is the name of the function
+    FUNCTION,
 
     /// Binary operations
     DIVIDE,

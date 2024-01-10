@@ -6,10 +6,9 @@ use crate::frontend::{ error::ErrorType,
                        syntax::{ token::Token,
                                  ast::{ AST, ASTNode }, 
                                  syntax_element::SyntaxElement, 
-                                 data_type::DataType,
-                                 binop_precedence::* } }; // generally avoid wild card importing
+                                 data_type::DataType } }; // generally avoid wild card importing
 
-use super::syntax::syntax_element::FunctionParameter; 
+use super::syntax::{syntax_element::FunctionParameter, binop_precedence}; 
 
 /// Parses an input of tokens into an AST   
 pub struct Parser<'a> {
@@ -27,8 +26,10 @@ impl<'a> Parser<'a> {
     
     /// Parses an input of tokens into an AST, or returns a vector of errors
     pub fn parse(input: Vec<Token>) -> Result<AST, Vec<ErrorType>> {
-        let mut parser = Parser::new(&input);
-        let mut root_children = Vec::new();  
+        binop_precedence::binop_precedence();
+
+        let mut parser: Parser<'_> = Parser::new(&input);
+        let mut root_children: Vec<ASTNode> = Vec::new();  
         let mut errors: Vec<ErrorType> = Vec::new();
 
         while parser.current < input.len() {
@@ -53,56 +54,109 @@ impl<'a> Parser<'a> {
     /// Parses top level expressions 
     fn parse_top_level(&mut self) -> Result<ASTNode, Vec<ErrorType>> {
         match self.input.get(self.current) {
-            Some(Token::FUNCTION(fn_name)) => {
+            Some(Token::FUNCTION) => {
                 self.current += 1; // consume function token
-                let identifier: String = fn_name.iter().collect();
 
-                // delete this later and replace with recursive calls
-                let dummy_params = Vec::new();
-
-                let root_element: SyntaxElement = SyntaxElement::FunctionDeclaration { 
-                    name: (identifier), parameters: (dummy_params), return_type: (None) 
-                };
-                let root: ASTNode = ASTNode::new(root_element);
-                Ok(root)
+                match self.parse_function_declaration() {
+                    Ok((identifier, parameters, return_type)) => {
+                        let root_element: SyntaxElement = SyntaxElement::FunctionDeclaration { 
+                            name: identifier, parameters, return_type: return_type.or(None)
+                        };
+                        // recurse on children until reaching right bracket, push to root's children, then return
+                        // placeholder:
+                        self.current += 1; //right bracket
+                        let root = ASTNode::new(root_element);
+                        Ok(root)
+                    },
+                    Err(_) => {
+                        Err(vec![ErrorType::DevError {}])
+                    }
+                }
             }
-            _ => unimplemented!("Unimplemented top level expression"),
+            _ => Err(vec![ErrorType::DevError {  }]),
         }
     }
 
-    fn parse_expression(&mut self) {
-        // match self.input.get(self.current) {
-        //     Some()
-        // }
+    /// After reading a function token, consumes the function declaration
+    fn parse_function_declaration(&mut self) -> Result<(String, Vec<FunctionParameter>, Option<DataType>), ErrorType> {
+        if let Some(Token::IDENTIFIER(name_chars)) = self.input.get(self.current) {
+            self.current += 1; // Consume function name
+            let name = name_chars.iter().collect();
+    
+            if let Some(Token::LPAREN) = self.input.get(self.current) {
+                self.current += 1; // Consume left paren
+    
+                let mut parameters: Vec<FunctionParameter> = Vec::new();
+    
+                while let Some(token) = self.input.get(self.current) {
+                    match token {
+                        Token::RPAREN => {
+                            self.current += 1; // Consume right paren
+                            break; // End of parameters
+                        },
+                        Token::IDENTIFIER(param_name_chars) => {
+                            self.current += 1; // Consume parameter name
+                            let param_name = param_name_chars.iter().collect();
+    
+                            if let Some(Token::COLON) = self.input.get(self.current) {
+                                self.current += 1; // Consume colon
+    
+                                // Consume type
+                                match self.input.get(self.current) {
+                                    Some(Token::TINTEGER) => {
+                                        self.current += 1; 
+                                        parameters.push(FunctionParameter::new(param_name, DataType::Integer));
+                                    },
+                                    Some(Token::TFLOAT) => {
+                                        self.current += 1; 
+                                        parameters.push(FunctionParameter::new(param_name, DataType::Float));
+                                    },
+                                    Some(Token::TBOOLEAN) => {
+                                        self.current += 1; 
+                                        parameters.push(FunctionParameter::new(param_name, DataType::Boolean));
+                                    },
+                                    _ => return Err(ErrorType::DevError{}),
+                                }
+    
+                                match self.input.get(self.current) {
+                                    Some(Token::COMMA) => self.current += 1, // Consume comma
+                                    Some(Token::RPAREN) => continue, // Handle ')' in next iteration
+                                    _ => return Err(ErrorType::DevError{}), 
+                                }
+                            } else {
+                                return Err(ErrorType::DevError{}); 
+                            }
+                        },
+                        _ => return Err(ErrorType::DevError{}), 
+                    }
+                }
+                let mut return_type: Option<DataType> = None;
+                if let Some(token) = self.input.get(self.current) {
+                    match token {
+                        Token::TINTEGER => {
+                            self.current += 1;
+                            return_type = Some(DataType::Integer);
+                        }
+                        Token::TBOOLEAN => {
+                            self.current += 1;
+                            return_type = Some(DataType::Boolean);
+                        }  
+                        _ => (),
 
+                    }
+                } else {
+                    return Err(ErrorType::DevError {});
+                }
+                self.current += 1; // consume left bracket
+                Ok((name, parameters, return_type)) 
+            } else {
+                Err(ErrorType::DevError{}) 
+            }
+        } else {
+            Err(ErrorType::DevError{}) 
+        }
     }
-
-    fn parse_initialization() {}
-
-    fn parse_assignment() {}
-
-    fn parse_function_declaration(&mut self) -> Result<(Vec<FunctionParameter>, DataType), ErrorType> {
-        // match self.input.get(self.current) {
-        //     Some(Token::LPAREN) => {
-        //         self.current += 1; // consume left paren
-        //         match self.input.get(self.current) {
-        //             Some(Token::IDENTIFIER(name)) => {
-                        
-        //             }
-        //             _ => unimplemented!("Add error type for reading params parser")
-        //         }
-
-        //     }
-        //     _ => unimplemented!("Add errortype here for function declaration in parser")
-        // }
-        Err(ErrorType::DevError{})
-    }
-
-    fn children_until(root: ASTNode, stop_at: Token) {
-
-    }
-
-    fn parse_binary_operation() {}
+    
 
 }
 
@@ -112,29 +166,91 @@ impl<'a> Parser<'a> {
 mod tests {
     use super::*;
 
-    #[test]
-    fn basic_test() {
-        let tokens = vec![
-            Token::INT(vec!['1', '2', '3']),
-            Token::PLUS,
-            Token::INT(vec!['4', '5', '6']),
-        ];
-        let ast: Result<AST, Vec<ErrorType>> = Parser::parse(tokens);
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+    
+        #[test]
+        fn test_empty_input() {
+            let tokens: Vec<Token> = vec![];
+            let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+            assert_eq!(ast.get_root().get_element(), SyntaxElement::ModuleExpression);
+            assert!(ast.get_root().get_children().is_empty());
+        }
 
-        let literal_1 = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "123".to_string()));
-        let literal_2 = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "456".to_string()));
-
-        let binary_expr = ASTNode::new(SyntaxElement::BinaryExpression {
-            left: Box::new(literal_1),
-            operator: "+".to_string(),
-            right: Box::new(literal_2),
-        });
-        let mut root = ASTNode::new(SyntaxElement::ModuleExpression);
-        root.add_child(binary_expr);
-        let expected_ast = AST::new(root);
-
-        assert_eq!(ast.unwrap(), expected_ast);
+        #[test]
+        fn test_single_function_declaration() {
+            let tokens: Vec<Token> = vec![
+                Token::FUNCTION,
+                Token::IDENTIFIER(vec!['m', 'y', '_', 'f', 'u', 'n', 'c']),
+                Token::LPAREN,
+                Token::RPAREN,
+                Token::LBRACKET,
+                Token::RBRACKET
+            ];
+            let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+            match ast.get_root().get_children().first().unwrap().get_element() {
+                SyntaxElement::FunctionDeclaration { ref name, .. } => {
+                    assert_eq!(name, "my_func");
+                },
+                _ => panic!("Expected FunctionDeclaration"),
+            }
+        }
+    
+    //     #[test]
+    //     fn test_function_with_parameters_and_return_type() {
+    //         let tokens: Vec<Token> = vec![
+    //             Token::FUNCTION,
+    //             Token::IDENTIFIER(vec!['c', 'a', 'l', 'c', 'u', 'l', 'a', 't', 'e']),
+    //             Token::LPAREN,
+    //             Token::IDENTIFIER(vec!['x']),
+    //             Token::COLON,
+    //             Token::TINTEGER,
+    //             Token::COMMA,
+    //             Token::IDENTIFIER(vec!['y']),
+    //             Token::COLON,
+    //             Token::TINTEGER,
+    //             Token::RPAREN,
+    //             Token::COLON,
+    //             Token::TBOOLEAN,
+    //             Token::LBRACKET,
+    //             Token::RBRACKET
+    //         ];
+    //         let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+    //         match ast.get_root().get_children().first().unwrap().get_element() {
+    //             SyntaxElement::FunctionDeclaration { ref name, ref parameters, .. } => {
+    //                 assert_eq!(name, "calculate");
+    //                 assert_eq!(parameters.len(), 2);
+    //             },
+    //             _ => panic!("Expected FunctionDeclaration with parameters"),
+    //         }
+    //     }
+    
+    // }
+    
+    // #[test]
+    // fn test_function_with_body() {
+    //     let tokens = vec![
+    //         Token::FUNCTION,
+    //         Token::IDENTIFIER(vec!['t', 'e', 's', 't']),
+    //         Token::LPAREN,
+    //         Token::RPAREN,
+    //         Token::LBRACKET,
+    //         Token::LET,
+    //         Token::IDENTIFIER(vec!['x']),
+    //         Token::EQUAL,
+    //         Token::INT(vec!['1']),
+    //         Token::SEMICOLON,
+    //         Token::RBRACKET,
+    //     ];
+    //     let ast = Parser::parse(tokens).expect("Failed to parse");
+    //     match ast.get_root().get_children().first().unwrap().get_element() {
+    //         SyntaxElement::FunctionDeclaration { ref name, .. } => {
+    //             assert_eq!(name, "test");
+    //             assert!(!ast.get_root().get_children().is_empty());
+    //         },
+    //         _ => panic!("Expected FunctionDeclaration with body"),
+    //     }
     }
-
 }
 

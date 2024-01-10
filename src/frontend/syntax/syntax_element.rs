@@ -11,6 +11,14 @@ pub struct FunctionParameter {
     name: String,
     data_type: DataType,
 }
+impl FunctionParameter {
+    pub fn new(name: String, data_type: DataType) -> Self {
+        Self {
+            name,
+            data_type,
+        }
+    }
+}
 
 impl fmt::Display for FunctionParameter {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

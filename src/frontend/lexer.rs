@@ -152,10 +152,10 @@ mod tests {
 
     #[test]
     fn test_keywords() {
-        let inputs = "let true false if else return fn abc";
+        let inputs = "let true false if else return fn";
         let expected = vec![
             Token::LET, Token::TRUE, Token::FALSE,
-            Token::IF, Token::ELSE, Token::RETURN, Token::FUNCTION(vec!['a', 'b', 'c']), Token::EOF
+            Token::IF, Token::ELSE, Token::RETURN, Token::FUNCTION, Token::EOF
         ];
         
         let result = Lexer::lex(inputs);
@@ -264,7 +264,8 @@ mod tests {
         let input = "fn add(a: Integer, b: Integer): Integer { return a + b; }";
         let result = Lexer::lex(input);
         let expected = vec![
-            Token::FUNCTION(vec!['a', 'd', 'd']),
+            Token::FUNCTION,
+            Token::IDENTIFIER(vec!['a', 'd', 'd']),
             Token::LPAREN,
             Token::IDENTIFIER(vec!['a']),
             Token::COLON,
@@ -293,7 +294,8 @@ mod tests {
         let input = "fn check(x: Integer) { if x > 0 { return true; } else { return false; } }";
         let result = Lexer::lex(input);
         let expected = vec![
-            Token::FUNCTION(vec!['c', 'h', 'e', 'c', 'k']),
+            Token::FUNCTION,
+            Token::IDENTIFIER(vec!['c', 'h', 'e', 'c', 'k']),
             Token::LPAREN,
             Token::IDENTIFIER(vec!['x']),
             Token::COLON,

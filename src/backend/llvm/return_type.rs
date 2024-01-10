@@ -2,13 +2,15 @@ extern crate llvm_sys as llvm;
 
 use llvm::{core, prelude::*}; // change to not use wild star import
 
+/// returns nothing
 pub fn void_return(builder: *mut llvm::LLVMBuilder) -> LLVMValueRef {
     unsafe {
         core::LLVMBuildRetVoid(builder)
     }
 }
 
-pub fn int_return(builder: *mut llvm::LLVMBuilder, value: LLVMValueRef) -> LLVMValueRef {
+/// returns something
+pub fn nonvoid_return(builder: *mut llvm::LLVMBuilder, value: LLVMValueRef) -> LLVMValueRef {
     unsafe {
         core::LLVMBuildRet(builder, value)
     }

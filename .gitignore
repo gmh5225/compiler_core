@@ -1,5 +1,5 @@
 /target/
 /Cargo.lock
 /output.ll
-/src/backend/code_generation/target/
+/src/backend/codegen/target/
 /.vscode/

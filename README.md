@@ -1,6 +1,6 @@
 # Compiler Design
 - Independent Study sponsored by Aaron Cass.
-- Students: Caleb L'Italien, John Daly, Thomas Breimer (tentatively)
+- Students: Caleb L'Italien, John Daly, Thomas Breimer
 ------------------------------------
 # Goals
 - Compile basic parts of custom language

@@ -1,14 +1,16 @@
 /*
 Converts tokens into an AST
 */
-
-use crate::frontend::{ error::ErrorType, 
-                       syntax::{ token::Token,
-                                 ast::{ AST, ASTNode }, 
-                                 syntax_element::SyntaxElement, 
-                                 data_type::DataType } }; // generally avoid wild card importing
-
-use super::syntax::{syntax_element::FunctionParameter, binop_precedence}; 
+                                 
+use crate::frontend::{ 
+    utils::{error::ErrorType, binop_precedence::binop_precedence},
+    syntax::token::Token,
+    ast::{
+        ast_struct::{AST, ASTNode}, syntax_element::{
+            SyntaxElement, FunctionParameter
+        }, data_type::DataType
+    }
+};
 
 /// Parses an input of tokens into an AST   
 pub struct Parser<'a> {
@@ -26,7 +28,7 @@ impl<'a> Parser<'a> {
     
     /// Parses an input of tokens into an AST, or returns a vector of errors
     pub fn parse(input: Vec<Token>) -> Result<AST, Vec<ErrorType>> {
-        binop_precedence::binop_precedence(); // this is probably important. use it somewhere
+        binop_precedence(); // this is probably important. use it somewhere
 
         let mut parser: Parser<'_> = Parser::new(&input);
         let mut root_children: Vec<ASTNode> = Vec::new();  

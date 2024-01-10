@@ -2,11 +2,14 @@
 Checks an AST for semantic correctness
  */
 
-use crate::frontend::{ syntax::{ ast::{ AST, ASTNode }, 
-                                 syntax_element::SyntaxElement, 
-                                 data_type:: DataType },
-                       error::ErrorType,
-                       symbol_table::{ SymbolTableStack, SymbolTable } };
+use crate::frontend::{ 
+    ast::{ ast_struct::{ AST, ASTNode }, 
+        syntax_element::SyntaxElement, 
+        data_type:: DataType 
+    },
+    utils::error::ErrorType,
+    analysis::symbol_table::{ SymbolTableStack, SymbolTable } 
+};
 
 /// Checks a given AST for semantic correctness
 pub struct SemAnalysis {
@@ -112,9 +115,11 @@ impl SemAnalysis {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::frontend::syntax::{ ast::{ AST, ASTNode }, 
-                                   syntax_element::SyntaxElement, 
-                                   data_type:: DataType };
+    use crate::frontend::{ 
+        ast::ast_struct::{ AST, ASTNode }, 
+        ast::syntax_element::SyntaxElement, 
+        ast::data_type::DataType 
+    };
     #[test]
     fn basic_test() {
         let left_node = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "5".to_string()));

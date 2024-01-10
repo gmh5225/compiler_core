@@ -3,7 +3,7 @@ Defines acceptable tokens in the program
  */
 
 
-use crate::frontend::error::ErrorType;
+use crate::frontend::utils::error::ErrorType;
 
 #[derive(PartialEq, Debug)]
 pub enum Token {

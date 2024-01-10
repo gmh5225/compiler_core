@@ -5,9 +5,11 @@ use std::{ { ffi::CString, collections::HashMap },
             path::Path, };
 
 use llvm::{core, prelude::*};
-use crate::frontend::syntax::{ ast::{ AST, ASTNode }, 
-                               syntax_element::SyntaxElement, 
-                               data_type:: DataType };
+use crate::frontend::{ 
+    ast::ast_struct::{ AST, ASTNode }, 
+    ast::syntax_element::SyntaxElement, 
+    ast::data_type:: DataType 
+};
 
 pub struct IRGenerator {
     context: LLVMContextRef,

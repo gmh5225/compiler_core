@@ -2,8 +2,10 @@
 Defines acceptable syntax elements, as a part of an AST
  */
 
-use crate::frontend::syntax::{ data_type::DataType, 
-                               ast::ASTNode, };
+use crate::frontend::ast::{ 
+    data_type::DataType, 
+    ast_struct::ASTNode, 
+};
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]

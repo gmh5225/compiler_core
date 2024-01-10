@@ -12,12 +12,20 @@ pub mod backend;
 
 use std::io::{self, Write};
 
-use crate::{ frontend::{ syntax::{ ast::AST, token::Token }, 
-                       parser::Parser, 
-                       lexer::Lexer, 
-                       sem_analysis::SemAnalysis,
-                       error::ErrorType },
-              backend::codegen::ir_codegen::IRGenerator };
+use crate::{ 
+    frontend::{ 
+        ast::ast_struct::AST, 
+        syntax::{
+            token::Token, 
+            parser::Parser, 
+            lexer::Lexer,
+        },
+        analysis::sem_analysis::SemAnalysis,
+        utils::error::ErrorType 
+    },
+
+    backend::codegen::ir_codegen::IRGenerator
+};
 
 fn print_ready() {
     let stderr = io::stderr();

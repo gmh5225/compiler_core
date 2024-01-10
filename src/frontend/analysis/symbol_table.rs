@@ -3,7 +3,7 @@ Stores values and their names, accounting for scope with a stack
  */
 
 use std::collections::HashMap;
-use crate::frontend::syntax::data_type::DataType;
+use crate::frontend::ast::data_type::DataType;
 
 /// A stack of symbol tables, used to represent different levels of scope
 pub struct SymbolTableStack {

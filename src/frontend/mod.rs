@@ -1,6 +1,4 @@
-pub mod lexer;
-pub mod parser;
+pub mod analysis;
+pub mod ast;
 pub mod syntax;
-pub mod symbol_table;
-pub mod sem_analysis;
-pub mod error;
+pub mod utils;

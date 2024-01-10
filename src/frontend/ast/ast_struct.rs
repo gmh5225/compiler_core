@@ -3,7 +3,7 @@ Represents an abstract syntax tree
  */
 
 use std::fmt;
-use crate::frontend::syntax::syntax_element::SyntaxElement;
+use crate::frontend::ast::syntax_element::SyntaxElement;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct AST {

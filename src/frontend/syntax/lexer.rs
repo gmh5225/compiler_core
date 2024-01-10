@@ -2,8 +2,10 @@
 Converts raw text into lexemes
 */
 
-use crate::frontend::syntax::token::{ Token, get_token };
-use crate::frontend::error::ErrorType;
+use crate::frontend::{
+    syntax::token::{ Token, get_token },
+    utils::error::ErrorType,
+};
 
 pub struct Lexer {
     input: Vec<char>, // Source code

@@ -1,13 +1,17 @@
 extern crate llvm_sys as llvm;
 
-use llvm::ir_reader::LLVMParseIRInContext;
-use llvm::prelude::LLVMBool;
 use llvm::prelude::LLVMContextRef;
 use llvm::core::*;
 use llvm::execution_engine::*;
-use llvm::target::*;
-use std::ffi::CStr;
 use std::ffi::CString;
+
+use crate::backend::llvm::{
+    ir::init_ir,
+    ee::{
+        init_ee,
+        utils,
+    }
+};
 
 pub struct ExecutionEngine {
     engine: LLVMExecutionEngineRef,
@@ -19,35 +23,17 @@ use std::path::PathBuf;
 
 impl ExecutionEngine {
     fn new() -> Self {
-        // initialize LLVM components
-        unsafe {
-            LLVM_InitializeAllTargetInfos();
-            LLVM_InitializeAllTargets();
-            LLVM_InitializeAllTargetMCs();
-            LLVM_InitializeAllAsmParsers();
-            LLVM_InitializeAllAsmPrinters();
-            LLVM_InitializeNativeTarget();
-            LLVM_InitializeNativeAsmParser();
-            LLVM_InitializeNativeAsmPrinter();
-            LLVMLinkInMCJIT();
+        init_ee::init_ee_targets();
+
+        let mut context: *mut llvm::LLVMContext = init_ir::create_context();
+        let mut engine: *mut LLVMOpaqueExecutionEngine = std::ptr::null_mut(); 
+        (context, engine) = init_ee::init_engine(context, engine);
+
+        if context.is_null() {
+            panic!("Context is null at initialization");
         }
-
-        let context: *mut llvm::LLVMContext = unsafe { LLVMContextCreate() };
-        let mut engine: *mut LLVMOpaqueExecutionEngine = std::ptr::null_mut();
-        unsafe {
-            let mut tmp_module: *mut llvm::LLVMModule = std::ptr::null_mut();
-            tmp_module = LLVMModuleCreateWithNameInContext(CString::new("temp").unwrap().as_ptr(), context);
-            if tmp_module.is_null() {
-                panic!("Failed to create temporary module");
-            }
-
-            let mut out_error: *mut i8 = std::ptr::null_mut();
-            let result = LLVMCreateExecutionEngineForModule(&mut engine, tmp_module, &mut out_error);
-            if result != 0 {
-                let error_str = CStr::from_ptr(out_error).to_str().unwrap_or("Unknown error").to_owned();
-                LLVMDisposeMessage(out_error);
-                panic!("{}", error_str)
-            }
+        if engine.is_null() {
+            panic!("Engine is null at initialization");
         }
         ExecutionEngine { engine, context }
     }
@@ -65,52 +51,15 @@ impl ExecutionEngine {
 
     fn run_file(&mut self, ir_code: &str, function_name: &str, args: &[i64]) 
             -> Result<i64, String> {
-        let ir = CString::new(ir_code).unwrap();
+        let ir: CString = CString::new(ir_code).unwrap();
         let buffer_name = CString::new("abc").expect("Cstring failed");
         if ir.as_ptr().is_null() {
             panic!("Null pointer encountered in ir.as_ptr()");
         }
-        let mut module: *mut llvm::LLVMModule = std::ptr::null_mut();
-        unsafe {
-            // parse the LLVM IR
-            let memory_buffer: *mut llvm::LLVMMemoryBuffer = 
-                LLVMCreateMemoryBufferWithMemoryRange(
-                ir.as_ptr(),
-                ir.as_bytes().len(),
-                buffer_name.as_ptr(),
-                0 as LLVMBool,
-            );
-            LLVMParseIRInContext(self.context, memory_buffer, &mut module, std::ptr::null_mut());
-
-            // // create an execution engine
-            // error happens here
-            // Ensure 'module' is not null or invalid
-            if module.is_null() {
-                panic!("Module is null");
-            }
-            if self.engine.is_null() {
-                panic!("Engine is null");
-            }
-            // Attempt to create the execution engine
-            if LLVMCreateExecutionEngineForModule(&mut self.engine, module, std::ptr::null_mut()) != 0 {
-                return Err("Failed to create execution engine".to_string());
-            }
-
-            // // lookup the function
-            let function_name_c = CString::new(function_name).unwrap();
-            let function_address = LLVMGetFunctionAddress(self.engine, function_name_c.as_ptr());
-            if function_address == 0 {
-                return Err("Function not found".to_string());
-            }
-
-            // define the function type
-            let add_function: extern "C" fn(i64, i64) -> i64 = std::mem::transmute(function_address);
-
-            // execute the function
-            let result = add_function(args[0], args[1]);
-
-            Ok(result)
-        }
+        let module: *mut llvm::LLVMModule = std::ptr::null_mut(); 
+        let result: i64 = utils::parse_ir(ir, buffer_name, self.engine,
+                            module, args, function_name, self.context);
+        Ok(result)
     }
 }
 

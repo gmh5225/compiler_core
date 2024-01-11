@@ -37,8 +37,8 @@ pub fn create_basic_block(context: LLVMContextRef, function: LLVMValueRef, name:
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::backend::llvm::{
-        init_ir_codegen::{create_basic_block, create_builder, create_context, create_module},
+    use crate::backend::llvm::ir::{
+        init_ir::{create_basic_block, create_builder, create_context, create_module},
         binops::build_add,
         return_type::{nonvoid_return, void_return},
         create_element::create_function,

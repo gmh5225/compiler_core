@@ -107,7 +107,7 @@ impl SemAnalysis {
         }
     }
 
-    /// checks the current symbol table (on top of the stack) defines a var
+    /// checks if the current symbol table (on top of the stack) defines a var
     fn is_variable_defined(&self, variable: &String) -> bool {
         if let Some(top_table) = self.scope_stack.peek() {
             return top_table.get(variable).is_some();

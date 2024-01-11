@@ -33,12 +33,12 @@ pub fn create_basic_block(context: LLVMContextRef, function: LLVMValueRef, name:
 }
 
 
-/// TESTS /// - tests entire llvm folder
+/// TESTS ///
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::backend::llvm::{
-        init::{create_basic_block, create_builder, create_context, create_module},
+        init_ir_codegen::{create_basic_block, create_builder, create_context, create_module},
         binops::build_add,
         return_type::{nonvoid_return, void_return},
         create_element::create_function,

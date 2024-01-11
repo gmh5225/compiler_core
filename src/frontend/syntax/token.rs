@@ -14,7 +14,6 @@ pub enum Token {
     /// Multi-char
     INT(Vec<char>),
     IDENTIFIER(Vec<char>),
-    FUNCTION,
 
     /// Binary operations
     DIVIDE,
@@ -24,6 +23,7 @@ pub enum Token {
     EQUAL,
 
     /// Scope changing
+    FUNCTION,
     IF,
     ELSE,
     RETURN,
@@ -50,6 +50,7 @@ pub enum Token {
     TBOOLEAN,
 }
 
+/// retrieves a token if text matches, else error
 pub fn get_token(raw_text: &Vec<char>) -> Result<Token, ErrorType> {
     let identifier: String = raw_text.into_iter().collect();
     match &identifier[..] {
@@ -63,44 +64,5 @@ pub fn get_token(raw_text: &Vec<char>) -> Result<Token, ErrorType> {
         "Float" => Ok(Token::TFLOAT),
         "Boolean" => Ok(Token::TBOOLEAN),
         _ => Err(ErrorType::UnrecognizedToken { token: String::from("Unrecognized token") }),
-    }
-}
-
-pub fn is_primitive(token: Token) -> bool {
-    match token {
-        Token::INT(_) => true,
-        Token::TRUE => true,
-        Token::FALSE => true,
-        Token::IDENTIFIER(_) => true,
-        _ => false,
-    }
-}
-pub fn is_operator(token: Token) -> bool {
-    match token {
-        Token::PLUS => true,
-        Token::MINUS => true,
-        Token::DIVIDE => true,
-        Token::FLOORDIVISION => true,
-        Token::GREATERTHAN => true,
-        Token::LESSTHAN => true,
-        Token::LOGICALAND => true,
-        _ => false,
-    }
-}
-
-pub fn is_type_notation(token: Token) -> bool {
-    match token {
-        Token::TINTEGER => true,
-        Token::TFLOAT => true,
-        Token::TBOOLEAN => true,
-        _ => false,
-    }
-}
-
-pub fn is_delimiter(token: Token) -> bool {
-    match token {
-        Token::SEMICOLON => true,
-        Token::RBRACKET => true,
-        _ => false,
     }
 }

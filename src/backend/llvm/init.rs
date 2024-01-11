@@ -32,6 +32,8 @@ pub fn create_basic_block(context: LLVMContextRef, function: LLVMValueRef, name:
     }
 }
 
+
+/// TESTS /// - tests entire llvm folder
 #[cfg(test)]
 mod tests {
     use super::*;

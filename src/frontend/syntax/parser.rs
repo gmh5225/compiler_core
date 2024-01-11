@@ -28,7 +28,7 @@ impl<'a> Parser<'a> {
     
     /// Parses an input of tokens into an AST, or returns a vector of errors
     pub fn parse(input: Vec<Token>) -> Result<AST, Vec<ErrorType>> {
-        binop_precedence(); // this is probably important. use it somewhere
+        binop_precedence();
 
         let mut parser: Parser<'_> = Parser::new(&input);
         let mut root_children: Vec<ASTNode> = Vec::new();  
@@ -45,7 +45,7 @@ impl<'a> Parser<'a> {
             } 
         }
 
-        let mut root = ASTNode::new(SyntaxElement::ModuleExpression);
+        let mut root: ASTNode = ASTNode::new(SyntaxElement::ModuleExpression);
         root.add_children(root_children);
         if errors.is_empty() {
             return Ok(AST::new(root));
@@ -67,7 +67,7 @@ impl<'a> Parser<'a> {
                         // recurse on children until reaching right bracket, push to root's children, then return
                         // placeholder:
                         self.current += 1; //right bracket
-                        let root = ASTNode::new(root_element);
+                        let root: ASTNode = ASTNode::new(root_element);
                         Ok(root)
                     },
                     Err(_) => {
@@ -83,7 +83,7 @@ impl<'a> Parser<'a> {
     fn parse_function_declaration(&mut self) -> Result<(String, Vec<FunctionParameter>, Option<DataType>), ErrorType> {
         if let Some(Token::IDENTIFIER(name_chars)) = self.input.get(self.current) {
             self.current += 1; // Consume function name
-            let name = name_chars.iter().collect();
+            let name: String = name_chars.iter().collect();
     
             if let Some(Token::LPAREN) = self.input.get(self.current) {
                 self.current += 1; // Consume left paren
@@ -149,7 +149,7 @@ impl<'a> Parser<'a> {
                 } else {
                     return Err(ErrorType::DevError {});
                 }
-                self.current += 1; // consume left bracket
+                self.current += 1; // Consume left bracket
                 Ok((name, parameters, return_type)) 
             } else {
                 Err(ErrorType::DevError{}) 

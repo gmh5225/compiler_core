@@ -9,8 +9,8 @@ use crate::frontend::{
 
 pub struct Lexer {
     input: Vec<char>, // Source code
-    pub position: usize, // Current position in source code
-    pub current: char, // Current character being read
+    position: usize, // Current position in source code
+    current: char, // Current character being read
 }
 
 impl Lexer {
@@ -25,13 +25,13 @@ impl Lexer {
 
     /// Returns a vector of tokens
     pub fn lex(input: &str) -> Result<Vec<Token>, Vec<ErrorType>> {
-        let mut lexer = Lexer::new(input.chars().collect());
+        let mut lexer: Lexer = Lexer::new(input.chars().collect());
         let mut errors: Vec<ErrorType> = Vec::new();
-        let mut tokens = Vec::new();
+        let mut tokens: Vec<Token> = Vec::new();
         lexer.current = lexer.input[0];
 
         loop {
-            let token = lexer.next_token();
+            let token: Result<Token, ErrorType> = lexer.next_token();
             match token {
                 Ok(token) => {
                     if token == Token::EOF {
@@ -77,7 +77,6 @@ impl Lexer {
             '~' => Ok(Token::EOF),
 
             '/' => Ok(Token::DIVIDE),
-            // floor division
             '-' => Ok(Token::MINUS),
             '+' => Ok(Token::PLUS),
             '=' => Ok(Token::EQUAL),
@@ -90,14 +89,11 @@ impl Lexer {
             ':' => Ok(Token::COLON),
             ',' => Ok(Token::COMMA),
 
-            // && => Token::LOGICALAND
-            // => true,
-            // => false
             '<' => Ok(Token::LESSTHAN),
             '>' => Ok(Token::GREATERTHAN),
 
             _ if is_letter(self.current) => {
-                let identifier = self.read_identifier();
+                let identifier: Vec<char> = self.read_identifier();
                 Ok(get_token(&identifier).unwrap_or_else(|_| Token::IDENTIFIER(identifier))) // i don't love this solution
             },
             _ if is_digit(self.current) => Ok(Token::INT(self.read_number())),

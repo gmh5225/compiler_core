@@ -3,7 +3,8 @@ Checks an AST for semantic correctness
  */
 
 use crate::frontend::{ 
-    ast::{ ast_struct::{ AST, ASTNode }, 
+    ast::{ 
+        ast_struct::{ AST, ASTNode }, 
         syntax_element::SyntaxElement, 
         data_type:: DataType 
     },
@@ -26,6 +27,7 @@ impl SemAnalysis {
         }
     }
 
+    /// checks an ast for semantic correctness
     pub fn sem_analysis(input: AST) -> Vec<ErrorType> { 
         let mut semantic_analysis: SemAnalysis = SemAnalysis::new(input);
         semantic_analysis.scope_stack.push(SymbolTable::new());
@@ -41,6 +43,7 @@ impl SemAnalysis {
         errors
     }
 
+    /// analyzies each node, recursively, until it has checked all nodes, and appends errors
     fn node_analysis(&mut self, node: &ASTNode, errors: &mut Vec<ErrorType>) {
         match &node.get_element() {
             SyntaxElement::ModuleExpression => {
@@ -91,6 +94,7 @@ impl SemAnalysis {
         }
     }
 
+    /// checks if a node is 0
     fn is_zero(&self, node: &ASTNode) -> bool {
         match &node.get_element() {
             SyntaxElement::Literal(DataType::Integer, value) => {
@@ -103,6 +107,7 @@ impl SemAnalysis {
         }
     }
 
+    /// checks the current symbol table (on top of the stack) defines a var
     fn is_variable_defined(&self, variable: &String) -> bool {
         if let Some(top_table) = self.scope_stack.peek() {
             return top_table.get(variable).is_some();

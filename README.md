@@ -5,7 +5,9 @@
 # Goals
 - Compile basic parts of custom language
 - Generate LLVM IR using Rust
+- Execute LLVM IR after converting to object code
 - Make the project workable on all types of machines
+- Provide a clear structure for assignments for future runnings of this class
 ------------------------------------
 # Rust
 - Documentation: https://doc.rust-lang.org/book/
@@ -14,7 +16,6 @@
 ------------------------------------
 # Resources
  - Textbook: Alfred V. Aho, Monica S. Lam, Ravi Sethi, and Jefrey D. Ullman. Compilers: Principles, Techniques, & Tools. Pearson Education, second edition, 2007
- - LLVM API: https://llvm.org/doxygen/group__LLVMC.html
 ------------------------------------
 # LLVM
 - Use version 17
@@ -27,16 +28,3 @@
 # Infrastructure
 - TODO: Create syllabus/schedule
 - TODO: Decide meeting times
-------------------------------------
-# General TODO
-- TODO: Expand Token
-- TODO: Expand DataType
-- TODO: Expand SyntaxElement
-- TODO: Expand node_analysis (SemAnalysis)
-- TODO: Expand ErrorType
-- TODO: OPTIMIZE.md
-- TODO: IRGenerator
-- TODO: Execution Engine
-- TODO: OGenerator
-- TODO: Linker
-- TODO: Regression Testing

@@ -128,7 +128,7 @@ impl IRGenerator {
             }
         }
     }
-    pub fn write_ir_to_file(module: LLVMModuleRef) {
+    fn write_ir_to_file(module: LLVMModuleRef) {
         let output_dir = Path::new("src/backend/code_generation/target");
         let output_file_path = output_dir.join("output.ll");
     

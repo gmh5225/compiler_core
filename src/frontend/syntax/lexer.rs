@@ -64,8 +64,13 @@ impl Lexer {
 
     /// Ignores whitespace
     fn skip_whitespace(&mut self) {
-        if matches!(self.current, ' ' | '\t' | '\n' | '\r') {
-            self.read_char();
+        loop {
+            if matches!(self.current, ' ' | '\t' | '\n' | '\r') {
+                self.read_char();
+            }
+            else {
+                break;
+            }
         }
     }
 
@@ -79,19 +84,86 @@ impl Lexer {
             '/' => Ok(Token::DIVIDE),
             '-' => Ok(Token::MINUS),
             '+' => Ok(Token::PLUS),
-            '=' => Ok(Token::EQUAL),
+            '=' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+                    Ok(Token::EQUALEQUAL)
+                }
+                else {
+                    Ok(Token::EQUAL)
+                }
+            },
 
             '}' => Ok(Token::RBRACKET),
             '{' => Ok(Token::LBRACKET), // depending on your text editor, this character may cause problems, but
             '(' => Ok(Token::LPAREN),   //      the rustc compiler is fine with this
             ')' => Ok(Token::RPAREN),
             ';' => Ok(Token::SEMICOLON),
-            ':' => Ok(Token::COLON),
+            ':' => {
+                if self.peek_char() == ':' {
+                    self.read_char();
+                    Ok(Token::COLONCOLON)
+                }
+                else {
+                    Ok(Token::COLON)
+                }
+            },
             ',' => Ok(Token::COMMA),
+            '%' => Ok(Token::MOD),
+            '[' => Ok(Token::LBRACE),
+            ']' => Ok(Token::RBRACE),
+            '.' => Ok(Token::DOT),
+            '!' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+                    Ok(Token::NOTEQUAL)
+                }
+                else {
+                    Ok(Token::LOGICALNOT)
+                }
+            },
+            '*' => Ok(Token::MULTIPLY),
+            '^' => Ok(Token::EXPONENT),
+            
+            '<' => {
+                if self.peek_char() == '=' {
+                    self.read_char(); 
+                    Ok(Token::LESSTHANEQUAL)
+                } else {
+                    Ok(Token::LESSTHAN)
+                }
+            },
+            '>' => {
+                if self.peek_char() == '=' {
+                    self.read_char(); 
+                    Ok(Token::GREATERTHANEQUAL)
+                } else {
+                    Ok(Token::GREATERTHAN)
+                }
+            },
 
-            '<' => Ok(Token::LESSTHAN),
-            '>' => Ok(Token::GREATERTHAN),
-
+            '&' => {
+                if self.peek_char() == '&' {
+                    self.read_char(); 
+                    self.read_char(); 
+                    Ok(Token::LOGICALAND)
+                } else {
+                    let mut err_token = String::new();
+                    err_token.push(self.current);
+                    Err(ErrorType::UnrecognizedToken { token: err_token })
+                }
+            },
+            '|' => {
+                if self.peek_char() == '|' {
+                    self.read_char(); 
+                    self.read_char(); 
+                    Ok(Token::LOGICALOR)
+                } else {
+                    let mut err_token = String::new();
+                    err_token.push(self.current);
+                    Err(ErrorType::UnrecognizedToken { token: err_token })
+                }
+            },
             _ if is_letter(self.current) => {
                 let identifier: Vec<char> = self.read_identifier();
                 Ok(get_token(&identifier).unwrap_or_else(|_| Token::IDENTIFIER(identifier))) // i don't love this solution
@@ -118,6 +190,16 @@ impl Lexer {
     fn read_number(&mut self) -> Vec<char> {
         self.read_while(is_digit)
     }
+
+    /// Gives the next character without changing the position
+    fn peek_char(&self) -> char {
+        if self.position + 1 >= self.input.len() {
+            '~' // EOF token
+        } else {
+            self.input[self.position + 1]
+        }
+    }
+    
 
     /// Reads characters from the input while the given predicate is true.
     fn read_while<F>(&mut self, predicate: F) -> Vec<char>
@@ -155,7 +237,19 @@ fn get_token(raw_text: &Vec<char>) -> Result<Token, ErrorType> {
         "Integer" => Ok(Token::TINTEGER),
         "Float" => Ok(Token::TFLOAT),
         "Boolean" => Ok(Token::TBOOLEAN),
-        "mod" => Ok(Token::MOD),
+        "fn" => Ok(Token::FUNCTION),
+        "struct" => Ok(Token::STRUCT),
+        "enum" => Ok(Token::ENUM),
+        "String" => Ok(Token::TSTRING),
+        "Void" => Ok(Token::TVOID),
+        "Char" => Ok(Token::TCHAR),
+        "elif" => Ok(Token::ELIF),
+        "for" => Ok(Token::FOR),
+        "break" => Ok(Token::BREAK),
+        "do" => Ok(Token::DO),
+        "while" => Ok(Token::WHILE),
+        "match" => Ok(Token::MATCH),
+        "continue" => Ok(Token::CONTINUE),
         _ => Err(ErrorType::UnrecognizedToken { token: String::from("Unrecognized token") }),
     }
 }
@@ -216,9 +310,9 @@ mod tests {
 
     #[test]
     fn test_complex_expressions() {
-        let input = "let x = 5 + 10 / 5 // 3;";
-        let result = Lexer::lex(input);
-        let expected = vec![
+        let input: &str = "let x = 5 + 10 / 5 % 3;";
+        let result: Result<Vec<Token>, Vec<ErrorType>> = Lexer::lex(input);
+        let expected: Vec<Token> = vec![
             Token::LET,
             Token::IDENTIFIER(vec!['x']),
             Token::EQUAL,
@@ -227,7 +321,8 @@ mod tests {
             Token::INT(vec!['1', '0']),
             Token::DIVIDE,
             Token::INT(vec!['5']),
-            Token::FLOORDIVISION,
+            Token::MOD,
+            Token::INT(vec!['3']),
             Token::SEMICOLON,
             Token::EOF,
         ];
@@ -259,7 +354,7 @@ mod tests {
     }
 
     #[test]
-    fn test_type_annotations() {
+    fn test_assignment() {
         let input = "let x: Integer = 5;";
         let result = Lexer::lex(input);
         let expected = vec![
@@ -277,9 +372,9 @@ mod tests {
 
     #[test]
     fn test_function_declarations() {
-        let input = "fn add(a: Integer, b: Integer): Integer { return a + b; }";
-        let result = Lexer::lex(input);
-        let expected = vec![
+        let input: &str = "fn add(a: Integer, b: Integer): Integer { return a + b; }";
+        let result: Result<Vec<Token>, Vec<ErrorType>> = Lexer::lex(input);
+        let expected: Vec<Token> = vec![
             Token::FUNCTION,
             Token::IDENTIFIER(vec!['a', 'd', 'd']),
             Token::LPAREN,
@@ -307,9 +402,9 @@ mod tests {
 
     #[test]
     fn test_if_else_in_function() {
-        let input = "fn check(x: Integer) { if x > 0 { return true; } else { return false; } }";
-        let result = Lexer::lex(input);
-        let expected = vec![
+        let input: &str = "fn check(x: Integer) { if x > 0 { return true; } else { return false; } }";
+        let result: Result<Vec<Token>, Vec<ErrorType>> = Lexer::lex(input);
+        let expected: Vec<Token> = vec![
             Token::FUNCTION,
             Token::IDENTIFIER(vec!['c', 'h', 'e', 'c', 'k']),
             Token::LPAREN,
@@ -342,9 +437,9 @@ mod tests {
 
     #[test]
     fn test_logical_operators_and_parentheses() {
-        let input = "let result = (5 > 3) && (2 < 4);";
-        let result = Lexer::lex(input);
-        let expected = vec![
+        let input: &str = "let result = (5 > 3) && (2 < 4);";
+        let result: Result<Vec<Token>, Vec<ErrorType>> = Lexer::lex(input);
+        let expected: Vec<Token> = vec![
             Token::LET,
             Token::IDENTIFIER(vec!['r', 'e', 's', 'u', 'l', 't']),
             Token::EQUAL,
@@ -391,16 +486,104 @@ mod tests {
     }
 
     #[test]
-    fn test_modular_arithmetic() {
-        let input: &str = "8 mod 2";
-        let result: Result<Vec<Token>, Vec<ErrorType>> = Lexer::lex(input);
-        let expected: Vec<Token> = vec![
-            Token::INT(vec!['8']),
-            Token::MOD,
-            Token::INT(vec!['2']),
+    fn test_boolean_literals() {
+        let input = "true false";
+        let result = Lexer::lex(input);
+        let expected = vec![
+            Token::TRUE, Token::FALSE, Token::EOF,
+        ];
+        assert_eq!(result, Ok(expected));
+    }
+
+    #[test]
+    fn test_comparison_operators() {
+        let input = "< > <= >= == !=";
+        let result = Lexer::lex(input);
+        let expected = vec![
+            Token::LESSTHAN, Token::GREATERTHAN, Token::LESSTHANEQUAL,
+            Token::GREATERTHANEQUAL, Token::EQUALEQUAL, Token::NOTEQUAL,
             Token::EOF,
         ];
-        println!("{:?}", result);
+        assert_eq!(result, Ok(expected));
+    }
+
+    #[test]
+    fn test_arithmetic_operators() {
+        let input = "+ - * / % ^";
+        let result = Lexer::lex(input);
+        let expected = vec![
+            Token::PLUS, Token::MINUS, Token::MULTIPLY,
+            Token::DIVIDE, Token::MOD, Token::EXPONENT,
+            Token::EOF,
+        ];
+        assert_eq!(result, Ok(expected));
+    }
+
+    #[test]
+    fn test_logical_operators() {
+        let input = "&& || !";
+        let result = Lexer::lex(input);
+        let expected = vec![
+            Token::LOGICALAND, Token::LOGICALOR, Token::LOGICALNOT,
+            Token::EOF,
+        ];
+        assert_eq!(result, Ok(expected));
+    }
+
+    #[test]
+    fn test_struct_enum_declarations() {
+        let input = "struct enum";
+        let result = Lexer::lex(input);
+        let expected = vec![
+            Token::STRUCT, Token::ENUM, Token::EOF,
+        ];
+        assert_eq!(result, Ok(expected));
+    }
+
+    #[test]
+    fn test_control_flow_tokens() {
+        let input = "if elif else for while do break continue match";
+        let result = Lexer::lex(input);
+        let expected = vec![
+            Token::IF, Token::ELIF, Token::ELSE,
+            Token::FOR, Token::WHILE, Token::DO,
+            Token::BREAK, Token::CONTINUE, Token::MATCH,
+            Token::EOF,
+        ];
+        assert_eq!(result, Ok(expected));
+    }
+
+    #[test]
+    fn test_braces_and_parentheses() {
+        let input = "{ } [ ] ( )";
+        let result = Lexer::lex(input);
+        let expected = vec![
+            Token::LBRACKET, Token::RBRACKET, Token::LBRACE,
+            Token::RBRACE, Token::LPAREN, Token::RPAREN,
+            Token::EOF,
+        ];
+        assert_eq!(result, Ok(expected));
+    }
+
+    #[test]
+    fn test_type_annotations() {
+        let input = "Integer Float Boolean String Char Void";
+        let result = Lexer::lex(input);
+        let expected = vec![
+            Token::TINTEGER, Token::TFLOAT, Token::TBOOLEAN,
+            Token::TSTRING, Token::TCHAR, Token::TVOID,
+            Token::EOF,
+        ];
+        assert_eq!(result, Ok(expected));
+    }
+
+    #[test]
+    fn test_dot_and_coloncolon_operators() {
+        let input = ". ::";
+        let result = Lexer::lex(input);
+        let expected = vec![
+            Token::DOT, Token::COLONCOLON, Token::EOF,
+        ];
         assert_eq!(result, Ok(expected));
     }
 }

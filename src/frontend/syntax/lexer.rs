@@ -3,7 +3,7 @@ Converts raw text into lexemes
 */
 
 use crate::frontend::{
-    syntax::token::{ Token, get_token },
+    syntax::token::Token,
     utils::error::ErrorType,
 };
 
@@ -121,16 +121,16 @@ impl Lexer {
 
     /// Reads characters from the input while the given predicate is true.
     fn read_while<F>(&mut self, predicate: F) -> Vec<char>
-    where
-        F: Fn(char) -> bool,
-    {
-        let start_pos = self.position;
-        while self.position < self.input.len() && predicate(self.current) {
-            self.read_char();
+        where
+            F: Fn(char) -> bool,
+        {
+            let start_pos = self.position;
+            while self.position < self.input.len() && predicate(self.current) {
+                self.read_char();
+            }
+            self.position = self.position - 1; // hacky solution, fix later
+            self.input[start_pos..=self.position].to_vec() 
         }
-        self.position = self.position - 1; // hacky solution, fix later
-        self.input[start_pos..=self.position].to_vec() 
-    }
 }
 
 fn is_letter(current: char) -> bool {
@@ -140,6 +140,24 @@ fn is_letter(current: char) -> bool {
 
 fn is_digit(current: char) -> bool {
     '0' <= current && current <= '9'
+}
+
+/// retrieves a token if text matches, else error
+fn get_token(raw_text: &Vec<char>) -> Result<Token, ErrorType> {
+    let identifier: String = raw_text.into_iter().collect();
+    match &identifier[..] {
+        "let" => Ok(Token::LET),
+        "true" => Ok(Token::TRUE),
+        "false" => Ok(Token::FALSE),
+        "if" => Ok(Token::IF),
+        "else" => Ok(Token::ELSE),
+        "return" => Ok(Token::RETURN),
+        "Integer" => Ok(Token::TINTEGER),
+        "Float" => Ok(Token::TFLOAT),
+        "Boolean" => Ok(Token::TBOOLEAN),
+        "mod" => Ok(Token::MOD),
+        _ => Err(ErrorType::UnrecognizedToken { token: String::from("Unrecognized token") }),
+    }
 }
 
 
@@ -321,19 +339,6 @@ mod tests {
         assert_eq!(result, Ok(expected));
     }
 
-    // #[test]
-    // fn test_string_literals_and_comments() {
-    //     let input = "let msg = \"Hello, World!\"; // This is a comment";
-    //     let result = Lexer::lex(input);
-    //     let expected = vec![
-    //         Token::LET,
-    //         Token::IDENTIFIER(vec!['m', 's', 'g']),
-    //         Token::EQUAL,
-    //         Token::SEMICOLON,
-    //         Token::EOF, 
-    //     ];
-    //     assert_eq!(result, Ok(expected));
-    // }
 
     #[test]
     fn test_logical_operators_and_parentheses() {
@@ -362,9 +367,9 @@ mod tests {
 
     #[test]
     fn test_nested_function_calls() {
-        let input = "let val = add(multiply(2, 3), 4);";
-        let result = Lexer::lex(input);
-        let expected = vec![
+        let input: &str = "let val = add(multiply(2, 3), 4);";
+        let result: Result<Vec<Token>, Vec<ErrorType>> = Lexer::lex(input);
+        let expected: Vec<Token> = vec![
             Token::LET,
             Token::IDENTIFIER(vec!['v', 'a', 'l']),
             Token::EQUAL,
@@ -382,6 +387,20 @@ mod tests {
             Token::SEMICOLON,
             Token::EOF,
         ];
+        assert_eq!(result, Ok(expected));
+    }
+
+    #[test]
+    fn test_modular_arithmetic() {
+        let input: &str = "8 mod 2";
+        let result: Result<Vec<Token>, Vec<ErrorType>> = Lexer::lex(input);
+        let expected: Vec<Token> = vec![
+            Token::INT(vec!['8']),
+            Token::MOD,
+            Token::INT(vec!['2']),
+            Token::EOF,
+        ];
+        println!("{:?}", result);
         assert_eq!(result, Ok(expected));
     }
 }

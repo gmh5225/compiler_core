@@ -2,9 +2,6 @@
 Defines acceptable tokens in the program
  */
 
-
-use crate::frontend::utils::error::ErrorType;
-
 #[derive(PartialEq, Debug)]
 pub enum Token {
     /// Misc

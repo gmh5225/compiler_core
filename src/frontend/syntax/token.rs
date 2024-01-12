@@ -4,9 +4,15 @@ Defines acceptable tokens in the program
 
 #[derive(PartialEq, Debug)]
 pub enum Token {
-    /// Misc
     EOF,
+
+    /// Assignment
     LET,
+    PLUSASSIGN, // +=
+    MINUSASSIGN,
+    MULTIPLYASSIGN,
+    DIVIDEASSIGN,
+    MODASSIGN,
 
     /// Multi-char
     INT(Vec<char>),
@@ -19,12 +25,23 @@ pub enum Token {
     PLUS,
     EQUAL,
     MOD,
+    MULTIPLY,
+    EXPONENT,
 
     /// Scope changing
     FUNCTION,
+    STRUCT,
+    ENUM,
     IF,
+    ELIF,
     ELSE,
     RETURN,
+    FOR,
+    WHILE,
+    DO,
+    BREAK,
+    CONTINUE,
+    MATCH,
 
     /// Special chars
     RBRACKET, // }
@@ -34,16 +51,29 @@ pub enum Token {
     SEMICOLON,
     COMMA,
     COLON,
+    LBRACE, // [
+    RBRACE, // ]
+    DOT,
+    COLONCOLON,
 
     /// Boolean
     LOGICALAND,
+    LOGICALOR,
+    LOGICALNOT,
     TRUE,
     FALSE,
     LESSTHAN,
     GREATERTHAN,
+    NOTEQUAL,
+    EQUALEQUAL, // ==
+    LESSTHANEQUAL,
+    GREATERTHANEQUAL,
 
     /// Tokens for type annotations, not actual types. See data_type for acceptable types
     TINTEGER,
     TFLOAT,
     TBOOLEAN,
+    TSTRING,
+    TCHAR,
+    TVOID,
 }

@@ -2,7 +2,7 @@
 Defines acceptable tokens in the program
  */
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Token {
     EOF,
 
@@ -42,6 +42,7 @@ pub enum Token {
     BREAK,
     CONTINUE,
     MATCH,
+    ARROW,
 
     /// Special chars
     RBRACKET, // }

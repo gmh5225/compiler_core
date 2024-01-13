@@ -20,11 +20,42 @@ impl FunctionParameter {
             data_type,
         }
     }
+
+    pub fn get_name(&self) -> String {
+        self.name.clone()
+    }
+
+    pub fn get_data_type(&self) -> DataType {
+        self.data_type.clone()
+    }
 }
 
 impl fmt::Display for FunctionParameter {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}, {}", self.name, self.data_type)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct MatchArm {
+    variant: ASTNode,
+    action: ASTNode,
+}
+
+impl MatchArm {
+    pub fn new(variant: ASTNode, action: ASTNode) -> Self {
+        Self {
+            variant,
+            action
+        }
+    }
+
+    pub fn get_variant(&self) -> ASTNode {
+        self.variant.clone()
+    }
+
+    pub fn get_action(&self) -> ASTNode {
+        self.action.clone()
     }
 }
 
@@ -56,6 +87,45 @@ pub enum SyntaxElement {
         parameters: Vec<FunctionParameter>,
         return_type: Option<DataType>,
     },
+    ForLoop {
+        initializer: Option<Box<ASTNode>>,
+        condition: Box<ASTNode>,
+        increment: Option<Box<ASTNode>>,
+        body: Box<Vec<ASTNode>>,
+    },
+    WhileLoop {
+        condition: Box<ASTNode>,
+        body: Box<Vec<ASTNode>>,
+    },
+    DoWhileLoop {
+        body: Box<Vec<ASTNode>>,
+        condition: Box<ASTNode>,
+    },
+    Break,
+    Continue,
+    MatchStatement {
+        to_match: Box<ASTNode>,
+        arms: Vec<MatchArm>,
+    },
+    FunctionCall {
+        name: String,
+        arguments: Vec<ASTNode>,
+    },
+    StructDeclaration {
+        name: String,
+        fields: Vec<(String, DataType)>
+    },
+    EnumDeclaration {
+        name: String,
+        variants: Vec<String>,
+    },
+    UnaryExpression { // for things like !x (operator and one operand)
+        operator: String,
+        operand: Box<ASTNode>,
+    },
+    Return {
+        value: Box<ASTNode>,
+    }
 }
 
 impl fmt::Display for SyntaxElement {
@@ -79,13 +149,63 @@ impl fmt::Display for SyntaxElement {
                 write!(f, "Assignment({}, {})", variable, value),
             SyntaxElement::Initialization { variable, value } => 
                 write!(f, "Initialization({}, {})", variable, value),
-                SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
-                    let return_type_str = match return_type {
-                        Some(rt) => rt.to_string(),
-                        None => "None".to_string(),
-                    };
-                    write!(f, "FunctionDeclaration(name: {}, parameters: {:?}, return_type: {})", name, parameters, return_type_str)
+            SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
+                let return_type_str = match return_type {
+                    Some(rt) => rt.to_string(),
+                    None => "None".to_string(),
+                };
+                write!(f, "FunctionDeclaration(name: {}, parameters: {:?}, return_type: {})", name, parameters, return_type_str)
+            },
+            SyntaxElement::ForLoop { initializer, condition, increment, body } => {
+                write!(f, "ForLoop(")?;
+                if let Some(init) = initializer {
+                    write!(f, "initializer: {}, ", init)?;
+                } else {
+                    write!(f, "initializer: None, ")?;
                 }
+                write!(f, "condition: {}, ", condition)?;
+                if let Some(inc) = increment {
+                    write!(f, "increment: {}, ", inc)?;
+                } else {
+                    write!(f, "increment: None, ")?;
+                }
+                write!(f, "body: [")?;
+                for (i, node) in body.iter().enumerate() {
+                    if i > 0 { write!(f, ", ")?; }
+                    write!(f, "{}", node)?;
+                }
+                write!(f, "])")
+            },
+            SyntaxElement::WhileLoop { condition, body } => {
+                write!(f, "WhileLoop(condition: {}, body: [", condition)?;
+                for (i, node) in body.iter().enumerate() {
+                    if i > 0 { write!(f, ", ")?; }
+                    write!(f, "{}", node)?;
+                }
+                write!(f, "])")
+            },
+            SyntaxElement::DoWhileLoop { body, condition } => {
+                write!(f, "DoWhileLoop(body: [")?;
+                for (i, node) in body.iter().enumerate() {
+                    if i > 0 { write!(f, ", ")?; }
+                    write!(f, "{}", node)?;
+                }
+                write!(f, "], condition: {})", condition)
+            },
+            SyntaxElement::Break => write!(f, "BreakStatement"),
+            SyntaxElement::Continue => write!(f, "ContinueStatement"),
+            SyntaxElement::MatchStatement { to_match, arms } => 
+                write!(f, "MatchStatement(to_match: {}, arms: {:?})", to_match, arms),
+            SyntaxElement::FunctionCall { name, arguments } => 
+                write!(f, "FunctionCall(name: {}, arguments: {:?})", name, arguments),
+            SyntaxElement::StructDeclaration { name, fields } => 
+                write!(f, "StructDeclaration(name: {}, fields: {:?})", name, fields),
+            SyntaxElement::EnumDeclaration { name, variants } => 
+                write!(f, "EnumDeclaration(name: {}, variants: {:?})", name, variants),
+            SyntaxElement::UnaryExpression { operator, operand } => 
+                write!(f, "UnaryExpression(operator: {}, operand: {})", operator, operand),
+            SyntaxElement::Return { value} => 
+                write!(f, "Return(value: {}),", value),
         }
     }
 }

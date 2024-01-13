@@ -89,6 +89,10 @@ impl Lexer {
                     self.read_char();
                     Ok(Token::EQUALEQUAL)
                 }
+                else if self.peek_char() == '>' {
+                    self.read_char();
+                    Ok(Token::ARROW)
+                }
                 else {
                     Ok(Token::EQUAL)
                 }

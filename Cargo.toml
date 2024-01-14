@@ -1,7 +1,11 @@
 [package]
-name = "compiler-design"
+name = "compiler_design"
 version = "0.1.0"
 edition = "2021"
+
+[lib]
+name = "compiler_design"
+path = "src/lib.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

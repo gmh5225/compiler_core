@@ -125,6 +125,9 @@ impl IRGenerator {
                     let bool_type = core::LLVMInt1TypeInContext(self.context);
                     core::LLVMConstInt(bool_type, val as u64, 0)
                 }
+            },
+            DataType::String => {
+                unimplemented!("abc")
             }
         }
     }

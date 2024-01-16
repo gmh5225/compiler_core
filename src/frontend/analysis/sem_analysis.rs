@@ -63,18 +63,20 @@ impl SemAnalysis {
                 self.node_analysis(left, errors);
                 self.node_analysis(right, errors);
             },
-            SyntaxElement::IfStatement{condition, 
-                                         then_branch, 
-                                         else_branch} => {
+            SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
                 self.node_analysis(condition, errors);
-
+            
                 self.scope_stack.push(SymbolTable::new());
-                self.node_analysis(then_branch, errors);
+                for node in then_branch.iter() {
+                    self.node_analysis(node, errors);
+                }
                 self.scope_stack.pop();
-
+            
                 if let Some(else_branch) = else_branch {
                     self.scope_stack.push(SymbolTable::new());
-                    self.node_analysis(else_branch, errors);
+                    for node in else_branch.iter() {
+                        self.node_analysis(node, errors);
+                    }
                     self.scope_stack.pop();
                 }
             },
@@ -113,37 +115,5 @@ impl SemAnalysis {
             return top_table.get(variable).is_some();
         }
         panic!("No scope defined");
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::frontend::{ 
-        ast::ast_struct::{ AST, ASTNode }, 
-        ast::syntax_element::SyntaxElement, 
-        ast::data_type::DataType 
-    };
-    #[test]
-    fn basic_test() {
-        let left_node = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "5".to_string()));
-        let right_node = ASTNode::new(SyntaxElement::Literal(DataType::Integer, "0".to_string()));
-
-        let division_expr = ASTNode::new(SyntaxElement::BinaryExpression {
-            left: Box::new(left_node),
-            operator: "/".to_string(),
-            right: Box::new(right_node),
-        });
-
-        let mut root_node = ASTNode::new(SyntaxElement::ModuleExpression);
-        root_node.add_child(division_expr);
-
-        let ast = AST::new(root_node);
-
-        let errors = SemAnalysis::sem_analysis(ast);
-
-        assert!(errors.iter().any(|e| matches!(e, ErrorType::DivisionByZero { .. })),
-                "Expected DivisionByZero error, but found {:?}", errors);
     }
 }

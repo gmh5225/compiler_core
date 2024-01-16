@@ -1,15 +1,3 @@
-/*
-Program driver
-    Goal capabilities:
-        - Command line interpreter
-        - Compile to LLVM IR/.o
-        - Automated execution of .o
-        - Regression testing
- */
-
-pub mod frontend;
-pub mod backend;
-
 use std::io::{self, Write};
 
 use crate::{ 
@@ -40,7 +28,7 @@ fn read_user_input() -> String {
     input.to_string() 
 }
 
-fn main_loop() {
+fn execute() {
     loop {
         print_ready();
         let user_input: String = read_user_input();
@@ -80,5 +68,5 @@ fn main_loop() {
 
 
 fn main() {
-    main_loop();
+    execute();
 }

@@ -62,8 +62,8 @@ impl MatchArm {
 #[derive(Debug, Clone, PartialEq)]
 pub enum SyntaxElement {
     ModuleExpression,
-    Literal(DataType, String),
-    Variable(String),
+    Literal(DataType, String), // this is for literal things, eg: Boolean, "true"
+    Variable(DataType, String), // this is for variable names and their types, eg: Boolean, "foo"
     BinaryExpression {
         left: Box<ASTNode>,
         operator: String,
@@ -71,8 +71,8 @@ pub enum SyntaxElement {
     },
     IfStatement {
         condition: Box<ASTNode>,
-        then_branch: Box<ASTNode>,
-        else_branch: Option<Box<ASTNode>>,
+        then_branch: Box<Vec<ASTNode>>,
+        else_branch: Option<Box<Vec<ASTNode>>>,
     }, 
     Assignment {
         variable: String,
@@ -80,6 +80,7 @@ pub enum SyntaxElement {
     },
     Initialization {
         variable: String,
+        data_type: DataType,
         value: Box<ASTNode>
     },
     FunctionDeclaration {
@@ -133,21 +134,33 @@ impl fmt::Display for SyntaxElement {
         match self {
             SyntaxElement::ModuleExpression => write!(f, "ModuleExpression"),
             SyntaxElement::Literal(data_type, value) => write!(f, "Literal({:?}, {})", data_type, value),
-            SyntaxElement::Variable(name) => write!(f, "Variable({})", name),
+            SyntaxElement::Variable(data_type, name) => write!(f, "Name of var({}), DataType: ({})", name, data_type),
             SyntaxElement::BinaryExpression { left, operator, right } => 
                 write!(f, "BinaryExpression({}, {}, {})", left, operator, right),
-            SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
-                write!(f, "IfStatement({}, {}, ", condition, then_branch)?;
-                if let Some(else_branch) = else_branch {
-                    write!(f, "{}", else_branch)?;
-                } else {
-                    write!(f, "None")?;
-                }
-                Ok(())
-            },
+                SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
+                    write!(f, "IfStatement({}, [", condition)?;
+                    for (i, item) in then_branch.iter().enumerate() {
+                        if i > 0 { write!(f, ", ")?; } 
+                        write!(f, "{}", item)?;
+                    }
+                    write!(f, "]")?;
+    
+                    if let Some(else_branch) = else_branch {
+                        write!(f, ", [")?;
+                        for (i, item) in else_branch.iter().enumerate() {
+                            if i > 0 { write!(f, ", ")?; }
+                            write!(f, "{}", item)?;
+                        }
+                        write!(f, "]")?;
+                    } else {
+                        write!(f, ", None")?;
+                    }
+                    
+                    Ok(())
+                },
             SyntaxElement::Assignment { variable, value } => 
                 write!(f, "Assignment({}, {})", variable, value),
-            SyntaxElement::Initialization { variable, value } => 
+            SyntaxElement::Initialization { variable, data_type, value } => 
                 write!(f, "Initialization({}, {})", variable, value),
             SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
                 let return_type_str = match return_type {

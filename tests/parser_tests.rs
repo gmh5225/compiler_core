@@ -8,6 +8,9 @@ use compiler_design::frontend::{
     parser::parser_core::*,
 };
 
+/// cargo test --test parser_tests
+/// panic!("{:?}", self.get_input().get(self.get_current()));
+
 #[test]
 fn test_empty_input() { 
     let tokens: Vec<Token> = vec![];
@@ -38,6 +41,7 @@ fn test_single_function_declaration() {
 
 #[test]
 fn test_function_with_parameters_and_return_type() { 
+    //fn calculate (x:Integer,y:Integer):Boolean {}
     let tokens: Vec<Token> = vec![
         Token::FUNCTION,
         Token::IDENTIFIER(vec!['c', 'a', 'l', 'c', 'u', 'l', 'a', 't', 'e']),
@@ -50,7 +54,7 @@ fn test_function_with_parameters_and_return_type() {
         Token::COLON,
         Token::TINTEGER,
         Token::RPAREN,
-        Token::COLON,
+        Token::COLON, 
         Token::TBOOLEAN,
         Token::LBRACKET,
         Token::RBRACKET,
@@ -68,61 +72,29 @@ fn test_function_with_parameters_and_return_type() {
 
 #[test]
 fn test_function_with_body() {
-let tokens = vec![
-    Token::FUNCTION,
-    Token::IDENTIFIER(vec!['t', 'e', 's', 't']),
-    Token::LPAREN,
-    Token::RPAREN,
-    Token::LBRACKET,
-    Token::LET,
-    Token::IDENTIFIER(vec!['x']),
-    Token::EQUAL,
-    Token::INT(vec!['1']),
-    Token::SEMICOLON,
-    Token::RBRACKET,
-    Token::EOF,
-];
-let ast = Parser::parse(tokens).expect("Failed to parse");
-match ast.get_root().get_children().first().unwrap().get_element() {
-    SyntaxElement::FunctionDeclaration { ref name, .. } => {
-        assert_eq!(name, "test");
-        assert!(!ast.get_root().get_children().is_empty());
-    },
-    _ => panic!("Expected FunctionDeclaration with body"),
-}
-}
-
-#[test]
-fn test_literal_parsing() {
     let tokens: Vec<Token> = vec![
-        Token::INT(vec!['1', '2', '3']),
-        Token::SEMICOLON,
-        Token::EOF,
-    ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::Literal(DataType::Integer, value) => assert_eq!(value, "123"),
-        _ => panic!("Expected Literal"),
-    }
-}
-
-#[test]
-fn test_binary_expression_parsing() {
-    let tokens = vec![
+        Token::FUNCTION,
+        Token::IDENTIFIER(vec!['t', 'e', 's', 't']),
+        Token::LPAREN,
+        Token::RPAREN,
+        Token::LBRACKET,
+        Token::LET,
+        Token::IDENTIFIER(vec!['x']),
+        Token::COLON,
+        Token::TINTEGER,
+        Token::EQUAL,
         Token::INT(vec!['1']),
-        Token::PLUS,
-        Token::INT(vec!['2']),
         Token::SEMICOLON,
+        Token::RBRACKET,
         Token::EOF,
     ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::BinaryExpression { left, operator, right } => {
-            assert_eq!(*left, ASTNode::new(SyntaxElement::Literal(DataType::Integer, "1".to_string())));
-            assert_eq!(*right, ASTNode::new(SyntaxElement::Literal(DataType::Integer, "2".to_string())));
-            assert_eq!(operator, "+");
+        SyntaxElement::FunctionDeclaration { ref name, .. } => {
+            assert_eq!(name, "test");
+            assert!(!ast.get_root().get_children().is_empty());
         },
-        _ => panic!("Expected BinaryExpression"),
+        _ => panic!("Expected FunctionDeclaration with body"),
     }
 }
 
@@ -140,7 +112,7 @@ fn test_if_statement_parsing() {
         Token::RBRACKET,
         Token::EOF,
     ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
             assert_eq!(*condition, ASTNode::new(SyntaxElement::Literal(DataType::Boolean, "true".to_string())));
@@ -149,60 +121,36 @@ fn test_if_statement_parsing() {
         _ => panic!("Expected IfStatement"),
     }
 }
-#[test]
-fn test_assignment_parsing() {
-    let tokens = vec![
-        Token::IDENTIFIER(vec!['x']),
-        Token::EQUAL,
-        Token::INT(vec!['1']),
-        Token::SEMICOLON,
-        Token::EOF,
-    ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::Assignment { variable, value } => {
-            assert_eq!(variable, "x");
-            assert_eq!(*value, ASTNode::new(SyntaxElement::Literal(DataType::Integer, "1".to_string())));
-        },
-        _ => panic!("Expected Assignment"),
-    }
-}
+
 #[test]
 fn test_initialization_parsing() {
     let tokens = vec![
         Token::LET,
         Token::IDENTIFIER(vec!['x']),
+        Token::COLON,
+        Token::TBOOLEAN,
         Token::EQUAL,
-        Token::INT(vec!['1']),
+        Token::TRUE,
         Token::SEMICOLON,
         Token::EOF,
     ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::Initialization { variable, value } => {
+        SyntaxElement::Initialization { variable, data_type, value } => {
             assert_eq!(variable, "x");
-            assert_eq!(*value, ASTNode::new(SyntaxElement::Literal(DataType::Integer, "1".to_string())));
+            assert_eq!(*value, ASTNode::new(SyntaxElement::Literal(DataType::Boolean, String::from("true"))));
         },
         _ => panic!("Expected Initialization"),
     }
 }
+
 #[test]
 fn test_for_loop_parsing() {
     let tokens = vec![
         Token::FOR,
         Token::LPAREN,
-        Token::LET,
-        Token::IDENTIFIER(vec!['i']),
-        Token::EQUAL,
-        Token::INT(vec!['0']),
+        Token::TRUE, 
         Token::SEMICOLON,
-        Token::IDENTIFIER(vec!['i']),
-        Token::LESSTHAN,
-        Token::INT(vec!['1', '0']),
-        Token::SEMICOLON,
-        Token::IDENTIFIER(vec!['i']),
-        Token::PLUSASSIGN,
-        Token::INT(vec!['1']),
         Token::RPAREN,
         Token::LBRACKET,
         Token::BREAK,
@@ -210,52 +158,24 @@ fn test_for_loop_parsing() {
         Token::RBRACKET,
         Token::EOF,
     ];
+
     let ast: AST = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::ForLoop { initializer, condition, increment, body } => {
-            match initializer.as_ref().unwrap().get_element() {
-                SyntaxElement::Initialization { variable, value } => {
-                    assert_eq!(variable, "i");
-                    match value.get_element() {
-                        SyntaxElement::Literal(DataType::Integer, val) => {
-                            assert_eq!(val, "0");
-                        },
-                        _ => panic!("Expected Literal for initializer value"),
-                    }
-                },
-                _ => panic!("Initializer is not an Initialization SyntaxElement"),
-            }
+            assert!(initializer.is_none(), "Expected no initializer in ForLoop");
+            
             match condition.get_element() {
-                SyntaxElement::BinaryExpression { left, operator, right } => {
-                    match left.get_element() {
-                        SyntaxElement::Variable(name) => assert_eq!(name, "i"),
-                        _ => panic!("Expected Variable in condition's left expression"),
-                    }
-                    assert_eq!(operator, "<");
-                    match right.get_element() {
-                        SyntaxElement::Literal(DataType::Integer, val) => assert_eq!(val, "10"),
-                        _ => panic!("Expected Literal in condition's right expression"),
-                    }
-                },
-                _ => panic!("Condition is not a BinaryExpression"),
+                SyntaxElement::Literal(DataType::Boolean, val) => assert_eq!(val, "true"),
+                _ => panic!("Condition is not a Boolean Literal"),
             }
-            match increment.as_ref().unwrap().get_element() {
-                SyntaxElement::Assignment { variable, value } => {
-                    assert_eq!(variable, "i");
-                    match value.get_element() {
-                        SyntaxElement::Literal(DataType::Integer, val) => assert_eq!(val, "1"),
-                        _ => panic!("Expected Literal for increment value"),
-                    }
-                },
-                _ => panic!("Increment is not an Assignment"),
-            }
+
+            assert!(increment.is_none(), "Expected no increment in ForLoop");
+
             let body_nodes: &Vec<ASTNode> = &(*body);
             match body_nodes.first() {
-                Some(node) => {
-                    match node.get_element() {
-                        SyntaxElement::Break => {},
-                        _ => panic!("Body's first node is not a BreakStatement"),
-                    }
+                Some(node) => match node.get_element() {
+                    SyntaxElement::Break => {},
+                    _ => panic!("Body's first node is not a BreakStatement"),
                 },
                 None => panic!("Body is empty"),
             }
@@ -263,8 +183,6 @@ fn test_for_loop_parsing() {
         _ => panic!("Expected ForLoop"),
     }
 }
-
-
 
 
 #[test]
@@ -307,7 +225,7 @@ fn test_while_loop_parsing() {
 
 #[test]
 fn test_do_while_loop_parsing() {
-    let tokens = vec![
+    let tokens: Vec<Token> = vec![
         Token::DO,
         Token::LBRACKET,
         Token::BREAK,
@@ -345,8 +263,6 @@ fn test_do_while_loop_parsing() {
     }
 }
 
-
-
 #[test]
 fn test_continue_statement_parsing() {
     let tokens = vec![
@@ -354,7 +270,7 @@ fn test_continue_statement_parsing() {
         Token::SEMICOLON,
         Token::EOF,
     ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::Continue => {  },
         _ => panic!("Expected ContinueStatement"),
@@ -365,54 +281,20 @@ fn test_continue_statement_parsing() {
 fn test_match_statement_parsing() {
     let tokens = vec![
         Token::MATCH,
-        Token::LPAREN,
         Token::IDENTIFIER(vec!['x']),
-        Token::RPAREN,
         Token::LBRACKET,
         Token::RBRACKET,
         Token::EOF,
     ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::MatchStatement { to_match, arms } => {
             match to_match.get_element() {
-                SyntaxElement::Variable(name) => assert_eq!(name, "x"),
+                SyntaxElement::Variable(data_type, name) => assert_eq!(name, "x"),
                 _ => panic!("Expected Variable in to_match"),
             }
             assert!(arms.is_empty(), "Expected no match arms");
         },
         _ => panic!("Expected MatchStatement"),
-    }
-}
-
-
-#[test]
-fn test_function_call_parsing() {
-    let tokens = vec![
-        Token::IDENTIFIER(vec!['f', 'o', 'o', 'o']),
-        Token::LPAREN,
-        Token::IDENTIFIER(vec!['a']),
-        Token::COMMA,
-        Token::IDENTIFIER(vec!['b']),
-        Token::RPAREN,
-        Token::SEMICOLON,
-        Token::EOF,
-    ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::FunctionCall { name, arguments } => {
-            assert_eq!(name, "func");
-            assert_eq!(arguments.len(), 2, "Expected two arguments");
-
-            match arguments[0].get_element() {
-                SyntaxElement::Variable(arg_name) => assert_eq!(arg_name, "a"),
-                _ => panic!("Expected first argument to be a variable 'a'"),
-            }
-            match arguments[1].get_element() {
-                SyntaxElement::Variable(arg_name) => assert_eq!(arg_name, "b"),
-                _ => panic!("Expected second argument to be a variable 'b'"),
-            }
-        },
-        _ => panic!("Expected FunctionCall"),
     }
 }

@@ -9,86 +9,56 @@ use crate::frontend::{
 };
 
 impl<'a> Parser<'a> {
+    /// Entry point to the main parsing logic. Serves as a way to match the current token type to the file/expression we want to parse
+    /// All other parsing files have their own version of this, but this is the main one
     pub fn parse_element(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
-                Some(Token::FUNCTION) | Some(Token::STRUCT) | Some(Token::ENUM) => Ok(Some(self.parse_top_level()?)),
-                Some(Token::IF) => return Ok(Some(self.parse_if_statement()?)),  
-                Some(Token::FOR) => return Ok(Some(self.parse_for_loop()?)),  
-                Some(Token::DO) => return Ok(Some(self.parse_do_while_loop()?)),  
-                Some(Token::WHILE) => return Ok(Some(self.parse_while_loop()?)),
-                Some(Token::MATCH) => return Ok(Some(self.parse_match_statement()?)),
-                Some(Token::LET) => return Ok(Some(self.parse_initialization()?)),
+                // top level expressions
+                Some(Token::FUNCTION) | 
+                Some(Token::STRUCT) | 
+                Some(Token::ENUM) => return self.parse_top_level(),
+
+                // statements
+                Some(Token::IF) |
+                Some(Token::FOR) |
+                Some(Token::DO) | 
+                Some(Token::WHILE) |
+                Some(Token::MATCH) |
+                Some(Token::LET) => return self.parse_statement(),
+
+                // binary operations
                 Some(Token::PLUS) | 
                 Some(Token::MINUS) | 
                 Some(Token::MULTIPLY) | 
-                Some(Token::DIVIDE) => return Ok(Some(self.parse_binary_expression()?)),
-                Some(Token::LOGICALNOT) => return Ok(Some(self.parse_unary_expression()?)), // add other unary expressions here
+                Some(Token::DIVIDE) => return self.parse_binary_expression(),
+
+                // unary operations
+                Some(Token::LOGICALNOT) => return self.parse_unary_expression(), 
+
+                // base elements like primitives, identifiers, and protected keywords
                 Some(Token::INT(_)) |
                 Some(Token::TRUE) | 
-                Some(Token::FALSE) => return Ok(Some(self.parse_primitive()?)),
-                Some(Token::IDENTIFIER(fun_call)) => {
-                    match self.next_token() { // check next token
-                        Some(token) => { // if token
-                            match token {
-                                Token::LPAREN => { // either left parenthesis (function call)
-                                    self.consume_token(Token::LPAREN)?;
-                                    match self.get_input().get(self.get_current()) {
-                                        Some(Token::IDENTIFIER(name_chars)) => {
-                                            self.consume_token(Token::IDENTIFIER(name_chars.clone()))?;
-                                            let name: String = name_chars.iter().collect();
-                                            let arguments = self.parse_function_call_params();
-                                            return Ok(Some(ASTNode::new(SyntaxElement::FunctionCall { name, arguments })))    
-                                            
-                                        },
-                                        Some(Token::RPAREN) => {
-                                            self.consume_token(Token::IDENTIFIER(fun_call.clone()))?;
-                                            let name: String = fun_call.iter().collect();
-                                            Ok(Some(ASTNode::new(SyntaxElement::FunctionCall { name, arguments: Vec::new() })))
-                                        }
-                                        _ => panic!("{:?}", self.get_input().get(self.get_current())),
-                                    }
-                                }
-                                _ => return Ok(Some(self.parse_assignment()?)) // or assignment
-
-                            }
-
-                        }
-                        _ => panic!("next_token problem")
-                    }
-                }
-                Some(Token::BREAK) => return Ok(Some(ASTNode::new(SyntaxElement::Break))),
-                Some(Token::CONTINUE) => return Ok(Some(ASTNode::new(SyntaxElement::Continue))),
-                Some(Token::RETURN) => {
-                    self.consume_token(Token::RETURN)?;
-                    let value = match self.parse_element() {
-                        Ok(Some(value)) => {value}
-                        _ => panic!("return panic")
-                    };
-                    return Ok(Some(ASTNode::new(SyntaxElement::Return{value: Box::new(value)})))
-                }
-                Some(Token::SEMICOLON) => {
-                    self.consume_token(Token::SEMICOLON)?;
-                    Ok(None)
-                },
-                Some(Token::EOF) => {
-                    self.consume_token(Token::EOF)?;
-                    Ok(None) // this Result<Option double wrapping isn't ideal, consider refactoring
-                }
+                Some(Token::FALSE) |
+                Some(Token::IDENTIFIER(_)) |
+                Some(Token::BREAK) |
+                Some(Token::CONTINUE) |
+                Some(Token::RETURN) |
+                Some(Token::SEMICOLON) |
+                Some(Token::EOF) => return self.parse_base(),
                 _ => panic!("Are you sure this is an expression: {:?}", self.get_input().get(self.get_current())),
 
             }
         } else {
-            panic!("parse expression 2")
+            panic!("You hooligan. You're out of tokens")
         }
     }
 
-    fn parse_unary_expression(&mut self) -> Result<ASTNode, Vec<ErrorType>> {
+    /// Parses a unary expression
+    fn parse_unary_expression(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
-                Some(Token::MINUS) | Some(Token::LOGICALNOT) => {
-                    // Extract the operator
-                    
+                Some(Token::MINUS) | Some(Token::LOGICALNOT) => {                    
                     let operator = match self.get_input().get(self.get_current()) {
                         Some(Token::MINUS) => {
                             self.consume_token(Token::MINUS)?;
@@ -98,7 +68,7 @@ impl<'a> Parser<'a> {
                             self.consume_token(Token::LOGICALNOT)?;
                             "!"
                         },
-                        _ => return Err(vec![ErrorType::DevError{}]),
+                        _ => panic!("This was a hard panic to hit"),
                     }.to_string();
         
                     let operand: ASTNode = match self.parse_element() {
@@ -110,107 +80,26 @@ impl<'a> Parser<'a> {
                             panic!("Failed to parse unary value");
                         }
                     };    
-                    Ok(ASTNode::new(SyntaxElement::UnaryExpression {
+                    return Ok(Some(ASTNode::new(SyntaxElement::UnaryExpression {
                         operator,
                         operand: Box::new(operand),
-                    }))
+                    })));
                 },
-                _ => self.parse_primitive(),
+                _ => panic!("Is this part of a unary expression?{:?}", self.get_input().get(self.get_current())),
             }
-        } else {
-            Err(vec![ErrorType::DevError{}])
-        }
-    }
-    fn parse_initialization(&mut self) -> Result<ASTNode, Vec<ErrorType>> {
-        if self.get_current() < self.get_input().len() {
-            match self.get_input().get(self.get_current()) {
-                Some(Token::LET) => {
-                    self.consume_token(Token::LET)?;
-    
-                    let variable_name = if let Some(Token::IDENTIFIER(name_chars)) = self.get_input().get(self.get_current()) {
-                        self.consume_token(Token::IDENTIFIER(name_chars.clone()))?;
-                        name_chars.iter().collect::<String>()
-                    } else {
-                        return Err(vec![ErrorType::DevError {  }]);
-                    };
-    
-                    if let Some(Token::EQUAL) = self.get_input().get(self.get_current()) {
-                        self.consume_token(Token::EQUAL)?;
-                    } else {
-                        return Err(vec![ErrorType::DevError{}]);
-                    }
-    
-                    let value: ASTNode = match self.parse_element() {
-                        Ok(Some(value)) => value, 
-                        Ok(None) => {
-                            panic!("initialization value is missing");
-                        }
-                        Err(_) => {
-                            panic!("Failed to parse initialization value");
-                        }
-                    };    
-                    Ok(ASTNode::new(SyntaxElement::Initialization {
-                        variable: variable_name,
-                        value: Box::new(value),
-                    }))
-                },
-                _ => Err(vec![ErrorType::DevError {  }]),
-            }
-        } else {
-            Err(vec![ErrorType::DevError {  }])
-        }
+        } panic!("how'd you hit this?")
     }
     
-    fn parse_function_call_params(&mut self) -> Vec<ASTNode> {
-        if self.get_current() >= self.get_input().len() {
-            panic!("function_call_params panic 1");
-        }
-    
-        let mut parameters = Vec::new();
-    
-        while self.get_current() < self.get_input().len() {
-            match self.get_input().get(self.get_current()) {
-                Some(Token::RPAREN) => {
-                    self.consume_token(Token::RPAREN);
-                    return parameters;
-                },
-                Some(Token::IDENTIFIER(name_chars)) => {
-                    self.consume_token(Token::IDENTIFIER(name_chars.clone()));
-                    let param_name = name_chars.iter().collect::<String>();
-                    parameters.push(ASTNode::new(SyntaxElement::Variable(param_name)));
-    
-                    match self.get_input().get(self.get_current()) {
-                        Some(Token::COMMA) => match self.consume_token(Token::COMMA) {
-                            Ok(_) => continue,
-                            Err(_) => panic!("function_call_params panic 5"),
-                        },                        
-                        Some(Token::RPAREN) => {
-                            self.consume_token(Token::RPAREN);
-                            return parameters;
-                        },
-                        _ => panic!("function_call_params panic 3"),
-                    }
-                },
-                Some(Token::COMMA) => {
-                    self.consume_token(Token::COMMA);
-                    continue;
-                }
-                _ => panic!("function_call_params panic 4"),
-            }
-        }
-    
-        panic!("function_call_params panic 5");
-    }
-    
-    
-
-    fn parse_assignment(&mut self) -> Result<ASTNode, Vec<ErrorType>> {
-        let variable_name = if let Some(Token::IDENTIFIER(name_chars)) = self.get_input().get(self.get_current()) {
-            self.consume_token(Token::IDENTIFIER(name_chars.clone()))?;
-            name_chars.iter().collect::<String>()
-        } else {
-            panic!("parse_assignment 1")
-        };
+    /// Parses a variable reassignment (variable is already initialized)
+    /// format: x = 10
+    pub fn parse_assignment(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
+        let variable_name: String = 
+            if let Some(Token::IDENTIFIER(name_chars)) = self.get_input().get(self.get_current()) {
+                self.consume_token(Token::IDENTIFIER(name_chars.clone()))?;
+                name_chars.iter().collect::<String>()
+            } else {
+                panic!("parse_assignment 1")
+            };
     
         if let Some(Token::EQUAL) = self.get_input().get(self.get_current()) {
             self.consume_token(Token::EQUAL)?;
@@ -218,7 +107,7 @@ impl<'a> Parser<'a> {
             panic!("parse_assignment 2")
         }
     
-        let value: ASTNode = match self.parse_element() {
+        let value: ASTNode = match self.parse_element() { 
             Ok(Some(value)) => value, 
             Ok(None) => {
                 panic!("Assignment value is missing");
@@ -226,44 +115,64 @@ impl<'a> Parser<'a> {
             Err(_) => {
                 panic!("Failed to parse assignment value");
             }
-        };
+        }; // value consumed with parse_element()
         
-        Ok(ASTNode::new(SyntaxElement::Assignment {
+        Ok(Some(ASTNode::new(SyntaxElement::Assignment {
             variable: variable_name,
             value: Box::new(value),
-        }))
+        })))
         
     }
     
-    fn parse_binary_expression(&mut self) -> Result<ASTNode, Vec<ErrorType>> {
-        let mut left = self.parse_primitive()?; 
+    /// Parses a binary expression
+    /// format: expr operator expr
+    pub fn parse_binary_expression(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
+        let lhs: Option<ASTNode> = self.parse_base()?;
+        if let Some(lhs_unwrapped) = lhs {
+            let mut expr: Option<ASTNode> = None;
+            while let Some(op_token) = self.get_input().get(self.get_current()) {
+                if let Some(&precedence) = binop_precedence().get(&self.operator_to_char(op_token)) {
+                    self.consume_token(op_token.clone())?;
     
-        while let Some(op_token) = self.get_input().get(self.get_current()) {
-            if let Some(&precedence) = binop_precedence().get(&&self.operator_to_char(op_token)) { 
-                self.consume_token(op_token.clone())?;
+                    let mut rhs: Option<ASTNode> = self.parse_base()?; // i think this is a bug
+                    // actually the whole function idk this needs work
+                    let operator: String = self.operator_to_char(op_token).to_string();
     
-                let mut right = self.parse_primitive()?;
-                while let Some(next_op) = self.get_input().get(self.get_current()) {
-                    if let Some(&next_precedence) = binop_precedence().get(&self.operator_to_char(next_op)) {
-                        if precedence < next_precedence {
-                            right = self.parse_binary_expression()?;
-                            break;
-                        }
+                    while let Some(_) = self.get_next_operator_with_higher_precedence(precedence.try_into().unwrap()) {
+                        rhs = match self.parse_binary_expression()? {
+                            Some(r) => Some(r),
+                            None => break,
+                        };
                     }
+    
+                    expr = match rhs {
+                        Some(right_node) => {
+                            Some(ASTNode::new(SyntaxElement::BinaryExpression {
+                                left: Box::new(lhs_unwrapped.clone()),
+                                operator,
+                                right: Box::new(right_node),
+                            }))
+                        },
+                        None => None,
+                    };
+                } else {
                     break;
                 }
-    
-                let operator = self.operator_to_char(op_token).to_string();
-                left = ASTNode::new(SyntaxElement::BinaryExpression {
-                    left: Box::new(left),
-                    operator,
-                    right: Box::new(right),
-                });
-            } else {
-                break;
+            }
+            Ok(expr)
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn get_next_operator_with_higher_precedence(&mut self, current_precedence: usize) -> Option<Token> {
+        if let Some(next_op) = self.get_input().get(self.get_current()) {
+            if let Some(&next_precedence) = binop_precedence().get(&self.operator_to_char(next_op)) {
+                if current_precedence < next_precedence.try_into().unwrap() {
+                    return Some(next_op.clone());
+                }
             }
         }
-    
-        Ok(left)
+        None
     }
 }

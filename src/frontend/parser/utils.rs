@@ -18,11 +18,11 @@ impl<'a> Parser<'a> {
                     self.consume_token(Token::TBOOLEAN)?;
                     Ok(DataType::Boolean)
                 }  
-                _ => Err(ErrorType::DevError {  }),
+                _ => panic!("not a type"),
             }
         }
         else {
-            return Err(ErrorType::DevError{});
+            panic!("no type to consume");
         }
     }
     

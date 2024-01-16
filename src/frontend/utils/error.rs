@@ -40,3 +40,9 @@ pub enum ErrorType {
     /// Stand-in errors that need to be updated for better error handling
     DevError {}
 }
+
+impl From<ErrorType> for Vec<ErrorType> {
+    fn from(err: ErrorType) -> Self {
+        vec![err]
+    }
+}

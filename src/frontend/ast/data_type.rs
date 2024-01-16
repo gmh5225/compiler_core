@@ -9,6 +9,7 @@ pub enum DataType {
     Integer,
     Float,
     Boolean,
+    String,
 }
 
 impl fmt::Display for DataType {
@@ -22,6 +23,9 @@ impl fmt::Display for DataType {
             },
             DataType::Boolean => {
                 write!(f, "Boolean")
+            },
+            DataType::String => {
+                write!(f, "String")
             }
         }
     }

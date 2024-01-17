@@ -11,7 +11,7 @@ use crate::frontend::{
 
 impl<'a> Parser<'a> {
     /// Base level of the parser
-    pub fn parse_base(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
+    pub fn parse_token(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
                 Some(Token::INT(_)) | 
@@ -23,11 +23,11 @@ impl<'a> Parser<'a> {
                 Some(Token::TFLOAT) |
                 Some(Token::TINTEGER) |
                 Some(Token::TSTRING) |
-                Some(Token::TVOID) => panic!("Shouldn't be getting types at parse_base. Types are consumed as parts of expressions"),
+                Some(Token::TVOID) => panic!("Shouldn't be getting types at parse_token. Types are consumed as parts of expressions"),
                 _ => return self.parse_protected_keyword(),
             }
         } else {
-            panic!("parse_base panic")
+            panic!("parse_token panic")
         }
     }
 

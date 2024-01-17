@@ -1,5 +1,3 @@
-extern crate llvm_sys as llvm;
-
 use llvm::prelude::LLVMContextRef;
 use llvm::core::*;
 use llvm::execution_engine::*;

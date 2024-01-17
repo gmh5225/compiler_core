@@ -1,4 +1,4 @@
-use compiler_design::frontend::{
+use compiler_core::frontend::{
     ast::{
         ast_struct::*,
         data_type::*,

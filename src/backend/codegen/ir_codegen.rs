@@ -1,5 +1,3 @@
-extern crate llvm_sys as llvm;
-
 use std::{ { ffi::CString, collections::HashMap },
             fs,
             path::Path, };
@@ -7,7 +5,7 @@ use std::{ { ffi::CString, collections::HashMap },
 use llvm::{core, prelude::*}; // change to not use wild star import
 
 use crate::frontend::{ 
-    ast::ast_struct::{ AST, ASTNode }, 
+    ast::ast_struct::{ AST, ASTNode, }, 
     ast::syntax_element::SyntaxElement, 
     ast::data_type:: DataType 
 };

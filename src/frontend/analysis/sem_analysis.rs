@@ -4,7 +4,7 @@ Checks an AST for semantic correctness
 
 use crate::frontend::{ 
     ast::{ 
-        ast_struct::{ AST, ASTNode }, 
+        ast_struct::{ AST, ASTNode, }, 
         syntax_element::SyntaxElement, 
         data_type:: DataType 
     },

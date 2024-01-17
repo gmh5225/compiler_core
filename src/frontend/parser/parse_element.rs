@@ -45,7 +45,7 @@ impl<'a> Parser<'a> {
                 Some(Token::CONTINUE) |
                 Some(Token::RETURN) |
                 Some(Token::SEMICOLON) |
-                Some(Token::EOF) => return self.parse_base(),
+                Some(Token::EOF) => return self.parse_token(),
                 _ => panic!("Are you sure this is an expression: {:?}", self.get_input().get(self.get_current())),
 
             }
@@ -127,14 +127,14 @@ impl<'a> Parser<'a> {
     /// Parses a binary expression
     /// format: expr operator expr
     pub fn parse_binary_expression(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
-        let lhs: Option<ASTNode> = self.parse_base()?;
+        let lhs: Option<ASTNode> = self.parse_token()?;
         if let Some(lhs_unwrapped) = lhs {
             let mut expr: Option<ASTNode> = None;
             while let Some(op_token) = self.get_input().get(self.get_current()) {
                 if let Some(&precedence) = binop_precedence().get(&self.operator_to_char(op_token)) {
                     self.consume_token(op_token.clone())?;
     
-                    let mut rhs: Option<ASTNode> = self.parse_base()?; // i think this is a bug
+                    let mut rhs: Option<ASTNode> = self.parse_token()?; // i think this is a bug
                     // actually the whole function idk this needs work
                     let operator: String = self.operator_to_char(op_token).to_string();
     

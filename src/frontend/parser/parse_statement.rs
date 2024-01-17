@@ -28,21 +28,21 @@ impl<'a> Parser<'a> {
     }
 
     /// Creates the children of an expression that changes scope. Used for all scope changing expressions except structs and enums
-    pub fn scope_changing_until(&mut self, stop_token: Token) -> Result<Vec<ASTNode>, Vec<ErrorType>> {
+    pub fn parse_block(&mut self) -> Result<Vec<ASTNode>, Vec<ErrorType>> {
         let mut children: Vec<ASTNode> = Vec::new();
-        self.consume_token(Token::LBRACKET)?; // need to change this to a passed in start_token
+        self.consume_token(Token::LBRACKET)?; 
 
-        while self.get_current() < self.get_input().len() && self.get_input().get(self.get_current()) != Some(&stop_token) {
+        while self.get_current() < self.get_input().len() && self.get_input().get(self.get_current()) != Some(&Token::RBRACKET) {
             match self.parse_element() {
                 Ok(Some(expr_node)) => {
                     children.push(expr_node);
                 }
                 Ok(None) => {}
-                _ => panic!("scope_changing_until parse problem")
+                _ => panic!("parse_block parse problem")
             }
         }
-        if self.get_input().get(self.get_current()) == Some(&stop_token) {
-            self.consume_token(stop_token)?;
+        if self.get_input().get(self.get_current()) == Some(&Token::RBRACKET) {
+            self.consume_token(Token::RBRACKET)?;
         } else {
             panic!("failed to reach stop token")
         }
@@ -180,10 +180,10 @@ impl<'a> Parser<'a> {
                     };
                     self.consume_token(Token::RPAREN)?;
 
-                    let then_branch: Vec<ASTNode> = self.scope_changing_until(Token::RBRACKET)?;
+                    let then_branch: Vec<ASTNode> = self.parse_block()?;
                     let else_branch: Option<Box<Vec<ASTNode>>> = match self.get_input().get(self.get_current()) {
                         Some(Token::LBRACE) => {
-                            match self.scope_changing_until(Token::RBRACE) {
+                            match self.parse_block() {
                                 Ok(nodes) => Some(Box::new(nodes)),
                                 _ => panic!("if statement panic")
                             }
@@ -251,7 +251,7 @@ impl<'a> Parser<'a> {
                     
                     self.consume_token(Token::RPAREN)?;
         
-                    let body: Box<Vec<ASTNode>> = Box::new(self.scope_changing_until(Token::RBRACKET)?);
+                    let body: Box<Vec<ASTNode>> = Box::new(self.parse_block()?);
 
                     let for_node: ASTNode = ASTNode::new(SyntaxElement::ForLoop {
                         // initializer, 
@@ -286,7 +286,7 @@ impl<'a> Parser<'a> {
                         }
                     });
                     self.consume_token(Token::RPAREN)?;
-                    let body: Box<Vec<ASTNode>> = Box::new(self.scope_changing_until(Token::RBRACKET)?);
+                    let body: Box<Vec<ASTNode>> = Box::new(self.parse_block()?);
 
                     let while_node = ASTNode::new(SyntaxElement::WhileLoop {
                         condition,
@@ -306,7 +306,7 @@ impl<'a> Parser<'a> {
             match self.get_input().get(self.get_current()) {
                 Some(Token::DO) => {
                     self.consume_token(Token::DO)?;
-                    let body: Box<Vec<ASTNode>> = Box::new(self.scope_changing_until(Token::RBRACKET)?);
+                    let body: Box<Vec<ASTNode>> = Box::new(self.parse_block()?);
                     self.consume_token(Token::WHILE)?;
                     self.consume_token(Token::LPAREN)?;
                     let value: ASTNode = match self.parse_element() {

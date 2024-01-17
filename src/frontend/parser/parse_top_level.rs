@@ -17,7 +17,7 @@ impl<'a> Parser<'a> {
                 self.consume_token(Token::FUNCTION)?;
 
                 let (identifier, parameters, return_type) = self.parse_function_declaration()?;
-                let function_body: Vec<ASTNode> = self.scope_changing_until(Token::RBRACKET)?;
+                let function_body: Vec<ASTNode> = self.parse_block()?;
                 
                 let mut function_node: ASTNode = ASTNode::new(SyntaxElement::FunctionDeclaration { 
                     name: identifier, parameters, return_type: return_type.or(None)

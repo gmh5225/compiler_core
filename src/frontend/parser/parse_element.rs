@@ -46,7 +46,7 @@ impl<'a> Parser<'a> {
                 Some(Token::RETURN) |
                 Some(Token::SEMICOLON) |
                 Some(Token::EOF) => return self.parse_token(),
-                _ => panic!("Are you sure this is an expression: {:?}", self.get_input().get(self.get_current())),
+                _ => panic!("Are you sure this is an expression: {:?} {:?}", self.get_input().get(self.get_current()), self.get_current()),
 
             }
         } else {

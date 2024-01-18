@@ -16,34 +16,43 @@ use crate::{
     backend::codegen::ir_codegen::IRGenerator
 };
 
-pub fn compile(file_path: &str) -> Result<Vec<u8>, Vec<ErrorType>> { // change to option
-    let path: &Path = Path::new(file_path);
+pub fn compile(file_path: &str) -> Result<Vec<u8>, Vec<ErrorType>> {
+    let path = Path::new(file_path);
     validate_file_path(path, file_path)?;
 
-    let entry_points: Vec<usize> = entry_points(path);
+    let entry_points = entry_points(path);
+    let content = match fs::read_to_string(path) {
+        Ok(c) => c,
+        Err(_) => panic!("no file"),
+    };
 
-    let content: String = fs::read_to_string(path)
-        .expect("Error reading the file");
+    let mut asts = Vec::new();
 
-    let mut asts: Vec<AST> = Vec::new();
-    let mut i: usize = entry_points[0];
-    for _ in entry_points.iter() {
-        let slice: &str = &content[i..i+1];
+    if entry_points.is_empty() {
+        panic!("empty file")
+    }
+
+    for window in entry_points.windows(2) {
+        let start = window[0];
+        let end = window[1];
+        let slice = &content[start..end];
+
         match generate_ast(slice.to_string()) {
             Ok(ast) => asts.push(ast),
             Err(errors) => return Err(errors),
         }
-        i += 1;
     }
-    // handles the last entry point to the end of the file
-    match generate_ast(content[i..].to_string()) {
+
+    let last_start = *entry_points.last().unwrap();
+    match generate_ast(content[last_start..].to_string()) {
         Ok(ast) => asts.push(ast),
         Err(errors) => return Err(errors),
     }
-    let mod_ast: AST = ast_stitch(asts);
-    generate_obj(mod_ast)
 
+    let mod_ast = ast_stitch(asts);
+    generate_obj(mod_ast)
 }
+
 
 fn validate_file_path(path: &Path, file_path: &str) -> Result<(), Vec<ErrorType>> {
     if !path.exists() || !path.is_file() {

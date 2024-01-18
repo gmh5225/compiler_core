@@ -89,7 +89,7 @@ impl SemAnalysis {
                 }
                 self.node_analysis(value, errors);
             },
-            _ => unimplemented!("Unimplemented syntactic check")
+            _ => {}
         }
         for child in &node.get_children() {
             self.node_analysis(child, errors);

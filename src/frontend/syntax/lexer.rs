@@ -28,7 +28,6 @@ impl Lexer {
         let mut lexer: Lexer = Lexer::new(input.chars().collect());
         let mut errors: Vec<ErrorType> = Vec::new();
         let mut tokens: Vec<Token> = Vec::new();
-
         lexer.current = lexer.input[0];
 
         loop {

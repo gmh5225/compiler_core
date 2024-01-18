@@ -1,5 +1,3 @@
-extern crate llvm_sys as llvm;
-
 use std::ffi::CString;
 
 use llvm::{

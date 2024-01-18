@@ -1,4 +1,4 @@
-use compiler_design::frontend::{
+use compiler_core::frontend::{
     ast::{
         ast_struct::*,
         data_type::*,
@@ -298,3 +298,18 @@ fn test_match_statement_parsing() {
         _ => panic!("Expected MatchStatement"),
     }
 }
+
+// #[test]
+// fn test_file000() {
+//     let tokens = vec![
+//         Token::FUNCTION,
+//         Token::IDENTIFIER(vec!['f', 'o', 'o']),
+//         Token::LPAREN,
+//         Token::IDENTIFIER(vec!')
+//     ]
+// }
+// fn foo(a: Integer, b: Integer): Integer {
+//     if (a == 0) {
+//         return false;
+//     }
+// }

@@ -1,5 +1,4 @@
-
-use compiler_design::frontend::{ 
+use compiler_core::frontend::{ 
     ast::ast_struct::{ AST, ASTNode }, 
     ast::syntax_element::SyntaxElement, 
     ast::data_type::DataType,

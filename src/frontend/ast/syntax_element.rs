@@ -62,6 +62,7 @@ impl MatchArm {
 #[derive(Debug, Clone, PartialEq)]
 pub enum SyntaxElement {
     ModuleExpression,
+    TopLevelExpression,
     Literal(DataType, String), // this is for literal things, eg: Boolean, "true"
     Variable(DataType, String), // this is for variable names and their types, eg: Boolean, "foo"
     BinaryExpression {
@@ -133,6 +134,7 @@ impl fmt::Display for SyntaxElement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             SyntaxElement::ModuleExpression => write!(f, "ModuleExpression"),
+            SyntaxElement::TopLevelExpression => write!(f, "TopLevelExpression"),
             SyntaxElement::Literal(data_type, value) => write!(f, "Literal({:?}, {})", data_type, value),
             SyntaxElement::Variable(data_type, name) => write!(f, "Name of var({}), DataType: ({})", name, data_type),
             SyntaxElement::BinaryExpression { left, operator, right } => 

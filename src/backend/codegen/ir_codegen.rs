@@ -146,16 +146,3 @@ impl IRGenerator {
     }
     
 }
-
-
-#[cfg(test)]
-mod tests {
-    // use crate::backend::llvm::{
-    //     init::{create_basic_block, create_builder, create_context, create_module},
-    //     binops::build_add,
-    //     return_type::{int_return, void_return},
-    //     create_element::{create_function, void_type, int_type},
-    //     utils::{get_param, write_to_file, position_builder_at_end}
-    // };
-    
-}

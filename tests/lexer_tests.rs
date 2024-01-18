@@ -1,4 +1,4 @@
-use compiler_design::frontend::{
+use compiler_core::frontend::{
     syntax::token::*,
     syntax::lexer::*,
     utils::error::*,

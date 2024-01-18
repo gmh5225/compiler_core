@@ -43,7 +43,7 @@ impl<'a> Parser<'a> {
             } 
         }
 
-        let mut root: ASTNode = ASTNode::new(SyntaxElement::ModuleExpression);
+        let mut root: ASTNode = ASTNode::new(SyntaxElement::TopLevelExpression);
         root.add_children(root_children);
         if errors.is_empty() {
             return Ok(AST::new(root));

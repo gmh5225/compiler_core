@@ -1,13 +1,11 @@
-extern crate llvm_sys as llvm;
-
 use llvm::prelude::LLVMContextRef;
 use llvm::core::*;
 use llvm::execution_engine::*;
 use std::ffi::CString;
 
-use crate::backend::llvm::{
-    ir::init_ir,
-    ee::{
+use crate::backend::llvm_lib::{
+    ir_lib::init_ir,
+    ee_lib::{
         init_ee,
         utils,
     }

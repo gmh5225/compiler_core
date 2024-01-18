@@ -4,7 +4,7 @@ Checks an AST for semantic correctness
 
 use crate::frontend::{ 
     ast::{ 
-        ast_struct::{ AST, ASTNode }, 
+        ast_struct::{ AST, ASTNode, }, 
         syntax_element::SyntaxElement, 
         data_type:: DataType 
     },
@@ -89,7 +89,7 @@ impl SemAnalysis {
                 }
                 self.node_analysis(value, errors);
             },
-            _ => unimplemented!("Unimplemented syntactic check")
+            _ => {}
         }
         for child in &node.get_children() {
             self.node_analysis(child, errors);

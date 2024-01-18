@@ -1,5 +1,3 @@
-extern crate llvm_sys as llvm;
-
 use llvm::{core, prelude::*}; // change to not use wild star import
 
 /// returns nothing

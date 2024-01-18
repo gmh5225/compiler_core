@@ -1,5 +1,3 @@
-extern crate llvm_sys as llvm;
-
 use std::{ { ffi::CString, collections::HashMap },
             fs,
             path::Path, };
@@ -7,7 +5,7 @@ use std::{ { ffi::CString, collections::HashMap },
 use llvm::{core, prelude::*}; // change to not use wild star import
 
 use crate::frontend::{ 
-    ast::ast_struct::{ AST, ASTNode }, 
+    ast::ast_struct::{ AST, ASTNode, }, 
     ast::syntax_element::SyntaxElement, 
     ast::data_type:: DataType 
 };
@@ -146,18 +144,5 @@ impl IRGenerator {
             core::LLVMPrintModuleToFile(module, output_file_cstr.as_ptr(), std::ptr::null_mut());
         }
     }
-    
-}
-
-
-#[cfg(test)]
-mod tests {
-    // use crate::backend::llvm::{
-    //     init::{create_basic_block, create_builder, create_context, create_module},
-    //     binops::build_add,
-    //     return_type::{int_return, void_return},
-    //     create_element::{create_function, void_type, int_type},
-    //     utils::{get_param, write_to_file, position_builder_at_end}
-    // };
     
 }

@@ -6,15 +6,17 @@ use crate::frontend::{
             SyntaxElement, FunctionParameter
         }, data_type::DataType
     },
-    parser::parser_core::Parser,
+    parser::parser_core::Parser, 
+    analysis::symbol_table::SymbolTable,
 };
 
-impl<'a> Parser<'a> {
-    /// Parses top level expressions 
-    pub fn parse_top_level(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
+impl Parser {
+    pub fn parse_function(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         match self.get_input().get(self.get_current()) {
             Some(Token::FUNCTION) => {
                 self.consume_token(Token::FUNCTION)?;
+
+                self.get_sym_table_stack().push(SymbolTable::new());
 
                 let (identifier, parameters, return_type) = self.parse_function_declaration()?;
                 let function_body: Vec<ASTNode> = self.parse_block()?;
@@ -25,21 +27,7 @@ impl<'a> Parser<'a> {
                 function_node.add_children(function_body);
                 Ok(Some(function_node))
             },
-            Some(Token::ENUM) => {
-                self.consume_token(Token::ENUM)?;
-
-                let (name, variants) = self.parse_enum()?;
-                let enum_node: ASTNode = ASTNode::new(SyntaxElement::EnumDeclaration { name, variants });
-                Ok(Some(enum_node))
-            },
-            Some(Token::STRUCT) => {
-                self.consume_token(Token::STRUCT)?;
-
-                let (name, fields) = self.parse_struct()?;
-                let struct_node: ASTNode = ASTNode::new(SyntaxElement::StructDeclaration { name, fields });
-                Ok(Some(struct_node))
-            },
-            _ => panic!("Silly goose! This {:?} isn't a top level expression!", self.get_input().get(self.get_current())),
+            _ => panic!("function")
         }
     }
 
@@ -106,8 +94,11 @@ impl<'a> Parser<'a> {
     
     /// Parses an enum into a name and variants
     /// format of enum currently: enum foo {variant, variant2, variant3}
-    pub fn parse_enum(&mut self) -> Result<(String, Vec<String>), Vec<ErrorType>> {
+    // pub fn parse_enum(&mut self) -> Result<(String, Vec<String>), Vec<ErrorType>> {
+    pub fn parse_enum(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         self.consume_token(Token::ENUM)?;
+
+        self.get_sym_table_stack().push(SymbolTable::new());
     
         let enum_name = if let Some(Token::IDENTIFIER(name_chars)) = self.get_input().get(self.get_current()) {
             self.consume_token(Token::IDENTIFIER(name_chars.clone()))?;
@@ -136,14 +127,16 @@ impl<'a> Parser<'a> {
     
         self.consume_token(Token::RBRACE)?;
     
-        Ok((enum_name, variants))
+        Ok(Some(ASTNode::new(SyntaxElement::EnumDeclaration { name: enum_name, variants })))
     }
     
     /// Parses a struct into a name and fields
     /// format of a struct currently: struct foo {field: type, field2: type2}
-    pub fn parse_struct(&mut self) -> Result<(String, Vec<(String, DataType)>), Vec<ErrorType>> {
+    pub fn parse_struct(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         self.consume_token(Token::STRUCT)?;
     
+        self.get_sym_table_stack().push(SymbolTable::new());
+
         let struct_name = if let Some(Token::IDENTIFIER(name_chars)) = self.get_input().get(self.get_current()) {
             self.consume_token(Token::IDENTIFIER(name_chars.clone()))?;
             name_chars.iter().collect()
@@ -177,6 +170,6 @@ impl<'a> Parser<'a> {
     
         self.consume_token(Token::RBRACE)?;
     
-        Ok((struct_name, fields))
+        Ok(Some(ASTNode::new(SyntaxElement::StructDeclaration { name: struct_name, fields })))
     }
 }

@@ -3,21 +3,40 @@ Stores values and their names, accounting for scope with a stack
  */
 
 use std::collections::HashMap;
-use crate::frontend::ast::data_type::DataType;
+use std::sync::{Arc, Mutex};
+use crate::frontend::ast::{data_type::DataType, ast_struct::ASTNode};
 
 /// A stack of symbol tables, used to represent different levels of scope
+#[derive(Clone)]
 pub struct SymbolTableStack {
-    elements: Vec<SymbolTable>,
+    elements: Vec<Arc<Mutex<SymbolTable>>>,
 }
 
 /// Initialized values in a scope
+#[derive(Clone)]
 pub struct SymbolTable {
     values: HashMap<String, SymbolInfo>,
 }
 
+#[derive(Clone)]
+pub enum SymbolValue {
+    StrValue(Box<str>),
+    Node(Box<ASTNode>),
+}
 /// Information on a symbol in a symboltable
+#[derive(Clone)]
 pub struct SymbolInfo {
     data_type: DataType,
+    value: SymbolValue,
+}
+
+impl SymbolInfo {
+    pub fn new(data_type: DataType, value: SymbolValue) -> Self {
+        Self {
+            data_type,
+            value
+        }
+    }
 }
 
 impl SymbolTableStack {
@@ -28,15 +47,16 @@ impl SymbolTableStack {
     }
 
     pub fn push(&mut self, item: SymbolTable) {
-        self.elements.push(item);
+        let wrapped_table = Arc::new(Mutex::new(item));
+        self.elements.push(wrapped_table);
     }
 
-    pub fn pop(&mut self) -> Option<SymbolTable> {
+    pub fn pop(&mut self) -> Option<Arc<Mutex<SymbolTable>>> {
         self.elements.pop()
     }
 
-    pub fn peek(&self) -> Option<&SymbolTable> {
-        self.elements.last()
+    pub fn peek(&self) -> Option<Arc<Mutex<SymbolTable>>> {
+        self.elements.last().cloned()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -55,7 +75,7 @@ impl SymbolTable {
         }
     }
 
-    pub fn insert(&mut self, name: String, info: SymbolInfo) {
+    pub fn add(&mut self, name: String, info: SymbolInfo) {
         self.values.insert(name, info);
     }
 

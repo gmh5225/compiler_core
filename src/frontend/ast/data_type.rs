@@ -4,12 +4,13 @@ Defines acceptable data types
 
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DataType {
     Integer,
     Float,
     Boolean,
     String,
+    Unknown,
 }
 
 impl fmt::Display for DataType {
@@ -26,6 +27,9 @@ impl fmt::Display for DataType {
             },
             DataType::String => {
                 write!(f, "String")
+            },
+            DataType::Unknown => {
+                write!(f, "Unknown")
             }
         }
     }

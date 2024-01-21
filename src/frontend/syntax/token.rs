@@ -2,14 +2,17 @@
 Defines acceptable tokens in the program
  */
 
-
-use crate::frontend::utils::error::ErrorType;
-
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Token {
-    /// Misc
     EOF,
+
+    /// Assignment
     LET,
+    PLUSASSIGN, // +=
+    MINUSASSIGN,
+    MULTIPLYASSIGN,
+    DIVIDEASSIGN,
+    MODASSIGN,
 
     /// Multi-char
     INT(Vec<char>),
@@ -21,12 +24,25 @@ pub enum Token {
     MINUS,
     PLUS,
     EQUAL,
+    MOD,
+    MULTIPLY,
+    EXPONENT,
 
     /// Scope changing
     FUNCTION,
+    STRUCT,
+    ENUM,
     IF,
+    ELIF,
     ELSE,
     RETURN,
+    FOR,
+    WHILE,
+    DO,
+    BREAK,
+    CONTINUE,
+    MATCH,
+    ARROW,
 
     /// Special chars
     RBRACKET, // }
@@ -36,33 +52,29 @@ pub enum Token {
     SEMICOLON,
     COMMA,
     COLON,
+    LBRACE, // [
+    RBRACE, // ]
+    DOT,
+    COLONCOLON,
 
     /// Boolean
     LOGICALAND,
+    LOGICALOR,
+    LOGICALNOT,
     TRUE,
     FALSE,
     LESSTHAN,
     GREATERTHAN,
+    NOTEQUAL,
+    EQUALEQUAL, // ==
+    LESSTHANEQUAL,
+    GREATERTHANEQUAL,
 
     /// Tokens for type annotations, not actual types. See data_type for acceptable types
     TINTEGER,
     TFLOAT,
     TBOOLEAN,
-}
-
-/// retrieves a token if text matches, else error
-pub fn get_token(raw_text: &Vec<char>) -> Result<Token, ErrorType> {
-    let identifier: String = raw_text.into_iter().collect();
-    match &identifier[..] {
-        "let" => Ok(Token::LET),
-        "true" => Ok(Token::TRUE),
-        "false" => Ok(Token::FALSE),
-        "if" => Ok(Token::IF),
-        "else" => Ok(Token::ELSE),
-        "return" => Ok(Token::RETURN),
-        "Integer" => Ok(Token::TINTEGER),
-        "Float" => Ok(Token::TFLOAT),
-        "Boolean" => Ok(Token::TBOOLEAN),
-        _ => Err(ErrorType::UnrecognizedToken { token: String::from("Unrecognized token") }),
-    }
+    TSTRING,
+    TCHAR,
+    TVOID,
 }

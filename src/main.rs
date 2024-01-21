@@ -1,84 +1,33 @@
-/*
-Program driver
-    Goal capabilities:
-        - Command line interpreter
-        - Compile to LLVM IR/.o
-        - Automated execution of .o
-        - Regression testing
- */
+use clap::Parser;
+use compiler_core::compiler;
 
-pub mod frontend;
-pub mod backend;
+/// Builder Language Compiler and Runner
+#[derive(Parser, Debug)] // this is not the parser we made
+#[clap(author="Union College", version="0.1.0", about="Builder Language Compiler and Runner")]
+struct Cli {
+    #[clap(subcommand)]
+    command: Commands,
+}
 
-use std::io::{self, Write};
-
-use crate::{ 
-    frontend::{ 
-        ast::ast_struct::AST, 
-        syntax::{
-            token::Token, 
-            parser::Parser, 
-            lexer::Lexer,
-        },
-        analysis::sem_analysis::SemAnalysis,
-        utils::error::ErrorType 
+#[derive(clap::Subcommand, Debug)]
+enum Commands {
+    Compile {
+        file: String,
     },
-
-    backend::codegen::ir_codegen::IRGenerator
-};
-
-fn print_ready() {
-    let stderr = io::stderr();
-    let mut handle = stderr.lock();
-    handle.write_all(b"ready> ").expect("Error writing to stderr");
-    handle.flush().expect("Error flushing stderr");
+    Run {
+        file: String,
+    },
 }
-
-fn read_user_input() -> String {
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Failed to read line");
-    input.to_string() 
-}
-
-fn main_loop() {
-    loop {
-        print_ready();
-        let user_input: String = read_user_input();
-
-        let tokens: Result<Vec<Token>, Vec<ErrorType>> = Lexer::lex(&user_input);
-        match tokens {
-            Ok(tokens) => {
-                let ast_result: Result<AST, Vec<ErrorType>> = Parser::parse(tokens);
-                match ast_result {
-                    Ok(ast) => {
-                        let sem_analysis_errors: Vec<ErrorType> = SemAnalysis::sem_analysis(ast.clone());
-                        if sem_analysis_errors.is_empty() {
-                            let generated_ir = IRGenerator::generate_ir(&ast);
-                            println!("{:?}", generated_ir);
-                            // next, pass to execution engine
-                        } else {
-                            for error in sem_analysis_errors {
-                                println!("Error: {:?}", error);
-                            }
-                        }
-                    },
-                    Err(parser_errors) => {
-                        for error in parser_errors {
-                            println!("Parser Error: {:?}", error);
-                        }
-                    }
-                }
-            },
-            Err(lexer_errors) => {
-                for error in lexer_errors {
-                    println!("Lexer Error: {:?}", error);
-                }
-            }
-        }
-    }
-}
-
 
 fn main() {
-    main_loop();
+    let builder: Cli = Cli::parse();
+
+    match &builder.command {
+        Commands::Compile { file } => {
+            let _ = compiler::compile(file);
+        },
+        Commands::Run { file } => {
+            unimplemented!("Running unimplemented")
+        }
+    }
 }

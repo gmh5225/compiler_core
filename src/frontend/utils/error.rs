@@ -2,7 +2,7 @@
 Errors in the compilation process
  */
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ErrorType {    
     /// Binary operation has incompatible types
     TypeMismatch {
@@ -39,4 +39,10 @@ pub enum ErrorType {
 
     /// Stand-in errors that need to be updated for better error handling
     DevError {}
+}
+
+impl From<ErrorType> for Vec<ErrorType> {
+    fn from(err: ErrorType) -> Self {
+        vec![err]
+    }
 }

@@ -3,3 +3,4 @@
 /output.ll
 /src/backend/codegen/target/
 /.vscode/
+/.DS_Store

@@ -6,7 +6,7 @@ use crate::frontend::{
 };
 
 
-impl<'a> Parser<'a> {
+impl Parser {
     pub fn consume_type(&mut self) -> Result<DataType, ErrorType> {
         if let Some(token) = self.get_input().get(self.get_current()) {
             match token {

@@ -1,19 +1,34 @@
 
-use std::path::Path;
+use std::{path::Path, collections::HashMap};
 use std::fs;
 
 use crate::{
     frontend::{
-        syntax::{token::Token, lexer::Lexer},
+        syntax::{
+            token::Token, 
+            lexer::Lexer
+        },
         utils::{
             error::ErrorType,
             entry_points::entry_points,
         }, 
-        ast::{ast_struct::AST, ast_stitcher::ast_stitch}, 
+        ast::{
+            ast_struct::{
+                AST, 
+                ModAST,
+            },
+            ast_stitcher::ast_stitch, 
+            sem_rule::RulesConfig,
+            syntax_element::SyntaxElement,
+            sem_rule::SemanticRule
+        }, 
         parser::parser_core::Parser, 
-        analysis::sem_analysis::SemAnalysis,
+        analysis::{
+            sem_analysis::SemAnalysis, 
+            symbol_table::SymbolTableStack
+        },
     }, 
-    backend::codegen::ir_codegen::IRGenerator
+    backend::codegen::ir::ir_codegen_core::IRGenerator
 };
 
 pub fn compile(file_path: &str) -> Result<Vec<u8>, Vec<ErrorType>> {
@@ -21,37 +36,37 @@ pub fn compile(file_path: &str) -> Result<Vec<u8>, Vec<ErrorType>> {
     validate_file_path(path, file_path)?;
 
     let entry_points = entry_points(path);
-    let content = match fs::read_to_string(path) {
-        Ok(c) => c,
-        Err(_) => panic!("no file"),
-    };
+    let content = fs::read_to_string(path).expect("no file");
 
-    let mut asts = Vec::new();
+    let mut asts_with_sym_tables: Vec<(AST, SymbolTableStack)> = Vec::new();
 
     if entry_points.is_empty() {
-        panic!("empty file")
+        panic!("empty file");
     }
 
     for window in entry_points.windows(2) {
         let start = window[0];
-        let end = window[1];
+        let end: usize = window[1];
         let slice = &content[start..end];
 
         match generate_ast(slice.to_string()) {
-            Ok(ast) => asts.push(ast),
+            Ok(ast_with_sym_table) => asts_with_sym_tables.push(ast_with_sym_table),
             Err(errors) => return Err(errors),
         }
     }
 
     let last_start = *entry_points.last().unwrap();
     match generate_ast(content[last_start..].to_string()) {
-        Ok(ast) => asts.push(ast),
+        Ok(ast_with_sym_table) => asts_with_sym_tables.push(ast_with_sym_table),
         Err(errors) => return Err(errors),
     }
 
-    let mod_ast = ast_stitch(asts);
-    generate_obj(mod_ast)
+    let rules: RulesConfig = read_config();
+    let mod_ast: ModAST = ast_stitch(asts_with_sym_tables);
+
+    generate_obj(mod_ast, rules)
 }
+
 
 
 fn validate_file_path(path: &Path, file_path: &str) -> Result<(), Vec<ErrorType>> {
@@ -62,37 +77,37 @@ fn validate_file_path(path: &Path, file_path: &str) -> Result<(), Vec<ErrorType>
     Ok(())
 }
 
-fn generate_ast(content: String) -> Result<AST, Vec<ErrorType>> {
-    // Lexer
-    let tokens: Result<Vec<Token>, Vec<ErrorType>> = Lexer::lex(&content);
-        match tokens {
-            Ok(tokens) => {
-                // Parser
-                Parser::parse(tokens)
-            }
-            Err(lexer_errors) => {
-                for error in lexer_errors {
-                    eprintln!("Lexer Error: {:?}", error);
-                }
-                panic!()
-            }
-        }
+fn read_config() -> RulesConfig {
+    // read configuration file
+    let rules: HashMap<SyntaxElement, Vec<SemanticRule>> = HashMap::new();
+    RulesConfig::new(rules)
 }
 
-fn generate_obj(content: AST) -> Result<Vec<u8>, Vec<ErrorType>> {
-    // Semantic Analysis
-    let sem_analysis_errors: Vec<ErrorType> = SemAnalysis::sem_analysis(content.clone());
-    if sem_analysis_errors.is_empty() {
-        // IR Generation 
-        let generated_ir: *mut llvm_sys::LLVMModule = IRGenerator::generate_ir(&content);
-        println!("{:?}", generated_ir);
-        return Ok(Vec::new()); // this will need to change obv
+fn generate_ast(content: String) -> Result<(AST, SymbolTableStack), Vec<ErrorType>> {
+    let tokens: Vec<Token> = Lexer::lex(&content)?;
+    let (ast, symbol_table) = Parser::parse(tokens)?;
+    Ok((ast, symbol_table))
+}
 
-    } else {
-        for error in sem_analysis_errors {
-            eprintln!("Syntax Error: {:?}", error);
+
+fn generate_obj(content: ModAST, rules: RulesConfig) -> Result<Vec<u8>, Vec<ErrorType>> {
+    // Semantic Analysis
+    let sem_analysis_result = SemAnalysis::sem_analysis(content, rules);
+
+    match sem_analysis_result {
+        Ok(processed_content) => {
+            let generated_ir: *mut llvm_sys::LLVMModule = IRGenerator::generate_ir(&processed_content);
+            println!("{:?}", generated_ir);
+
+            Ok(Vec::new()) // Replace with actual bytecode logic
+        },
+        Err(sem_analysis_errors) => {
+            for error in sem_analysis_errors {
+                eprintln!("Syntax Error: {:?}", error);
+            }
+            panic!()
         }
-        panic!()
     }
 }
+
 

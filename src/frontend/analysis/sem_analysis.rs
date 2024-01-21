@@ -2,118 +2,124 @@
 Checks an AST for semantic correctness
  */
 
+use std::sync::{Mutex, Arc};
+
 use crate::frontend::{ 
     ast::{ 
-        ast_struct::{ AST, ASTNode, }, 
+        ast_struct::{ 
+            ASTNode, 
+            ModAST, AST, ModElement, 
+        }, 
         syntax_element::SyntaxElement, 
-        data_type:: DataType 
+        sem_rule::{RulesConfig, SemanticRule} 
     },
     utils::error::ErrorType,
-    analysis::symbol_table::{ SymbolTableStack, SymbolTable } 
+    analysis::symbol_table::SymbolTableStack,
 };
 
-/// Checks a given AST for semantic correctness
-pub struct SemAnalysis {
-    input: AST,
-    scope_stack: SymbolTableStack
+use super::symbol_table::SymbolTable;
 
+pub struct SemAnalysis{
+    input: ModAST,
+    rules: RulesConfig,
 }
 
-impl SemAnalysis {
-    fn new(input: AST) -> Self {
+impl<'a> SemAnalysis {
+    fn new(input: ModAST, rules: RulesConfig) -> Self {
         Self {
             input,
-            scope_stack: SymbolTableStack::new(),
+            rules,
         }
+    }
+
+    pub fn get_input(&mut self) -> &mut ModAST {
+        &mut self.input
+    }
+    pub fn get_rules_config(&self) -> &RulesConfig {
+        &self.rules
+    }
+
+    pub fn output(self) -> ModAST {
+        self.input
     }
 
     /// checks an ast for semantic correctness
-    pub fn sem_analysis(input: AST) -> Vec<ErrorType> { 
-        let mut semantic_analysis: SemAnalysis = SemAnalysis::new(input);
-        semantic_analysis.scope_stack.push(SymbolTable::new());
-
+    pub fn sem_analysis(input: ModAST, rules: RulesConfig) -> Result<ModAST, Vec<ErrorType>> { 
+        let mut semantic_analysis: SemAnalysis = SemAnalysis::new(input, rules);
+    
         let mut errors: Vec<ErrorType> = Vec::new();
-        let root: ASTNode = semantic_analysis.input.get_root().clone();
-
-        if let SyntaxElement::ModuleExpression = root.get_element() {
-            for child in &root.get_children() {
-                semantic_analysis.node_analysis(child, &mut errors);
-            }        
+    
+        let elements: Vec<ModElement> = semantic_analysis.get_input().get_children().clone().into_sorted_vec();
+    
+        for mod_element in elements {
+            let ast: AST = mod_element.get_ast();
+            let arc_mutex_symbol_table_stack = mod_element.get_sym_table_stack();
+            
+            if let Some(e) = semantic_analysis.analyze_mod(ast, &arc_mutex_symbol_table_stack) {
+                errors.extend(e);
+            }
         }
-        errors
+    
+        if errors.is_empty() {
+            return Ok(semantic_analysis.output());
+        }
+        Err(errors)
     }
+    
 
-    /// analyzies each node, recursively, until it has checked all nodes, and appends errors
-    fn node_analysis(&mut self, node: &ASTNode, errors: &mut Vec<ErrorType>) {
-        match &node.get_element() {
-            SyntaxElement::ModuleExpression => {
-                errors.push(ErrorType::InvalidAssignment {
-                    target: "ModuleExpression".to_string()
-                })
-            },
-            SyntaxElement::BinaryExpression{left,
-                                              operator, 
-                                              right} => {
+    fn analyze_mod(&mut self, ast: AST, arc_mutex_symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
+        let mut errors: Vec<ErrorType> = Vec::new();
 
-                if operator == "/" && self.is_zero(right) {
-                    errors.push(ErrorType::DivisionByZero {
-                        operation: format!("{}/{} is division by zero", left, right)
-                    });
-                }                                
-                self.node_analysis(left, errors);
-                self.node_analysis(right, errors);
-            },
-            SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
-                self.node_analysis(condition, errors);
-            
-                self.scope_stack.push(SymbolTable::new());
-                for node in then_branch.iter() {
-                    self.node_analysis(node, errors);
-                }
-                self.scope_stack.pop();
-            
-                if let Some(else_branch) = else_branch {
-                    self.scope_stack.push(SymbolTable::new());
-                    for node in else_branch.iter() {
-                        self.node_analysis(node, errors);
+        if let Ok(mut symbol_table_stack) = arc_mutex_symbol_table_stack.lock() {
+            if ast.get_root().get_element() == SyntaxElement::ModuleExpression {
+                for child in ast.get_root().get_children() {
+                    if let Some(symbol_table_arc_mutex) = symbol_table_stack.pop() {
+                        if let Ok(mut symbol_table) = symbol_table_arc_mutex.lock() {
+                            if let Some(e) = self.sem_analysis_router(&child, &mut errors, &mut symbol_table) {
+                                errors.extend(e);
+                            }
+                        }
                     }
-                    self.scope_stack.pop();
                 }
-            },
-            SyntaxElement::Assignment{ variable, 
-                                        value } => {
-                if !self.is_variable_defined(variable) {
-                    errors.push(ErrorType::UndefinedVariable {
-                        variable_name: variable.clone()
-                    })
+            }
+        } else {
+            panic!("failed to acquire lock in analyze_mod");
+        }
+
+        if errors.is_empty() { 
+            return None;
+        } 
+        Some(errors)
+    }
+    
+    
+    /// analyzes each node, recursively, until it has checked all nodes, and appends errors
+    fn sem_analysis_router(&mut self, node: &ASTNode, errors: &mut Vec<ErrorType>, symbol_table: &mut SymbolTable) -> Option<Vec<ErrorType>> {
+        match &node.get_element() {
+            SyntaxElement::BinaryExpression { left, operator, right } => {
+                let def_ast: &SyntaxElement = &SyntaxElement::BinaryExpression { left: Box::new(ASTNode::default()), operator: operator.clone(), right: Box::new(ASTNode::default())};
+                let rules: Vec<SemanticRule> = self.get_rules_config().get_rules(def_ast);
+                for rule in rules {
+                    match rule.apply_rule(&node.get_element(), symbol_table) {
+                        Some(e) => {
+                            errors.push(e)
+                        }
+                        _ => {}
+                    }
                 }
-                self.node_analysis(value, errors);
-            },
+            }
             _ => {}
         }
         for child in &node.get_children() {
-            self.node_analysis(child, errors);
+            if let Some(child_errors) = self.sem_analysis_router(child, errors, symbol_table) {
+                errors.extend(child_errors); 
+            }
         }
+
+        if !errors.is_empty() {
+            return Some(errors.to_vec());
+        }
+        None
     }
 
-    /// checks if a node is 0
-    fn is_zero(&self, node: &ASTNode) -> bool {
-        match &node.get_element() {
-            SyntaxElement::Literal(DataType::Integer, value) => {
-                value.parse::<i64>().map_or(false, |num| num == 0)
-            },
-            SyntaxElement::Literal(DataType::Float, value) => {
-                value.parse::<f64>().map_or(false, |num| num == 0.0)
-            },
-            _ => false,  
-        }
-    }
-
-    /// checks if the current symbol table (on top of the stack) defines a var
-    fn is_variable_defined(&self, variable: &String) -> bool {
-        if let Some(top_table) = self.scope_stack.peek() {
-            return top_table.get(variable).is_some();
-        }
-        panic!("No scope defined");
-    }
 }

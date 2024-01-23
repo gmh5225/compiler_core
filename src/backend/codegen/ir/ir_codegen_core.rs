@@ -157,7 +157,11 @@ impl IRGenerator {
             _ => panic!("Unrecognized syntax element {:?}", node)
 
         };
-        
+
+        for child in &node.get_children() {
+            self.ir_router(child, sym_table_stack);
+        };
+
         node_ir 
     }
 }

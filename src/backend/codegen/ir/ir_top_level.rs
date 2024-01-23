@@ -3,7 +3,7 @@ use crate::{
         codegen::ir::ir_codegen_core::IRGenerator, 
         llvm_lib::ir_lib::{
             types::void_type, 
-            element::{create_function_type, add_function_to_module}, init_ir::create_basic_block, utils::position_builder
+            element::{create_function_type, add_function_to_module}
         }
     }, 
     frontend::ast::{
@@ -32,10 +32,6 @@ impl IRGenerator {
     
         let function: LLVMValueRef = add_function_to_module(self.get_module(), name, function_type);
     
-        let entry_bb = create_basic_block(self.get_context(), function, "entry");
-
-        position_builder(self.get_builder(), entry_bb);
-        
         self.set_current_function(function);
         
         function

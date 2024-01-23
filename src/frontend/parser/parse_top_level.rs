@@ -54,8 +54,6 @@ impl Parser {
                         let param_type: DataType = self.consume_type()?;
                         parameters.push(FunctionParameter::new(param_name, param_type));
     
-                        println!("{:?}", self.get_input().get(self.get_current()));
-
                         if self.get_current() < self.get_input().len() {
                             match self.get_input().get(self.get_current()) {
                                 Some(Token::COMMA) => self.consume_token(Token::COMMA)?,

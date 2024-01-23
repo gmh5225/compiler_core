@@ -1,6 +1,6 @@
 extern crate llvm_sys as llvm;
 
-use llvm::core; 
+use llvm::{core, prelude::{LLVMValueRef, LLVMContextRef}}; 
 use std::ffi::CString;
 
 /// basic addition
@@ -76,7 +76,7 @@ pub fn build_shl(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue,
 }
 
 /// logical right shift
-pub fn build_lshr(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
+pub fn build_shr(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMValue, param_b: *mut llvm::LLVMValue, name: CString) 
         -> *mut llvm::LLVMValue {
     unsafe {
         core::LLVMBuildLShr(builder, param_a, param_b, name.as_ptr())
@@ -104,5 +104,25 @@ pub fn build_icmp_eq(builder: *mut llvm::LLVMBuilder, param_a: *mut llvm::LLVMVa
         -> *mut llvm::LLVMValue {
     unsafe {
         core::LLVMBuildICmp(builder, llvm::LLVMIntPredicate::LLVMIntEQ, param_a, param_b, name.as_ptr())
+    }
+}
+
+/// negation
+pub fn build_negation(builder: *mut llvm::LLVMBuilder, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
+    unsafe {
+        core::LLVMBuildNeg(builder, operand_ir, name.as_ptr())
+    }
+}
+
+/// bitwise not
+pub fn generate_bitwise_not(builder: *mut llvm::LLVMBuilder, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
+    unsafe {
+        core::LLVMBuildNot(builder, operand_ir, name.as_ptr())
+    }
+}
+
+pub fn generate_logical_not(builder: *mut llvm::LLVMBuilder, context: LLVMContextRef, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
+    unsafe {
+        core::LLVMBuildICmp(builder, llvm::LLVMIntPredicate::LLVMIntEQ, operand_ir, core::LLVMConstInt(core::LLVMInt1TypeInContext(context), 0, 0), name.as_ptr())    
     }
 }

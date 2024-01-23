@@ -96,7 +96,7 @@ impl<'a> SemAnalysis {
     /// analyzes each node, recursively, until it has checked all nodes, and appends errors
     fn sem_analysis_router(&mut self, node: &ASTNode, errors: &mut Vec<ErrorType>, symbol_table: &mut SymbolTable) -> Option<Vec<ErrorType>> {
         match &node.get_element() {
-            SyntaxElement::BinaryExpression { left, operator, right } => {
+            SyntaxElement::BinaryExpression { left: _, operator, right: _ } => {
                 let def_ast: &SyntaxElement = &SyntaxElement::BinaryExpression { left: Box::new(ASTNode::default()), operator: operator.clone(), right: Box::new(ASTNode::default())};
                 let rules: Vec<SemanticRule> = self.get_rules_config().get_rules(def_ast);
                 for rule in rules {

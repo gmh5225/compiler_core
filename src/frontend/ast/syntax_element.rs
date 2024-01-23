@@ -172,7 +172,7 @@ impl fmt::Display for SyntaxElement {
                 },
             SyntaxElement::Assignment { variable, value } => 
                 write!(f, "Assignment({}, {})", variable, value),
-            SyntaxElement::Initialization { variable, data_type, value } => 
+            SyntaxElement::Initialization { variable, data_type: _, value } => 
                 write!(f, "Initialization({}, {})", variable, value),
             SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
                 let return_type_str = match return_type {

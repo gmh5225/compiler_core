@@ -30,12 +30,21 @@ pub struct SymbolInfo {
     value: SymbolValue,
 }
 
+
 impl SymbolInfo {
     pub fn new(data_type: DataType, value: SymbolValue) -> Self {
         Self {
             data_type,
             value
         }
+    }
+
+    pub fn get_value(&self) -> SymbolValue {
+        self.value.clone()
+    }
+
+    pub fn get_data_type(&self) -> DataType {
+        self.data_type.clone()
     }
 }
 

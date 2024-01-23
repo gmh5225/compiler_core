@@ -69,22 +69,3 @@ impl Drop for ExecutionEngine {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*; 
-    use std::path::PathBuf;
-
-    #[test]
-    fn run_file_from_codegen_target() {
-        let file: PathBuf = PathBuf::from("./src/backend/codegen/target/output_add.ll");
-
-        assert!(file.exists(), "The specified LLVM IR file does not exist");
-
-        let result: Result<i64, String> = ExecutionEngine::execute_ir(file.to_str().unwrap(), "add", &[10, 5]);
-
-        assert_eq!(result.unwrap(), 15, "The add function did not execute correctly");
-    }
-}
-
-

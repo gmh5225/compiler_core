@@ -8,7 +8,7 @@ use compiler_core::backend::llvm_lib::ir_lib::{
     return_type::{nonvoid_return, void_return},
     element::create_function,
     types::{int_type, void_type},
-    utils::{get_param, write_to_file, position_builder_at_end}
+    utils::{get_param, write_to_file, position_builder}
 };
 use compiler_core::backend::execute::execution_engine::ExecutionEngine;
 
@@ -27,7 +27,7 @@ fn generate_basic_block() {
 
     let bb: *mut llvm::LLVMBasicBlock = create_basic_block(context, function, "entry");
 
-    position_builder_at_end(builder, bb);
+    position_builder(builder, bb);
 
     void_return(builder);
 
@@ -43,7 +43,7 @@ fn generate_add_expression() {
     let function: *mut llvm::LLVMValue = create_function("add", Some(int_type), &param_types, false, module);
 
     let bb: *mut llvm::LLVMBasicBlock = create_basic_block(context, function, "entry");
-    position_builder_at_end(builder, bb);
+    position_builder(builder, bb);
 
     let param_a: *mut llvm::LLVMValue = get_param(function, 0);
     let param_b: *mut llvm::LLVMValue = get_param(function, 1);

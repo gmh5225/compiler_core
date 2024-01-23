@@ -1,3 +1,5 @@
+mod ir_tests;
+
 use compiler_core::frontend::{
     syntax::token::*,
     syntax::lexer::*,

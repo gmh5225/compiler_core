@@ -96,7 +96,7 @@ fn generate_obj(content: ModAST, rules: RulesConfig) -> Result<Vec<u8>, Vec<Erro
 
     match sem_analysis_result {
         Ok(processed_content) => {
-            let generated_ir: *mut llvm_sys::LLVMModule = IRGenerator::generate_ir(&processed_content);
+            let generated_ir: *mut llvm_sys::LLVMModule = IRGenerator::generate_ir(processed_content);
             println!("{:?}", generated_ir);
 
             Ok(Vec::new()) // Replace with actual bytecode logic

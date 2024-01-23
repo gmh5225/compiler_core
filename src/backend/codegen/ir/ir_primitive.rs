@@ -2,10 +2,10 @@ use llvm_sys::prelude::LLVMValueRef;
 
 use crate::{
     backend::{
-        llvm_lib::ir_lib::create_element,
+        llvm_lib::ir_lib::element,
         codegen::ir::ir_codegen_core::IRGenerator
     }, 
-    frontend::{ast::data_type::DataType, analysis::symbol_table::SymbolValue}
+    frontend::ast::data_type::DataType
 };
 
 impl IRGenerator {
@@ -16,28 +16,28 @@ impl IRGenerator {
                     Ok(val) => val,
                     Err(e) => panic!("Failed to parse integer: {}", e),
                 };
-                create_element::create_integer(val, self.get_context()) 
+                element::create_integer(val, self.get_context()) 
             },
             DataType::Float => {
                 let val: f64 = match value.parse::<f64>() {
                     Ok(val) => val,
                     Err(e) => panic!("Failed to parse floating point: {}", e),
                 };
-                create_element::create_float(val, self.get_context())
+                element::create_float(val, self.get_context())
             },
             DataType::Boolean => {
                 let val: bool = match value.parse::<bool>() {
                     Ok(val) => val,
                     Err(e) => panic!("Failed to parse boolean: {}", e),
                 };
-                create_element::create_boolean(val, self.get_context())
+                element::create_boolean(val, self.get_context())
             },
             DataType::String => {
                 let val: String = match value.parse::<String>() {
                     Ok(val) => val,
                     Err(e) => panic!("Failed to parse string: {}", e),
                 };
-                create_element::create_string(&val, self.get_builder())
+                element::create_string(&val, self.get_builder())
             },
             DataType::Unknown => {
                 std::ptr::null_mut() // this is intentional

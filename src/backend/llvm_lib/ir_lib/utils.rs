@@ -24,7 +24,7 @@ pub fn write_to_file(module: LLVMModuleRef, file_name: &str) {
 }
 
 
-pub fn position_builder_at_end(builder: *mut llvm::LLVMBuilder, bb: *mut llvm::LLVMBasicBlock) {
+pub fn position_builder(builder: *mut llvm::LLVMBuilder, bb: *mut llvm::LLVMBasicBlock) {
     unsafe {
         core::LLVMPositionBuilderAtEnd(builder, bb)
     }

@@ -1,10 +1,13 @@
 use std::collections::BinaryHeap;
-use std::sync::{Mutex, Arc};
-use std::{ffi::CString, collections::HashMap};
+use std::sync::{
+    Mutex, Arc
+};
+use std::ffi::CString;
 
 use llvm::{core, prelude::*}; // change to not use wild star import
 use llvm::prelude::LLVMValueRef;
 
+use crate::backend::llvm_lib::ir_lib::utils::write_to_file;
 use crate::frontend::analysis::symbol_table::SymbolTableStack;
 use crate::frontend::{ 
     ast::ast_struct::{ 
@@ -20,7 +23,6 @@ pub struct IRGenerator {
     context: LLVMContextRef,
     module: LLVMModuleRef,
     builder: LLVMBuilderRef,
-    named_values: HashMap<String, LLVMValueRef>,
     current_function: Option<LLVMValueRef>,
 }
 
@@ -41,7 +43,6 @@ impl IRGenerator {
                 context,
                 module,
                 builder,
-                named_values: HashMap::new(),
                 current_function: None
             }
         }
@@ -62,15 +63,10 @@ impl IRGenerator {
     pub fn get_builder(&self) -> LLVMBuilderRef {
         self.builder
     }
-    pub fn get_named_value(&self, name: &str) -> Option<LLVMValueRef> {
-        self.named_values.get(name).cloned()
-    }
-    pub fn add_named_value(&mut self, name: String, value: LLVMValueRef) {
-        self.named_values.insert(name, value);
-    }
-    
-    pub fn remove_named_value(&mut self, name: &str) {
-        self.named_values.remove(name);
+    pub fn get_current_block(&self) -> LLVMBasicBlockRef {
+        unsafe {
+            core::LLVMGetInsertBlock(self.builder)
+        }
     }
 
     pub fn generate_ir(mut input: ModAST) -> LLVMModuleRef {
@@ -100,7 +96,7 @@ impl IRGenerator {
 
             // top level expressions
             SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
-                self.generate_fn_declaration_ir(name, parameters, return_type)
+                self.generate_fn_declaration_ir(name, parameters, return_type, &node.get_children(), sym_table_stack)
             },
             SyntaxElement::EnumDeclaration { name, variants } => {
                 self.generate_enum_declaration_ir(name, variants)
@@ -111,13 +107,13 @@ impl IRGenerator {
             
             // block expresions
             SyntaxElement::DoWhileLoop { body, condition } => { // doing the important ones first of course
-                self.generate_do_while_ir(body, condition)
+                self.generate_do_while_ir(body, condition, sym_table_stack)
             },
             SyntaxElement::WhileLoop { condition, body } => {
-                self.generate_while_ir(condition, body)
+                self.generate_while_ir(condition, body, sym_table_stack)
             },
             SyntaxElement::ForLoop { initializer, condition, increment, body } => {
-                self.generate_for_ir(initializer, condition, increment, body)
+                self.generate_for_ir(initializer, condition, increment, body, sym_table_stack)
             },
             SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
                 self.generate_if_ir(condition, then_branch, else_branch, sym_table_stack)
@@ -157,7 +153,7 @@ impl IRGenerator {
             _ => panic!("Unrecognized syntax element {:?}", node)
 
         };
-        
+
         node_ir 
     }
 }

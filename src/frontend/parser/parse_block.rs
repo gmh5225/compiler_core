@@ -187,14 +187,11 @@ impl Parser {
                     self.consume_token(Token::RPAREN)?;
 
                     let then_branch: Vec<ASTNode> = self.parse_block()?;
-                    let else_branch: Option<Box<Vec<ASTNode>>> = match self.get_input().get(self.get_current()) {
-                        Some(Token::LBRACE) => {
-                            match self.parse_block() {
-                                Ok(nodes) => Some(Box::new(nodes)),
-                                _ => panic!("if statement panic")
-                            }
-                        }
-                        _ => None
+                    let else_branch: Option<Box<Vec<ASTNode>>> = if let Some(Token::ELSE) = self.get_input().get(self.get_current()) {
+                        self.consume_token(Token::ELSE)?;
+                        Some(Box::new(self.parse_block()?))
+                        } else {
+                        None
                     };
 
                     let if_node: ASTNode = ASTNode::new(SyntaxElement::IfStatement { 

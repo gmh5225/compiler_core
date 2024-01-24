@@ -33,8 +33,8 @@ pub fn init_ee_targets() {
 pub fn init_engine(context: *mut llvm::LLVMContext, mut engine: *mut LLVMOpaqueExecutionEngine)
         -> (*mut llvm::LLVMContext, *mut LLVMOpaqueExecutionEngine) {
     unsafe {
-        let mut tmp_module: *mut llvm::LLVMModule = std::ptr::null_mut();
-        tmp_module = LLVMModuleCreateWithNameInContext(CString::new("temp").unwrap().as_ptr(), context);
+        let mut tmp_module: *mut llvm::LLVMModule = std::ptr::null_mut(); // ignore this warning
+        tmp_module = LLVMModuleCreateWithNameInContext(CString::new("temp").unwrap().as_ptr(), context); // and this one
         if tmp_module.is_null() {
             panic!("Failed to create temporary module");
         }

@@ -4,3 +4,4 @@
 /src/backend/codegen/target/
 /.vscode/
 /.DS_Store
+/reg_tests/tasic_test/target/

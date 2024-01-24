@@ -129,7 +129,7 @@ pub fn create_break_statement(builder: LLVMBuilderRef, break_block: LLVMBasicBlo
     }
 }
 
-pub fn create_function_type(context: LLVMContextRef, return_type: LLVMTypeRef, param_types: &[LLVMTypeRef], is_var_arg: bool) -> LLVMTypeRef {
+pub fn create_function_type(return_type: LLVMTypeRef, param_types: &[LLVMTypeRef], is_var_arg: bool) -> LLVMTypeRef {
     unsafe {
         core::LLVMFunctionType(
             return_type,

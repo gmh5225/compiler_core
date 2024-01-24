@@ -2,6 +2,8 @@
 use std::{path::Path, collections::HashMap};
 use std::fs;
 
+use crate::backend::execute::execution_engine::ExecutionEngine;
+use crate::backend::llvm_lib::ir_lib::utils::write_to_file;
 use crate::{
     frontend::{
         syntax::{
@@ -91,23 +93,33 @@ fn generate_ast(content: String) -> Result<(AST, SymbolTableStack), Vec<ErrorTyp
 
 
 fn generate_obj(content: ModAST, rules: RulesConfig) -> Result<Vec<u8>, Vec<ErrorType>> {
-    // Semantic Analysis
     let sem_analysis_result = SemAnalysis::sem_analysis(content, rules);
 
     match sem_analysis_result {
         Ok(processed_content) => {
             let generated_ir: *mut llvm_sys::LLVMModule = IRGenerator::generate_ir(processed_content);
-            println!("{:?}", generated_ir);
-
-            Ok(Vec::new()) // Replace with actual bytecode logic
+            match write_to_file(generated_ir, "output_builder.ll") {
+                Ok(_) => {
+                    let empty_slice: &[String] = &[];
+                    match ExecutionEngine::execute_ir("target/output_builder.ll", empty_slice) {
+                        Ok(_) => Ok(Vec::new()), // Replace with actual bytecode logic
+                        Err(e) => {
+                            eprintln!("Execution error: {}", e);
+                            panic!()
+                        }
+                    }
+                },
+                Err(e) => {
+                    eprintln!("File write error: {}", e);
+                    panic!()
+                }
+            }
         },
         Err(sem_analysis_errors) => {
             for error in sem_analysis_errors {
                 eprintln!("Syntax Error: {:?}", error);
             }
-            panic!()
+            panic!() 
         }
     }
 }
-
-

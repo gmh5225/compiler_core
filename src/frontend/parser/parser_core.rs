@@ -4,11 +4,11 @@ Converts tokens into an AST and creates a symbol table stack
                                  
 use crate::frontend::{ 
     utils::error::ErrorType,
-    syntax::token::Token,
+    lexer::token::Token,
     ast::{
         ast_struct::{AST, ASTNode}, 
         syntax_element::SyntaxElement, 
-    }, analysis::symbol_table::{SymbolTableStack, SymbolTable}
+    }, ast_pass::symbol_table::{SymbolTableStack, SymbolTable}
 };
 
 /// Parses an input of tokens into an AST   

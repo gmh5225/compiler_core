@@ -9,10 +9,7 @@ use std::path::PathBuf;
 
 use crate::backend::llvm_lib::{
     ir_lib::init_ir,
-    ee_lib::{
-        init_ee,
-        utils,
-    }
+    ee_lib::init_ee
 };
 
 pub struct ExecutionEngine {

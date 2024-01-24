@@ -6,9 +6,9 @@ use crate::backend::execute::execution_engine::ExecutionEngine;
 use crate::backend::llvm_lib::ir_lib::utils::write_to_file;
 use crate::{
     frontend::{
-        syntax::{
+        lexer::{
             token::Token, 
-            lexer::Lexer
+            lexer_core::Lexer
         },
         utils::{
             error::ErrorType,
@@ -25,7 +25,7 @@ use crate::{
             sem_rule::SemanticRule
         }, 
         parser::parser_core::Parser, 
-        analysis::{
+        ast_pass::{
             sem_analysis::SemAnalysis, 
             symbol_table::SymbolTableStack
         },

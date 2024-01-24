@@ -1,12 +1,12 @@
 use crate::frontend::{ 
     utils::error::ErrorType,
-    syntax::token::Token,
+    lexer::token::Token,
     ast::{
         ast_struct::ASTNode, syntax_element::{
             SyntaxElement, MatchArm
         }, 
     },
-    parser::parser_core::Parser, analysis::symbol_table::{SymbolTable, SymbolInfo, SymbolValue},
+    parser::parser_core::Parser, ast_pass::symbol_table::{SymbolTable, SymbolInfo, SymbolValue},
 };
 
 impl Parser {

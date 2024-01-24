@@ -3,7 +3,7 @@ Converts raw text into lexemes
 */
 
 use crate::frontend::{
-    syntax::token::Token,
+    lexer::token::Token,
     utils::error::ErrorType,
 };
 

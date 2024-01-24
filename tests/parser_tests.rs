@@ -319,3 +319,91 @@ fn test_match_statement_parsing() {
         _ => panic!("Expected MatchStatement"),
     }
 }
+#[test]
+fn test_function_with_if_else_statement() {
+    // Token sequence for the function foo
+    let tokens = vec![
+        Token::FUNCTION,
+        Token::IDENTIFIER(vec!['f', 'o', 'o']),
+        Token::LPAREN,
+        Token::IDENTIFIER(vec!['a']),
+        Token::COLON,
+        Token::TINTEGER,
+        Token::COMMA,
+        Token::IDENTIFIER(vec!['b']),
+        Token::COLON,
+        Token::TINTEGER,
+        Token::RPAREN,
+        Token::COLON,
+        Token::TBOOLEAN,
+        Token::LBRACKET,
+        Token::IF,
+        Token::LPAREN,
+        Token::FALSE,
+        Token::RPAREN,
+        Token::LBRACKET,
+        Token::RETURN,
+        Token::FALSE,
+        Token::SEMICOLON,
+        Token::RBRACKET,
+        Token::ELSE,
+        Token::LBRACKET,
+        Token::RETURN,
+        Token::TRUE,
+        Token::SEMICOLON,
+        Token::RBRACKET,
+        Token::RBRACKET,
+        Token::EOF,
+    ];
+
+    let (ast, _sym_table) = Parser::parse(tokens).expect("Failed to parse");
+
+    match ast.get_root().get_children().first().unwrap().get_element() {
+        SyntaxElement::FunctionDeclaration { name, parameters, return_type, .. } => {
+            assert_eq!(name, "foo");
+            assert_eq!(parameters.len(), 2);
+            assert_eq!(return_type, Some(DataType::Boolean));
+        },
+        _ => panic!("Expected FunctionDeclaration"),
+    }
+
+    let function_body = ast.get_root().get_children().first().unwrap().get_children();
+    match function_body.first().unwrap().get_element() {
+        SyntaxElement::IfStatement { ref condition, ref then_branch, ref else_branch } => {
+            match condition.get_element() {
+                SyntaxElement::Literal { data_type, value } => {
+                    assert_eq!(data_type, DataType::Boolean);
+                    assert_eq!(value, "false");
+                },
+                _ => panic!("Expected Literal in If condition"),
+            }
+
+            match then_branch.first().unwrap().get_element() {
+                SyntaxElement::Return { value } => {
+                    match value.get_element() {
+                        SyntaxElement::Literal { data_type, value } => {
+                            assert_eq!(data_type, DataType::Boolean);
+                            assert_eq!(value, "false");
+                        },
+                        _ => panic!("Expected Literal in Return statement"),
+                    }
+                },
+                _ => panic!("Expected Return in Then branch"),
+            }
+
+            match else_branch.as_ref().unwrap().first().unwrap().get_element() {
+                SyntaxElement::Return { value } => {
+                    match value.get_element() {
+                        SyntaxElement::Literal { data_type, value } => {
+                            assert_eq!(data_type, DataType::Boolean);
+                            assert_eq!(value, "true");
+                        },
+                        _ => panic!("Expected Literal in Return statement"),
+                    }
+                },
+                _ => panic!("Expected Return in Else branch"),
+            }
+        },
+        _ => panic!("Expected IfStatement"),
+    }
+}

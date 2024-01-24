@@ -11,18 +11,102 @@ use crate::{
 use llvm::prelude::LLVMValueRef;
 
 impl IRGenerator {
-    pub fn generate_do_while_ir(&mut self, body: &Box<Vec<ASTNode>>, condition: &Box<ASTNode>)-> LLVMValueRef {
+    pub fn generate_do_while_ir(&mut self, body: &Box<Vec<ASTNode>>, condition: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
+        let function = self.get_current_function();
+        let do_body_bb = create_basic_block(self.get_context(), function, "do_body");
+        let do_cond_bb = create_basic_block(self.get_context(), function, "do_cond");
+        let do_end_bb = create_basic_block(self.get_context(), function, "do_end");
+    
+        let entry_bb = self.get_current_block();
+        position_builder(self.get_builder(), entry_bb);
+        create_br(self.get_builder(), do_body_bb);
+    
+        position_builder(self.get_builder(), do_body_bb);
+        for node in body.iter() {
+            self.ir_router(node, symbol_table_stack);
+        }
+        create_br(self.get_builder(), do_cond_bb);
+    
+        position_builder(self.get_builder(), do_cond_bb);
+        let condition_val = self.ir_router(condition, symbol_table_stack);
+        create_cond_br(self.get_builder(), condition_val, do_body_bb, do_end_bb);
+    
+        position_builder(self.get_builder(), do_end_bb);
+    
         std::ptr::null_mut()
     }
-
-    pub fn generate_while_ir(&mut self, body: &Box<ASTNode>, condition: &Box<Vec<ASTNode>>)-> LLVMValueRef {
+    
+    
+    pub fn generate_while_ir(&mut self, condition: &Box<ASTNode>, body: &Box<Vec<ASTNode>>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
+        let function = self.get_current_function();
+        let while_cond_bb = create_basic_block(self.get_context(), function, "while_cond");
+        let while_body_bb = create_basic_block(self.get_context(), function, "while_body");
+        let while_end_bb = create_basic_block(self.get_context(), function, "while_end");
+    
+        let entry_bb = self.get_current_block();
+        position_builder(self.get_builder(), entry_bb);
+        create_br(self.get_builder(), while_cond_bb);
+    
+        position_builder(self.get_builder(), while_cond_bb);
+        let condition_val = self.ir_router(condition, symbol_table_stack);
+        create_cond_br(self.get_builder(), condition_val, while_body_bb, while_end_bb);
+    
+        let body_returns = body.last().map_or(false, |node| node.is_return());
+    
+        position_builder(self.get_builder(), while_body_bb);
+        for node in body.iter() {
+            self.ir_router(node, symbol_table_stack);
+        }
+        if !body_returns {
+            create_br(self.get_builder(), while_cond_bb);
+        }
+    
+        position_builder(self.get_builder(), while_end_bb);
+    
         std::ptr::null_mut()
-
     }
+    
+    pub fn generate_for_ir(&mut self, initializer: &Option<Box<ASTNode>>, condition: &Box<ASTNode>, increment: &Option<Box<ASTNode>>, body: &Box<Vec<ASTNode>>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
+        let function = self.get_current_function();
+        let for_cond_bb = create_basic_block(self.get_context(), function, "for_cond");
+        let for_body_bb = create_basic_block(self.get_context(), function, "for_body");
+        let for_inc_bb = increment.as_ref().map(|_| create_basic_block(self.get_context(), function, "for_inc"));
+        let for_end_bb = create_basic_block(self.get_context(), function, "for_end");
 
-    pub fn generate_for_ir(&mut self, initializer: &Option<Box<ASTNode>>, condition: &Box<ASTNode>, increment: &Option<Box<ASTNode>>, body: &Box<Vec<ASTNode>>) -> LLVMValueRef{
+        let entry_bb = self.get_current_block();
+        position_builder(self.get_builder(), entry_bb);
+
+        if let Some(init_node) = initializer {
+            self.ir_router(init_node, symbol_table_stack);
+        }
+        create_br(self.get_builder(), for_cond_bb);
+
+        position_builder(self.get_builder(), for_cond_bb);
+        let condition_val = self.ir_router(condition, symbol_table_stack);
+        create_cond_br(self.get_builder(), condition_val, for_body_bb, for_end_bb);
+
+        position_builder(self.get_builder(), for_body_bb);
+        let body_returns = body.last().map_or(false, |node| node.is_return());
+        for node in body.iter() {
+            self.ir_router(node, symbol_table_stack);
+        }
+
+        if let Some(inc_bb) = for_inc_bb {
+            if !body_returns {
+                create_br(self.get_builder(), inc_bb);
+            }
+            position_builder(self.get_builder(), inc_bb);
+            if let Some(inc_node) = increment {
+                self.ir_router(inc_node, symbol_table_stack);
+            }
+            create_br(self.get_builder(), for_cond_bb);
+        } else if !body_returns {
+            create_br(self.get_builder(), for_cond_bb);
+        }
+
+        position_builder(self.get_builder(), for_end_bb);
+
         std::ptr::null_mut()
-
     }
 
     pub fn generate_if_ir(&mut self, condition: &Box<ASTNode>, then_branch: &Box<Vec<ASTNode>>, else_branch: &Option<Box<Vec<ASTNode>>>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
@@ -74,6 +158,4 @@ impl IRGenerator {
     
         std::ptr::null_mut()
     }
-    
-
 } 

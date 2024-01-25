@@ -19,10 +19,10 @@ fi
 
 BINARY_PATH="$(pwd)/target/debug/compiler_core"
 
-sudo ln -sf "$BINARY_PATH" "$INSTALL_DIR/builder"
+sudo ln -sf "$BINARY_PATH" "$INSTALL_DIR/charge"
 if [ $? -ne 0 ]; then
   echo "Failed to create a symbolic link to $BINARY_PATH in $INSTALL_DIR. Please check permissions."
   exit 1
 fi
 
-echo "Installation complete. You can now use the 'builder' command."
+echo "Installation complete. You can now use the 'charge' command."

@@ -1,12 +1,12 @@
 use crate::frontend::{ 
     utils::error::ErrorType,
-    syntax::token::Token,
+    lexer::token::Token,
     ast::data_type::DataType,
     parser::parser_core::Parser,
 };
 
 
-impl<'a> Parser<'a> {
+impl Parser {
     pub fn consume_type(&mut self) -> Result<DataType, ErrorType> {
         if let Some(token) = self.get_input().get(self.get_current()) {
             match token {

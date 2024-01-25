@@ -8,7 +8,7 @@ use crate::frontend::ast::{
 };
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FunctionParameter {
     name: String,
     data_type: DataType,
@@ -36,7 +36,7 @@ impl fmt::Display for FunctionParameter {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct MatchArm {
     variant: ASTNode,
     action: ASTNode,
@@ -59,12 +59,21 @@ impl MatchArm {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default, Eq, Hash)]
 pub enum SyntaxElement {
+    #[default]
+    NoExpression,
+
     ModuleExpression,
     TopLevelExpression,
-    Literal(DataType, String), // this is for literal things, eg: Boolean, "true"
-    Variable(DataType, String), // this is for variable names and their types, eg: Boolean, "foo"
+    Literal {
+        data_type: DataType, 
+        value: String,
+    }, // this is for literal things, eg: Boolean, "true"
+    Variable {
+        data_type: DataType,
+        name: String,
+    }, // this is for variable names and their types, eg: Boolean, "foo"
     BinaryExpression {
         left: Box<ASTNode>,
         operator: String,
@@ -133,10 +142,11 @@ pub enum SyntaxElement {
 impl fmt::Display for SyntaxElement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            SyntaxElement::NoExpression => panic!("No expression"),
             SyntaxElement::ModuleExpression => write!(f, "ModuleExpression"),
             SyntaxElement::TopLevelExpression => write!(f, "TopLevelExpression"),
-            SyntaxElement::Literal(data_type, value) => write!(f, "Literal({:?}, {})", data_type, value),
-            SyntaxElement::Variable(data_type, name) => write!(f, "Name of var({}), DataType: ({})", name, data_type),
+            SyntaxElement::Literal{data_type, value} => write!(f, "Literal({:?}, {})", data_type, value),
+            SyntaxElement::Variable{data_type, name } => write!(f, "Name of var({}), DataType: ({})", name, data_type),
             SyntaxElement::BinaryExpression { left, operator, right } => 
                 write!(f, "BinaryExpression({}, {}, {})", left, operator, right),
                 SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
@@ -162,7 +172,7 @@ impl fmt::Display for SyntaxElement {
                 },
             SyntaxElement::Assignment { variable, value } => 
                 write!(f, "Assignment({}, {})", variable, value),
-            SyntaxElement::Initialization { variable, data_type, value } => 
+            SyntaxElement::Initialization { variable, data_type: _, value } => 
                 write!(f, "Initialization({}, {})", variable, value),
             SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
                 let return_type_str = match return_type {

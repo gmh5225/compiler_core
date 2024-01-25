@@ -2,3 +2,4 @@ pub mod ast_struct;
 pub mod data_type;
 pub mod syntax_element;
 pub mod ast_stitcher;
+pub mod sem_rule;

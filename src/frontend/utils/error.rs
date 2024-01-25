@@ -2,7 +2,7 @@
 Errors in the compilation process
  */
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ErrorType {    
     /// Binary operation has incompatible types
     TypeMismatch {

@@ -1,61 +1,17 @@
 use crate::frontend::{ 
-    utils::{error::ErrorType, binop_precedence::binop_precedence},
-    syntax::token::Token,
+    utils::error::ErrorType,
+    lexer::token::Token,
     ast::{
         ast_struct::ASTNode, 
         syntax_element::SyntaxElement,
     },
     parser::parser_core::Parser,
+    parser::binop_precedence::binop_precedence,
 };
 
-impl<'a> Parser<'a> {
-    /// Entry point to the main parsing logic. Serves as a way to match the current token type to the file/expression we want to parse
-    /// All other parsing files have their own version of this, but this is the main one
-    pub fn parse_element(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
-        if self.get_current() < self.get_input().len() {
-            match self.get_input().get(self.get_current()) {
-                // top level expressions
-                Some(Token::FUNCTION) | 
-                Some(Token::STRUCT) | 
-                Some(Token::ENUM) => return self.parse_top_level(),
-
-                // statements
-                Some(Token::IF) |
-                Some(Token::FOR) |
-                Some(Token::DO) | 
-                Some(Token::WHILE) |
-                Some(Token::MATCH) |
-                Some(Token::LET) => return self.parse_statement(),
-
-                // binary operations
-                Some(Token::PLUS) | 
-                Some(Token::MINUS) | 
-                Some(Token::MULTIPLY) | 
-                Some(Token::DIVIDE) => return self.parse_binary_expression(),
-
-                // unary operations
-                Some(Token::LOGICALNOT) => return self.parse_unary_expression(), 
-
-                // base elements like primitives, identifiers, and protected keywords
-                Some(Token::INT(_)) |
-                Some(Token::TRUE) | 
-                Some(Token::FALSE) |
-                Some(Token::IDENTIFIER(_)) |
-                Some(Token::BREAK) |
-                Some(Token::CONTINUE) |
-                Some(Token::RETURN) |
-                Some(Token::SEMICOLON) |
-                Some(Token::EOF) => return self.parse_token(),
-                _ => panic!("Are you sure this is an expression: {:?} {:?}", self.get_input().get(self.get_current()), self.get_current()),
-
-            }
-        } else {
-            panic!("You hooligan. You're out of tokens")
-        }
-    }
-
+impl Parser {
     /// Parses a unary expression
-    fn parse_unary_expression(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
+    pub fn parse_unary_expression(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
                 Some(Token::MINUS) | Some(Token::LOGICALNOT) => {                    
@@ -71,7 +27,7 @@ impl<'a> Parser<'a> {
                         _ => panic!("This was a hard panic to hit"),
                     }.to_string();
         
-                    let operand: ASTNode = match self.parse_element() {
+                    let operand: ASTNode = match self.parse_router() {
                         Ok(Some(value)) => value, 
                         Ok(None) => {
                             panic!("unary is missing");
@@ -107,7 +63,7 @@ impl<'a> Parser<'a> {
             panic!("parse_assignment 2")
         }
     
-        let value: ASTNode = match self.parse_element() { 
+        let value: ASTNode = match self.parse_router() { 
             Ok(Some(value)) => value, 
             Ok(None) => {
                 panic!("Assignment value is missing");
@@ -115,7 +71,7 @@ impl<'a> Parser<'a> {
             Err(_) => {
                 panic!("Failed to parse assignment value");
             }
-        }; // value consumed with parse_element()
+        }; // value consumed with parse_router()
         
         Ok(Some(ASTNode::new(SyntaxElement::Assignment {
             variable: variable_name,
@@ -127,14 +83,14 @@ impl<'a> Parser<'a> {
     /// Parses a binary expression
     /// format: expr operator expr
     pub fn parse_binary_expression(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
-        let lhs: Option<ASTNode> = self.parse_token()?;
+        let lhs: Option<ASTNode> = self.parse_router()?;
         if let Some(lhs_unwrapped) = lhs {
             let mut expr: Option<ASTNode> = None;
             while let Some(op_token) = self.get_input().get(self.get_current()) {
                 if let Some(&precedence) = binop_precedence().get(&self.operator_to_char(op_token)) {
                     self.consume_token(op_token.clone())?;
     
-                    let mut rhs: Option<ASTNode> = self.parse_token()?; // i think this is a bug
+                    let mut rhs: Option<ASTNode> = self.parse_router()?; // i think this is a bug
                     // actually the whole function idk this needs work
                     let operator: String = self.operator_to_char(op_token).to_string();
     

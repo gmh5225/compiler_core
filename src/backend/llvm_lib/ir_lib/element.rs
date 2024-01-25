@@ -1,4 +1,9 @@
-use llvm::{core, prelude::*}; // change to not use wild star import
+use llvm::{
+    core, 
+    prelude::*,
+    LLVMValue,
+    LLVMType,
+}; // change to not use wild star import
 use std::ffi::CString;
 
 /// creates an integer
@@ -75,12 +80,31 @@ pub fn create_global_variable(module: LLVMModuleRef, initializer: LLVMValueRef, 
     }
 }
 
-/// creates a string
+/// creates immutable (global) string
 pub fn create_string(val: &str, builder: LLVMBuilderRef) -> LLVMValueRef {
     let c_val = CString::new(val).expect("Failed to create string");
     let c_str_name = CString::new("const_str").expect("Failed to create string name");
     unsafe {
-        core::LLVMBuildGlobalStringPtr(builder, c_val.as_ptr() as *const i8, c_str_name.as_ptr())
+        core::LLVMBuildGlobalStringPtr(builder, c_val.as_ptr(), c_str_name.as_ptr())
+    }
+}
+
+/// creates a mutable (local) string
+pub fn create_mut_string(val: &str, context: LLVMContextRef, builder: LLVMBuilderRef) -> LLVMValueRef {
+    let c_str_name: CString = CString::new("local_str").expect("Failed to create string name");
+    unsafe {
+        let i8_type: *mut LLVMType = core::LLVMInt8TypeInContext(context);
+        let str_type: *mut LLVMType = core::LLVMArrayType2(i8_type, val.len() as u64);
+        let local_str: *mut LLVMValue = core::LLVMBuildAlloca(builder, str_type, c_str_name.as_ptr());
+
+        for (i, &byte) in val.as_bytes().iter().enumerate() {
+            let index: *mut LLVMValue = core::LLVMConstInt(core::LLVMInt32TypeInContext(context), i as u64, 0);
+            let mut indices: [*mut LLVMValue; 1] = [index];
+            let gep: *mut LLVMValue = core::LLVMBuildGEP2(builder, str_type, local_str, indices.as_mut_ptr(), indices.len().try_into().unwrap(), c_str_name.as_ptr());
+            core::LLVMBuildStore(builder, core::LLVMConstInt(i8_type, byte as u64, 0), gep);
+        }
+
+        local_str
     }
 }
 
@@ -88,5 +112,49 @@ pub fn create_string(val: &str, builder: LLVMBuilderRef) -> LLVMValueRef {
 pub fn create_null_pointer(ty: LLVMTypeRef) -> LLVMValueRef {
     unsafe {
         core::LLVMConstPointerNull(ty)
+    }
+}
+
+/// creates a continue statement
+pub fn create_continue_statement(builder: LLVMBuilderRef, continue_block: LLVMBasicBlockRef) {
+    unsafe {
+        core::LLVMBuildBr(builder, continue_block);
+    }
+}
+
+/// creates a break statement
+pub fn create_break_statement(builder: LLVMBuilderRef, break_block: LLVMBasicBlockRef) {
+    unsafe {
+        core::LLVMBuildBr(builder, break_block);
+    }
+}
+
+pub fn create_function_type(return_type: LLVMTypeRef, param_types: &[LLVMTypeRef], is_var_arg: bool) -> LLVMTypeRef {
+    unsafe {
+        core::LLVMFunctionType(
+            return_type,
+            param_types.as_ptr() as *mut LLVMTypeRef,
+            param_types.len() as u32,
+            is_var_arg as i32, 
+        )
+    }
+}
+
+pub fn add_function_to_module(module: LLVMModuleRef, function_name: &str, function_type: LLVMTypeRef) -> LLVMValueRef {
+    let c_name = CString::new(function_name).expect("Failed to create CString for function name");
+    unsafe {
+        core::LLVMAddFunction(module, c_name.as_ptr(), function_type)
+    }
+}
+
+pub fn create_cond_br(builder: LLVMBuilderRef, condition: LLVMValueRef, then_bb: LLVMBasicBlockRef, else_bb: LLVMBasicBlockRef) -> LLVMValueRef {
+    unsafe {
+        core::LLVMBuildCondBr(builder, condition, then_bb, else_bb)
+    }
+}
+
+pub fn create_br(builder: LLVMBuilderRef, target_bb: LLVMBasicBlockRef) -> LLVMValueRef {
+    unsafe {
+        core::LLVMBuildBr(builder, target_bb)
     }
 }

@@ -1,2 +1,2 @@
-pub mod ir_codegen;
+pub mod ir;
 pub mod object_codegen;

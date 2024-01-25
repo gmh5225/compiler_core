@@ -1,6 +1,6 @@
 use crate::frontend::{ 
     utils::error::ErrorType,
-    syntax::token::Token,
+    lexer::token::Token,
     ast::{
         ast_struct::ASTNode, 
         syntax_element::SyntaxElement, 

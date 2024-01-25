@@ -14,7 +14,7 @@ use crate::frontend::{
         sem_rule::{RulesConfig, SemanticRule} 
     },
     utils::error::ErrorType,
-    analysis::symbol_table::SymbolTableStack,
+    ast_pass::symbol_table::SymbolTableStack,
 };
 
 use super::symbol_table::SymbolTable;

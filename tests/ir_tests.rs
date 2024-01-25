@@ -9,7 +9,7 @@ use compiler_core::{
             }, 
             data_type::DataType
         }, 
-        analysis::symbol_table::{SymbolTableStack, SymbolTable},
+        ast_pass::symbol_table::{SymbolTableStack, SymbolTable},
     }, 
     backend::{codegen::ir::ir_codegen_core::IRGenerator, llvm_lib::ir_lib::utils::write_to_file}
 }

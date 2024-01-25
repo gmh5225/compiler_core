@@ -5,7 +5,7 @@ use crate::{
         ast_struct::ASTNode, 
         syntax_element::{MatchArm, SyntaxElement}, 
         data_type::DataType,
-    }, analysis::symbol_table::{SymbolTableStack, SymbolValue}},
+    }, ast_pass::symbol_table::{SymbolTableStack, SymbolValue}},
     backend::{
         codegen::ir::ir_codegen_core::IRGenerator, 
         llvm_lib::ir_lib::{

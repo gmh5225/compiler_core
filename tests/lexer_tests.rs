@@ -1,8 +1,8 @@
 mod ir_tests;
 
 use compiler_core::frontend::{
-    syntax::token::*,
-    syntax::lexer::*,
+    lexer::token::*,
+    lexer::lexer_core::*,
     utils::error::*,
 };
 

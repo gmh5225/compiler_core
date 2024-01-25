@@ -1,11 +1,12 @@
 use crate::frontend::{ 
-    utils::{error::ErrorType, binop_precedence::binop_precedence},
-    syntax::token::Token,
+    utils::error::ErrorType,
+    lexer::token::Token,
     ast::{
         ast_struct::ASTNode, 
         syntax_element::SyntaxElement,
     },
     parser::parser_core::Parser,
+    parser::binop_precedence::binop_precedence,
 };
 
 impl Parser {

@@ -8,7 +8,7 @@ use crate::frontend::{ast::{
         ModElement,
     },
     syntax_element::SyntaxElement,
-}, analysis::symbol_table::SymbolTableStack};
+}, ast_pass::symbol_table::SymbolTableStack};
 
 
 pub fn ast_stitch(input: Vec<(AST, SymbolTableStack)>) -> ModAST {

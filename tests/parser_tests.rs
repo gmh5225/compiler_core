@@ -4,7 +4,7 @@ use compiler_core::frontend::{
         data_type::*,
         syntax_element::*,
     },
-    syntax::token::*,
+    lexer::token::*,
     parser::parser_core::*,
 };
 

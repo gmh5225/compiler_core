@@ -124,7 +124,7 @@ pub enum SyntaxElement {
     },
     StructDeclaration {
         name: String,
-        fields: Vec<(String, DataType)>
+        fields: Vec<(String, DataType)> // change this to a hashmap?
     },
     EnumDeclaration {
         name: String,

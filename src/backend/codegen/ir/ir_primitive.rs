@@ -42,6 +42,7 @@ impl IRGenerator {
             DataType::Unknown => {
                 std::ptr::null_mut() // this is intentional
             }
+            _ => unimplemented!("Unimplemented data type in literal ir")
         }
     }
 

@@ -7,7 +7,7 @@ use std::ffi::CString;
 use llvm::{core, prelude::*}; // change to not use wild star import
 use llvm::prelude::LLVMValueRef;
 
-use crate::frontend::ast_pass::symbol_table::SymbolTableStack;
+use crate::frontend::symbol_table::symbol_table::SymbolTableStack;
 use crate::frontend::{ 
     ast::ast_struct::{ 
         AST, 

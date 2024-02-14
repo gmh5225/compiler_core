@@ -8,7 +8,8 @@ use crate::frontend::{
     ast::{
         ast_struct::{AST, ASTNode}, 
         syntax_element::SyntaxElement, 
-    }, ast_pass::symbol_table::{SymbolTableStack, SymbolTable}
+    }, 
+    symbol_table::symbol_table::{SymbolTableStack, SymbolTable}
 };
 
 /// Parses an input of tokens into an AST   

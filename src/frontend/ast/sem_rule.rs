@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use crate::frontend::{
     ast::syntax_element::SyntaxElement, 
-    ast_pass::symbol_table::SymbolTable, 
+    symbol_table::symbol_table::SymbolTable, 
     utils::error::ErrorType
 };
 

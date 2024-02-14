@@ -11,7 +11,8 @@ use crate::{
     frontend::{ast::{
         syntax_element::FunctionParameter, 
         data_type::DataType, ast_struct::ASTNode
-    }, ast_pass::symbol_table::SymbolTableStack}, 
+    }, 
+    symbol_table::symbol_table::SymbolTableStack}, 
 };
 
 use llvm::prelude::LLVMValueRef;

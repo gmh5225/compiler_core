@@ -75,6 +75,10 @@ impl SymbolTableStack {
     pub fn size(&self) -> usize {
         self.elements.len()
     }
+
+    pub fn get_elements(&self) -> &Vec<Arc<Mutex<SymbolTable>>> {
+        &self.elements
+    }
 }
 
 impl SymbolTable {

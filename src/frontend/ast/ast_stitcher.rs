@@ -1,14 +1,17 @@
 use std::sync::{Arc, Mutex};
 
-use crate::frontend::{ast::{
-    ast_struct::{
-        ASTNode, 
-        AST,
-        ModAST,
-        ModElement,
-    },
-    syntax_element::SyntaxElement,
-}, ast_pass::symbol_table::SymbolTableStack};
+use crate::frontend::{
+    ast::{
+        ast_struct::{
+            ASTNode, 
+            AST,
+            ModAST,
+            ModElement,
+        },
+        syntax_element::SyntaxElement,
+    }, 
+    symbol_table::symbol_table::SymbolTableStack
+};
 
 
 pub fn ast_stitch(input: Vec<(AST, SymbolTableStack)>) -> ModAST {

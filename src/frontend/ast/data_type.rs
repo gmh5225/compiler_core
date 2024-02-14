@@ -10,7 +10,10 @@ pub enum DataType {
     Float,
     Boolean,
     String,
+    Function,
     Unknown,
+    Struct,
+    Enum,
 }
 
 impl fmt::Display for DataType {
@@ -30,6 +33,15 @@ impl fmt::Display for DataType {
             },
             DataType::Unknown => {
                 write!(f, "Unknown")
+            },
+            DataType::Function => {
+                write!(f, "Function")
+            },
+            DataType::Struct => {
+                write!(f, "Struct")
+            },
+            DataType::Enum => {
+                write!(f, "Enum")
             }
         }
     }

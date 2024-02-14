@@ -25,10 +25,8 @@ use crate::{
             sem_rule::SemanticRule
         }, 
         parser::parser_core::Parser, 
-        ast_pass::{
-            sem_analysis::SemAnalysis, 
-            symbol_table::SymbolTableStack
-        },
+        sem_analysis::sem_analysis_core::SemAnalysis, 
+        symbol_table::symbol_table::SymbolTableStack
     }, 
     backend::codegen::ir::ir_codegen_core::IRGenerator
 };

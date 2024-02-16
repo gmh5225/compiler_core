@@ -36,7 +36,7 @@ fn test_function_declaration() {
 
     let module = IRGenerator::generate_ir(mod_ast);
 
-    match write_to_file(module, "output_simple_fn.ll"){
+    match write_to_file(&module, "output_simple_fn.ll"){
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -96,7 +96,7 @@ fn test_function_with_if_else() {
 
     let module = IRGenerator::generate_ir(mod_ast);
 
-    match write_to_file(module, "output_if_else_fn.ll"){
+    match write_to_file(&module, "output_if_else_fn.ll"){
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -147,7 +147,7 @@ fn test_function_with_while_loop() {
 
     let module = IRGenerator::generate_ir(mod_ast);
 
-    match write_to_file(module, "output_while_loop.ll"){
+    match write_to_file(&module, "output_while_loop.ll"){
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);
@@ -199,7 +199,7 @@ fn test_function_with_do_while_loop() {
 
     let module = IRGenerator::generate_ir(mod_ast);
 
-    match write_to_file(module, "output_do_while_loop_fn.ll"){
+    match write_to_file(&module, "output_do_while_loop_fn.ll"){
         Ok(_) => {}
         Err(e) => {
             eprintln!("File write error: {}", e);

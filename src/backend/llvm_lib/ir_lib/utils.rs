@@ -10,7 +10,7 @@ pub fn get_param(function: *mut llvm::LLVMValue, index: u32) -> *mut llvm::LLVMV
     }
 }
 
-pub fn write_to_file(module: LLVMModuleRef, file_name: &str) -> Result<(), String> {
+pub fn write_to_file(module: &LLVMModuleRef, file_name: &str) -> Result<(), String> {
     if module.is_null() {
         return Err("LLVM module reference is null".into());
     }
@@ -27,7 +27,7 @@ pub fn write_to_file(module: LLVMModuleRef, file_name: &str) -> Result<(), Strin
         .map_err(|e| format!("Failed to convert path to CString: {}", e))?;
 
     let result = unsafe {
-        core::LLVMPrintModuleToFile(module, output_file_cstr.as_ptr(), std::ptr::null_mut())
+        core::LLVMPrintModuleToFile(module.clone(), output_file_cstr.as_ptr(), std::ptr::null_mut())
     };
 
     if result == 0 {

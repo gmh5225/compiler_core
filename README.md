@@ -1,13 +1,15 @@
 # Compiler Design
 - Independent Study sponsored by Aaron Cass.
-- Students: Caleb L'Italien, John Daly, Thomas Breimer
+- Developers: Caleb L'Italien,
+              John Daly, 
+              Thomas Breimer, 
+              Kevin Welch 
 ------------------------------------
 # Goals
-- Compile basic parts of custom language
-- Generate LLVM IR using Rust
-- Execute LLVM IR after converting to object code
 - Make the project workable on all types of machines
 - Provide a clear structure for assignments for future runnings of this class
+- Implement IR generation regression testing
+- Implement error handling for llvm_lib
 ------------------------------------
 # Rust
 - Documentation: https://doc.rust-lang.org/book/

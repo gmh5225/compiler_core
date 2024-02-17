@@ -1,59 +1,56 @@
-use std::sync::{Arc, Mutex};
-
 use compiler_core::{
+    backend::{
+        codegen::ir::ir_codegen_core::IRGenerator, 
+        llvm_lib::ir_lib::utils::write_to_file
+    }, 
     frontend::{
         ast::{
-            syntax_element::SyntaxElement, 
+            ast_stitcher::ast_stitch, 
             ast_struct::{
-                ASTNode, AST, ModElement, ModAST
+                ASTNode, ModAST, AST
             }, 
-            data_type::DataType
+            data_type::DataType, 
+            syntax_element::SyntaxElement
         }, 
-        symbol_table::symbol_table::{SymbolTableStack, SymbolTable},
-    }, 
-    backend::{codegen::ir::ir_codegen_core::IRGenerator, llvm_lib::ir_lib::utils::write_to_file}
-}
-;
+        symbol_table::symbol_table::{SymbolTable, SymbolTableStack},
+    }
+};
 
-fn create_ast_node(element: SyntaxElement) -> ASTNode {
-    ASTNode::new(element)
+fn wrap_in_tle(ast_node: ASTNode) -> AST {
+    let mut tle: ASTNode = ASTNode::new(SyntaxElement::TopLevelExpression);
+    tle.add_child(ast_node);
+    AST::new(tle)
 }
 
 #[test]
 fn test_function_declaration() {
-    let symbol_table_stack: Arc<Mutex<SymbolTableStack>> = Arc::new(Mutex::new(SymbolTableStack::new()));
-
-    let function_ast = AST::new(create_ast_node(SyntaxElement::FunctionDeclaration {
+    let function_ast = ASTNode::new(SyntaxElement::FunctionDeclaration {
         name: "testFunction".to_string(),
         parameters: vec![],
         return_type: Some(DataType::Integer),
-    }));
+    });
 
-    let mod_element: ModElement = ModElement::new(function_ast, Arc::clone(&symbol_table_stack), 0);
+    let ast: AST = wrap_in_tle(function_ast);
 
-    let mut mod_ast: ModAST = ModAST::new();
-    mod_ast.add_child(mod_element);
+    let mut symbol_table_stack = SymbolTableStack::new();
+
+    symbol_table_stack.push(SymbolTable::new());
+
+    let mod_ast: ModAST = ast_stitch(vec![(ast, symbol_table_stack)]);
 
     let module = IRGenerator::generate_ir(mod_ast);
 
     match write_to_file(&module, "output_simple_fn.ll"){
-        Ok(_) => {}
+        Ok(_) => {},
         Err(e) => {
             eprintln!("File write error: {}", e);
-            panic!()
+            panic!();
         }
     }
 }
 
 #[test]
 fn test_function_with_if_else() {
-    let symbol_table_stack: Arc<Mutex<SymbolTableStack>> = Arc::new(Mutex::new(SymbolTableStack::new()));
-    {
-        let mut stack = symbol_table_stack.lock().expect("failed to lock stack");
-        let symbol_table = SymbolTable::new();
-        stack.push(symbol_table)
-    }
-
     let if_condition = ASTNode::new(SyntaxElement::Literal {
         data_type: DataType::Boolean,
         value: "true".to_string(),
@@ -87,32 +84,27 @@ fn test_function_with_if_else() {
 
     function_declaration_node.add_child(if_statement);
 
-    let function_ast = AST::new(function_declaration_node);
+    let ast: AST = wrap_in_tle(function_declaration_node);
 
-    let mod_element: ModElement = ModElement::new(function_ast, Arc::clone(&symbol_table_stack), 0);
+    let mut symbol_table_stack = SymbolTableStack::new();
 
-    let mut mod_ast: ModAST = ModAST::new();
-    mod_ast.add_child(mod_element);
+    symbol_table_stack.push(SymbolTable::new());
+
+    let mod_ast: ModAST = ast_stitch(vec![(ast, symbol_table_stack)]);
 
     let module = IRGenerator::generate_ir(mod_ast);
 
     match write_to_file(&module, "output_if_else_fn.ll"){
-        Ok(_) => {}
+        Ok(_) => {},
         Err(e) => {
             eprintln!("File write error: {}", e);
-            panic!()
+            panic!();
         }
     }
 }
 
 #[test]
 fn test_function_with_while_loop() {
-    let symbol_table_stack: Arc<Mutex<SymbolTableStack>> = Arc::new(Mutex::new(SymbolTableStack::new()));
-    {
-        let mut stack = symbol_table_stack.lock().expect("failed to lock stack");
-        let symbol_table = SymbolTable::new();
-        stack.push(symbol_table)
-    }
     let while_condition = ASTNode::new(SyntaxElement::Literal {
         data_type: DataType::Boolean,
         value: "true".to_string(),
@@ -138,33 +130,27 @@ fn test_function_with_while_loop() {
 
     function_declaration_node.add_child(while_statement);
 
-    let function_ast = AST::new(function_declaration_node);
+    let ast: AST = wrap_in_tle(function_declaration_node);
 
-    let mod_element: ModElement = ModElement::new(function_ast, Arc::clone(&symbol_table_stack), 0);
+    let mut symbol_table_stack = SymbolTableStack::new();
 
-    let mut mod_ast: ModAST = ModAST::new();
-    mod_ast.add_child(mod_element);
+    symbol_table_stack.push(SymbolTable::new());
+
+    let mod_ast: ModAST = ast_stitch(vec![(ast, symbol_table_stack)]);
 
     let module = IRGenerator::generate_ir(mod_ast);
 
     match write_to_file(&module, "output_while_loop.ll"){
-        Ok(_) => {}
+        Ok(_) => {},
         Err(e) => {
             eprintln!("File write error: {}", e);
-            panic!()
+            panic!();
         }
     }
-    
 }
 
 #[test]
 fn test_function_with_do_while_loop() {
-    let symbol_table_stack: Arc<Mutex<SymbolTableStack>> = Arc::new(Mutex::new(SymbolTableStack::new()));
-    {
-        let mut stack = symbol_table_stack.lock().expect("failed to lock stack");
-        let symbol_table = SymbolTable::new();
-        stack.push(symbol_table)
-    }
     let do_while_condition = ASTNode::new(SyntaxElement::Literal {
         data_type: DataType::Boolean,
         value: "true".to_string(),
@@ -190,21 +176,21 @@ fn test_function_with_do_while_loop() {
 
     function_declaration_node.add_child(do_while_statement);
 
-    let function_ast: AST = AST::new(function_declaration_node);
+    let ast: AST = wrap_in_tle(function_declaration_node);
 
-    let mod_element: ModElement = ModElement::new(function_ast, Arc::clone(&symbol_table_stack), 0);
+    let mut symbol_table_stack = SymbolTableStack::new();
 
-    let mut mod_ast: ModAST = ModAST::new();
-    mod_ast.add_child(mod_element);
+    symbol_table_stack.push(SymbolTable::new());
+
+    let mod_ast: ModAST = ast_stitch(vec![(ast, symbol_table_stack)]);
 
     let module = IRGenerator::generate_ir(mod_ast);
 
     match write_to_file(&module, "output_do_while_loop_fn.ll"){
-        Ok(_) => {}
+        Ok(_) => {},
         Err(e) => {
             eprintln!("File write error: {}", e);
-            panic!()
+            panic!();
         }
     }
 }
-

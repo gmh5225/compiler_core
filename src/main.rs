@@ -7,6 +7,7 @@ use compiler_core::compiler;
 #[clap( author="Union College", 
         version="0.1.0", 
         about="Charge Language Compiler and Runner" )]
+        
 struct Cli {
     #[clap(subcommand)]
     command: Commands,

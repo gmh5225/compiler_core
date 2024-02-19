@@ -1,21 +1,15 @@
 use std::{ffi::CString, sync::{Arc, Mutex}};
 
 use crate::{
-    frontend::{ast::{
-        ast_struct::ASTNode, 
-        syntax_element::{MatchArm, SyntaxElement}, 
-        data_type::DataType,
-    }, 
-    symbol_table::symbol_table::{SymbolTableStack, SymbolValue}},
     backend::{
         codegen::ir::ir_codegen_core::IRGenerator, 
         llvm_lib::ir_lib::{
-            ops, 
-            return_type::nonvoid_return,
-            element::create_continue_statement,
-            element::create_break_statement,
+            element::{create_break_statement, create_continue_statement}, ops, return_type::nonvoid_return, var::reassign_var
         }
+    }, frontend::{ast::{
+        ast_struct::ASTNode, data_type::DataType, syntax_element::{MatchArm, SyntaxElement}
     }, 
+    symbol_table::symbol_table::{SymbolTableStack, SymbolValue}} 
 };
 
 use llvm::prelude::LLVMValueRef;
@@ -100,9 +94,14 @@ impl IRGenerator {
 
     }
 
-    pub fn generate_assignment_ir(&mut self, variable: &String, value: &Box<ASTNode>)-> LLVMValueRef {
-        std::ptr::null_mut()
+    pub fn generate_assignment_ir(&mut self, variable: &String, value: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
+        let new_value_ir: *mut LLVMValue = self.ir_router(value, symbol_table_stack);
 
+        let variable_alloc: Option<&*mut LLVMValue> = self.get_store().get_allocation(variable);
+
+        reassign_var(self.get_builder(), variable_alloc, new_value_ir);
+
+        new_value_ir
     }
 
     pub fn generate_break_ir(&mut self, break_block: *mut LLVMBasicBlock ) {
@@ -111,7 +110,6 @@ impl IRGenerator {
 
     pub fn generate_continue_ir(&mut self, continue_block: *mut LLVMBasicBlock) {
         create_continue_statement(self.get_builder(), continue_block)
-
     }
 
     pub fn generate_unary_ir(&mut self, operator: &String, operand: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>)-> LLVMValueRef {

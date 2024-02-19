@@ -47,17 +47,6 @@ impl IRGenerator {
     }
 
     pub fn generate_var_ir(&mut self, data_type: &DataType, name: &String) -> LLVMValueRef {
-        match data_type {
-            DataType::Integer => {
-                // let val: i64 = match value.parse::<i64>() {
-                //     Ok(val) => val,
-                //     Err(e) => panic!("Failed to parse integer: {}", e),
-                // };
-                // self.add_named_value(name, value)
-                // create_element::create_integer(val, self.get_context())
-                std::ptr::null_mut()
-            }
-            _ => unimplemented!("unimplemented var ir")
-        }
+        std::ptr::null_mut()
     }
 }

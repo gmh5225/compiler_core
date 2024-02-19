@@ -42,9 +42,3 @@ fn path_to_cstring(path: &Path) -> Result<CString, NulError> {
         .ok_or_else(|| CString::new("").unwrap_err())?; 
     CString::new(path_str) 
 }
-
-pub fn position_builder(builder: *mut llvm::LLVMBuilder, bb: *mut llvm::LLVMBasicBlock) {
-    unsafe {
-        core::LLVMPositionBuilderAtEnd(builder, bb)
-    }
-}

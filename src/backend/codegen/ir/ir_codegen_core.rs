@@ -1,21 +1,24 @@
-use std::collections::BinaryHeap;
-use std::sync::{
-    Mutex, Arc
+extern crate llvm_sys as llvm;
+
+use std::{
+    sync::{
+        Mutex, Arc
+    },
+    collections::BinaryHeap,
 };
-use std::ffi::CString;
-
 use llvm::{core, prelude::*}; // change to not use wild star import
-use llvm::prelude::LLVMValueRef;
 
-use crate::frontend::symbol_table::symbol_table::SymbolTableStack;
-use crate::frontend::{ 
-    ast::ast_struct::{ 
-        AST, 
-        ASTNode, 
-        ModAST,
-        ModElement,
-    }, 
-    ast::syntax_element::SyntaxElement, 
+use crate::{
+    backend::{
+        codegen::store::Store,
+        llvm_lib::ir_lib::{block, init_ir},
+    },
+    frontend::{
+        ast::{
+            ast_struct::{ASTNode, ModAST, ModElement, AST},
+            syntax_element::SyntaxElement, 
+        }, symbol_table::symbol_table::SymbolTableStack
+    },
 };
 
 pub struct IRGenerator {
@@ -23,28 +26,23 @@ pub struct IRGenerator {
     module: LLVMModuleRef,
     builder: LLVMBuilderRef,
     current_function: Option<LLVMValueRef>,
+    store: Store,
 }
 
 impl IRGenerator {
     fn new() -> Self {
-        unsafe {
-            let context: LLVMContextRef = core::LLVMContextCreate();
-            let module_name: CString = CString::new("mymodule")
-                .expect("Failed to create CString for module name");
-
-            let module: LLVMModuleRef = core::LLVMModuleCreateWithNameInContext(
-                module_name.as_ptr(),
-                context
-            );           
-            let builder: LLVMBuilderRef = core::LLVMCreateBuilderInContext(context);
-
-            Self {
-                context,
-                module,
-                builder,
-                current_function: None
-            }
+        let context: LLVMContextRef = init_ir::create_context();
+        let module: LLVMModuleRef = init_ir::create_module("dummy_module", context);
+        let builder: LLVMBuilderRef = init_ir::create_builder(context);
+        let mut store = Store::new();
+        Self {
+            context,
+            module,
+            builder,
+            current_function: None,
+            store,
         }
+    
     }
 
     pub fn get_context(&self) -> LLVMContextRef {
@@ -63,9 +61,10 @@ impl IRGenerator {
         self.builder
     }
     pub fn get_current_block(&self) -> LLVMBasicBlockRef {
-        unsafe {
-            core::LLVMGetInsertBlock(self.builder)
-        }
+        block::get_current_block(self.builder)
+    }
+    pub fn get_store(&self) -> Store {
+        self.store
     }
 
     pub fn generate_ir(mut input: ModAST) -> LLVMModuleRef {
@@ -132,7 +131,7 @@ impl IRGenerator {
                 self.generate_initialization_ir(variable, data_type, value)
             },
             SyntaxElement::Assignment { variable, value } => {
-                self.generate_assignment_ir(variable, value)
+                self.generate_assignment_ir(variable, value, sym_table_stack)
             },
             SyntaxElement::UnaryExpression { operator, operand } => {
                 self.generate_unary_ir(operator, operand, sym_table_stack)

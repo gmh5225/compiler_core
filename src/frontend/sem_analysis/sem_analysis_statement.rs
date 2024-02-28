@@ -7,9 +7,9 @@ use crate::frontend::{
         syntax_element::MatchArm
     }, 
     sem_analysis::sem_analysis_core::SemAnalysis, 
-    symbol_table::symbol_table::{ 
-        SymbolTable, 
-        SymbolTableStack
+    symbol_table::{
+        symbol_table_core::SymbolTableStack, 
+        symbol_table_struct::SymbolTable,
     }, 
     utils::error::ErrorType,
 };

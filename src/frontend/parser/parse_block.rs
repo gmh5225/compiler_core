@@ -6,7 +6,7 @@ use crate::frontend::{
             SyntaxElement, MatchArm
         }, 
     },
-    parser::parser_core::Parser, symbol_table::symbol_table::{SymbolTable, SymbolInfo, SymbolValue},
+    parser::parser_core::Parser, symbol_table::symbol_table_struct::{SymbolTable, SymbolInfo, SymbolValue},
 };
 
 impl Parser {

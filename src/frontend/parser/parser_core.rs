@@ -3,13 +3,16 @@ Converts tokens into an AST and creates a symbol table stack
 */
                                  
 use crate::frontend::{ 
-    utils::error::ErrorType,
-    lexer::token::Token,
     ast::{
-        ast_struct::{AST, ASTNode}, 
+        ast_struct::{ASTNode, AST}, 
         syntax_element::SyntaxElement, 
     }, 
-    symbol_table::symbol_table::{SymbolTableStack, SymbolTable}
+    lexer::token::Token, 
+    symbol_table::{
+        symbol_table_core::SymbolTableStack, 
+        symbol_table_struct::SymbolTable
+    }, 
+    utils::error::ErrorType,
 };
 
 /// Parses an input of tokens into an AST   

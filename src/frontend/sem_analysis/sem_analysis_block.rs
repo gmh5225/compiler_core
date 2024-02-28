@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use crate::frontend::{
-    ast::ast_struct::ASTNode, sem_analysis::sem_analysis_core::SemAnalysis, symbol_table::symbol_table::SymbolTableStack, utils::error::ErrorType
+    ast::ast_struct::ASTNode, sem_analysis::sem_analysis_core::SemAnalysis, symbol_table::symbol_table_core::SymbolTableStack, utils::error::ErrorType
 };
 
 impl<'a> SemAnalysis {

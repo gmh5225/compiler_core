@@ -26,7 +26,7 @@ use crate::{
         }, 
         parser::parser_core::Parser, 
         sem_analysis::sem_analysis_core::SemAnalysis, 
-        symbol_table::symbol_table::SymbolTableStack,
+        symbol_table::symbol_table_core::SymbolTableStack,
     }, 
     backend::{
         llvm_lib::ir_lib::utils::write_to_file,

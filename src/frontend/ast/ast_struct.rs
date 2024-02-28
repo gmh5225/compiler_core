@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex};
 use std::fmt;
 use crate::frontend::{
     ast::syntax_element::SyntaxElement, 
-    symbol_table::symbol_table::SymbolTableStack
+    symbol_table::symbol_table_core::SymbolTableStack
 };
 
 pub struct ModAST {

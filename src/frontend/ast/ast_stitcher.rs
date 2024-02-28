@@ -10,7 +10,7 @@ use crate::frontend::{
         },
         syntax_element::SyntaxElement,
     }, 
-    symbol_table::symbol_table::SymbolTableStack
+    symbol_table::symbol_table_core::SymbolTableStack
 };
 
 

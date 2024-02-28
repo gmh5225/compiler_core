@@ -7,7 +7,7 @@ use crate::frontend::{
         }, data_type::DataType
     },
     parser::parser_core::Parser, 
-    symbol_table::symbol_table::SymbolTable,
+    symbol_table::symbol_table_struct::SymbolTable,
 };
 
 impl Parser {

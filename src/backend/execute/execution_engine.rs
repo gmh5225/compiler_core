@@ -1,6 +1,7 @@
 use llvm::prelude::LLVMContextRef;
 use llvm::core::*;
 use llvm::execution_engine::*;
+use llvm::LLVMModule;
 use llvm_sys::ir_reader::LLVMParseIRInContext;
 use std::ffi::CStr;
 use std::ffi::CString;
@@ -35,72 +36,41 @@ impl ExecutionEngine {
         ExecutionEngine { engine, context }
     }
 
-    pub fn execute_ir(file_path: &str, args: &[String]) -> Result<i64, String> {
-        let absolute_path: PathBuf = PathBuf::from(file_path);
-
-        let ir_code: String = fs::read_to_string(absolute_path)
-            .map_err(|e| format!("Error reading file: {}", e))?;
-
+    pub fn execute_ir(module: *mut LLVMModule, args: &[String]) -> Result<i64, String> {
         let mut ee: ExecutionEngine = ExecutionEngine::new();
-        ee.run_file(&ir_code, "main", args)
+        ee.run_file(module, "main", args)
     }
 
-    fn run_file(&mut self, ir_code: &str, function_name: &str, args: &[String]) -> Result<i64, String> {
-        let c_ir_code = CString::new(ir_code).map_err(|_| "Failed to create CString from ir_code")?;
-    
-        let buffer_name = CString::new("ir_buffer").map_err(|_| "Failed to create CString for buffer_name")?;
-        let ir_buffer = unsafe {
-            LLVMCreateMemoryBufferWithMemoryRange(
-                c_ir_code.as_ptr(), 
-                ir_code.len(), 
-                buffer_name.as_ptr(), 
-                0
-            )
-        };
-    
-        let mut module = std::ptr::null_mut();
-        let mut err = std::ptr::null_mut();
-        let result = unsafe {
-            LLVMParseIRInContext(self.context, ir_buffer, &mut module, &mut err)
-        };
-    
-        if result != 0 {
-            let err_msg = unsafe { CStr::from_ptr(err).to_string_lossy().into_owned() };
-            return Err(err_msg);
-        }
-    
-        let c_args: Vec<CString> = args.iter().map(|arg| CString::new(arg.as_str()).unwrap()).collect();
-        let c_args_ptrs: Vec<*const i8> = c_args.iter().map(|arg| arg.as_ptr()).collect();
-    
-        let function = unsafe { LLVMGetNamedFunction(module, CString::new(function_name).unwrap().as_ptr()) };
-        if function.is_null() {
-            return Err("No main found".to_string());
-        }
-    
-        let args_values = c_args_ptrs
-        .iter()
-        .map(|&arg| unsafe { LLVMCreateGenericValueOfPointer(arg as *mut _) })
-        .collect::<Vec<LLVMGenericValueRef>>();
-    
-        let mut args_values_ptrs = args_values
-            .iter()
-            .map(|&val| val as *mut LLVMOpaqueGenericValue)
-            .collect::<Vec<*mut LLVMOpaqueGenericValue>>();
+    fn run_file(&mut self, module: *mut LLVMModule, function_name: &str, args: &[String]) -> Result<i64, String> {
+        unsafe {
+            // Ensure the module is valid
+            if module.is_null() {
+                return Err("Invalid module pointer".into());
+            }
 
-        let args_values_ptrs_mut = args_values_ptrs.as_mut_ptr();
+            let function_name_cstr = CString::new(function_name).map_err(|_| "Failed to create CString for function name")?;
+            let function = LLVMGetNamedFunction(module, function_name_cstr.as_ptr());
+            if function.is_null() {
+                return Err("Function not found".into());
+            }
+            let mut generic_values = Vec::with_capacity(args.len());
+            for arg in args {
+                let arg_cstr = CString::new(arg.as_str()).unwrap();
+                let generic_value = LLVMCreateGenericValueOfPointer(arg_cstr.as_ptr() as *mut _);
+                generic_values.push(generic_value);
+            }
 
-        let result = unsafe {
-            LLVMRunFunction(
-                self.engine, 
-                function, 
-                args_values_ptrs.len() as u32, 
-                args_values_ptrs_mut
-            )
-        };
-    
-        let return_val = unsafe { LLVMGenericValueToInt(result, 0) };
-    
-        Ok(return_val as i64)
+            // Execute the function
+            let result = LLVMRunFunction(self.engine, function, generic_values.len() as u32, generic_values.as_mut_ptr());
+            let return_val = LLVMGenericValueToInt(result, 0);
+
+            // Cleanup generic values after execution
+            for gv in generic_values {
+                LLVMDisposeGenericValue(gv);
+            }
+
+            Ok(return_val as i64)
+        }
     }
 }
 

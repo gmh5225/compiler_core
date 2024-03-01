@@ -1,9 +1,9 @@
+use std::{
+    path::Path, 
+    collections::HashMap,
+    fs,
+};
 
-use std::{path::Path, collections::HashMap};
-use std::fs;
-
-use crate::backend::execute::execution_engine::ExecutionEngine;
-use crate::backend::llvm_lib::ir_lib::utils::write_to_file;
 use crate::{
     frontend::{
         lexer::{
@@ -26,17 +26,21 @@ use crate::{
         }, 
         parser::parser_core::Parser, 
         sem_analysis::sem_analysis_core::SemAnalysis, 
-        symbol_table::symbol_table::SymbolTableStack
+        symbol_table::symbol_table::SymbolTableStack,
     }, 
-    backend::codegen::ir::ir_codegen_core::IRGenerator
+    backend::{
+        llvm_lib::ir_lib::utils::write_to_file,
+        execute::execution_engine::ExecutionEngine,
+        codegen::ir::ir_codegen_core::IRGenerator,
+    },
 };
 
-pub fn compile(file_path: &str) -> Result<Vec<u8>, Vec<ErrorType>> {
-    let path = Path::new(file_path);
+pub fn compile(file_path: &str, jit: bool, emit_ir: bool) -> Result<Vec<u8>, Vec<ErrorType>> {
+    let path: &Path = Path::new(file_path);
     validate_file_path(path, file_path)?;
 
-    let entry_points = entry_points(path);
-    let content = fs::read_to_string(path).expect("no file");
+    let entry_points: Vec<usize> = entry_points(path);
+    let content: String = fs::read_to_string(path).expect("no file");
 
     let mut asts_with_sym_tables: Vec<(AST, SymbolTableStack)> = Vec::new();
 
@@ -45,9 +49,9 @@ pub fn compile(file_path: &str) -> Result<Vec<u8>, Vec<ErrorType>> {
     }
 
     for window in entry_points.windows(2) {
-        let start = window[0];
+        let start: usize = window[0];
         let end: usize = window[1];
-        let slice = &content[start..end];
+        let slice: &str = &content[start..end];
 
         match generate_ast(slice.to_string()) {
             Ok(ast_with_sym_table) => asts_with_sym_tables.push(ast_with_sym_table),
@@ -55,7 +59,7 @@ pub fn compile(file_path: &str) -> Result<Vec<u8>, Vec<ErrorType>> {
         }
     }
 
-    let last_start = *entry_points.last().unwrap();
+    let last_start: usize = *entry_points.last().unwrap();
     match generate_ast(content[last_start..].to_string()) {
         Ok(ast_with_sym_table) => asts_with_sym_tables.push(ast_with_sym_table),
         Err(errors) => return Err(errors),
@@ -64,10 +68,8 @@ pub fn compile(file_path: &str) -> Result<Vec<u8>, Vec<ErrorType>> {
     let rules: RulesConfig = read_config();
     let mod_ast: ModAST = ast_stitch(asts_with_sym_tables);
 
-    generate_obj(mod_ast, rules)
+    ast_to_obj(mod_ast, rules, jit, emit_ir)
 }
-
-
 
 fn validate_file_path(path: &Path, file_path: &str) -> Result<(), Vec<ErrorType>> {
     if !path.exists() || !path.is_file() {
@@ -89,35 +91,40 @@ fn generate_ast(content: String) -> Result<(AST, SymbolTableStack), Vec<ErrorTyp
     Ok((ast, symbol_table))
 }
 
-
-fn generate_obj(content: ModAST, rules: RulesConfig) -> Result<Vec<u8>, Vec<ErrorType>> {
-    let sem_analysis_result = SemAnalysis::sem_analysis(content, rules);
+fn ast_to_obj(content: ModAST, rules: RulesConfig, jit: bool, emit_ir: bool) -> Result<Vec<u8>, Vec<ErrorType>> {
+    let sem_analysis_result: Result<ModAST, Vec<ErrorType>> = SemAnalysis::sem_analysis(content, rules);
 
     match sem_analysis_result {
         Ok(processed_content) => {
-            let generated_ir: *mut llvm_sys::LLVMModule = IRGenerator::generate_ir(processed_content);
-            match write_to_file(generated_ir, "output_builder.ll") {
-                Ok(_) => {
-                    let empty_slice: &[String] = &[];
-                    match ExecutionEngine::execute_ir("target/output_builder.ll", empty_slice) {
-                        Ok(_) => Ok(Vec::new()), // Replace with actual bytecode logic
-                        Err(e) => {
-                            eprintln!("Execution error: {}", e);
-                            panic!()
-                        }
+            let generated_ir: *mut llvm::LLVMModule = IRGenerator::generate_ir(processed_content); 
+            eprintln!("Successfully Compiled.");
+            if emit_ir {
+                match write_to_file(&generated_ir, "output_builder.ll") { 
+                    Ok(_) => eprintln!("IR written to file."),
+                    Err(e) => {
+                        eprintln!("File write error: {}", e);
+                        panic!()
                     }
-                },
-                Err(e) => {
-                    eprintln!("File write error: {}", e);
-                    panic!()
                 }
             }
+
+            if jit {
+                match ExecutionEngine::execute_ir(generated_ir, &[]) { 
+                    Ok(_) => println!("Executed using JIT."),
+                    Err(e) => {
+                        eprintln!("Execution error: {}", e);
+                        panic!()
+                    }
+                }
+            }
+
+            Ok(Vec::new()) 
         },
         Err(sem_analysis_errors) => {
-            for error in sem_analysis_errors {
+            for error in &sem_analysis_errors {
                 eprintln!("Syntax Error: {:?}", error);
             }
-            panic!() 
+            Err(sem_analysis_errors)
         }
     }
 }

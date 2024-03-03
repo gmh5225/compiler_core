@@ -8,10 +8,6 @@ use crate::frontend::{
         syntax_element::SyntaxElement, 
     }, 
     lexer::token::Token, 
-    symbol_table::{
-        symbol_table_core::SymbolTableStack, 
-        symbol_table_struct::SymbolTable
-    }, 
     utils::error::ErrorType,
 };
 
@@ -19,7 +15,6 @@ use crate::frontend::{
 pub struct Parser {
     input: Vec<Token>,
     current: usize,
-    symbol_table_stack: SymbolTableStack,
 }
 
 impl Parser {
@@ -27,17 +22,14 @@ impl Parser {
         Self {
             input,
             current: 0,
-            symbol_table_stack: SymbolTableStack::new()
         }
     } 
     
     /// Parses an input of tokens into an AST, or returns a vector of errors
-    pub fn parse(input: Vec<Token>) -> Result<(AST, SymbolTableStack), Vec<ErrorType>> {
+    pub fn parse(input: Vec<Token>) -> Result<AST, Vec<ErrorType>> {
         let mut parser = Parser::new(input);
         let mut root_children: Vec<ASTNode> = Vec::new();  
         let mut errors: Vec<ErrorType> = Vec::new();
-
-        parser.get_sym_table_stack().push(SymbolTable::new());
 
         while parser.get_current() < parser.get_input().len() {
             match parser.parse_router() { 
@@ -53,9 +45,8 @@ impl Parser {
 
         let mut root: ASTNode = ASTNode::new(SyntaxElement::TopLevelExpression);
         root.add_children(root_children);
-        let symbol_table: SymbolTableStack = parser.get_sym_table_stack().clone();
         if errors.is_empty() {
-            return Ok((AST::new(root), symbol_table));
+            return Ok(AST::new(root));
         }
         Err(errors)
     }  
@@ -68,10 +59,6 @@ impl Parser {
     /// Gets the current position in the input vector
     pub fn get_current(&mut self) -> usize {
         self.current.clone()
-    }
-
-    pub fn get_sym_table_stack(&mut self) -> &mut SymbolTableStack {
-        &mut self.symbol_table_stack
     }
 
     /// Consumes a token if the expected token matches the token
@@ -99,6 +86,7 @@ impl Parser {
     }
 
     /// Entry point to the main parsing logic. Serves as a way to match the current token type to the file/expression we want to parse
+    // Need to actually return errors here
     pub fn parse_router(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {

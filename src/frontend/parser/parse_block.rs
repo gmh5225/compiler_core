@@ -6,7 +6,7 @@ use crate::frontend::{
             SyntaxElement, MatchArm
         }, 
     },
-    parser::parser_core::Parser, symbol_table::symbol_table_struct::{SymbolTable, SymbolInfo, SymbolValue},
+    parser::parser_core::Parser,
 };
 
 impl Parser {
@@ -64,17 +64,6 @@ impl Parser {
                             panic!("Failed to parse initialization value");
                         }
                     };    
-
-                    match self.get_sym_table_stack().peek() {
-                        Some(arc_mutex_symbol_table) => {
-                            let mut symbol_table = arc_mutex_symbol_table.lock().unwrap();
-                    
-                            symbol_table.add(variable_name.clone(), SymbolInfo::new(data_type.clone(), SymbolValue::Node(Box::new(value.clone()))));
-                        },
-                        _ => panic!("sym table missing init")
-                    }
-                    
-
                     Ok(Some(ASTNode::new(SyntaxElement::Initialization {
                         variable: variable_name,
                         data_type,
@@ -95,8 +84,6 @@ impl Parser {
             match self.get_input().get(self.get_current()) {
                 Some(Token::MATCH) => {
                     self.consume_token(Token::MATCH)?;
-
-                    self.get_sym_table_stack().push(SymbolTable::new());
 
                     let value: ASTNode = match self.parse_router() {
                         Ok(Some(value)) => value, 
@@ -141,8 +128,6 @@ impl Parser {
 
             self.consume_token(Token::LBRACKET)?;
 
-            self.get_sym_table_stack().push(SymbolTable::new());
-
             let action: ASTNode = match self.parse_router() {
                 Ok(Some(value)) => value, 
                 Ok(None) => {
@@ -175,9 +160,6 @@ impl Parser {
             match self.get_input().get(self.get_current()) {
                 Some(Token::IF) => {
                     self.consume_token(Token::IF)?;
-                    
-                    self.get_sym_table_stack().push(SymbolTable::new());
-
                     self.consume_token(Token::LPAREN)?;
                     
                     let condition: ASTNode = match self.parse_router() {
@@ -213,9 +195,6 @@ impl Parser {
             match self.get_input().get(self.get_current()) {
                 Some(Token::FOR) => {
                     self.consume_token(Token::FOR)?;
-
-                    self.get_sym_table_stack().push(SymbolTable::new());
-
                     self.consume_token(Token::LPAREN)?;
         
                     // let initializer: Option<Box<ASTNode>> = if self.get_input().get(self.get_current()) != Some(&Token::RPAREN) {
@@ -281,9 +260,8 @@ impl Parser {
             match self.get_input().get(self.get_current()) {
                 Some(Token::WHILE) => {
                     self.consume_token(Token::WHILE)?;
-                    self.get_sym_table_stack().push(SymbolTable::new());
-
                     self.consume_token(Token::LPAREN)?;
+
                     let condition: Box<ASTNode> = Box::new(match self.parse_router() {
                         Ok(Some(value)) => value, 
                         Ok(None) => {
@@ -314,8 +292,6 @@ impl Parser {
             match self.get_input().get(self.get_current()) {
                 Some(Token::DO) => {
                     self.consume_token(Token::DO)?;
-
-                    self.get_sym_table_stack().push(SymbolTable::new());
 
                     let body: Box<Vec<ASTNode>> = Box::new(self.parse_block()?);
 

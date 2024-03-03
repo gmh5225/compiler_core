@@ -22,7 +22,7 @@ use crate::{
             }
         }, 
         symbol_table::{
-            symbol_table_core::SymbolTableStack, 
+            symbol_table_struct::SymbolTableStack, 
             symbol_table_struct::SymbolValue,
         },
 } 

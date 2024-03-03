@@ -14,7 +14,7 @@ use crate::frontend::{
         sem_rule::RulesConfig
     },
     utils::error::ErrorType,
-    symbol_table::symbol_table_core::SymbolTableStack,
+    symbol_table::symbol_table_struct::SymbolTableStack,
 };
 
 pub struct SemAnalysis{

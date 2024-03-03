@@ -8,7 +8,7 @@ use crate::frontend::{
     }, 
     sem_analysis::sem_analysis_core::SemAnalysis, 
     symbol_table::{
-        symbol_table_core::SymbolTableStack, 
+        symbol_table_struct::SymbolTableStack, 
         symbol_table_struct::SymbolTable,
     }, 
     utils::error::ErrorType,

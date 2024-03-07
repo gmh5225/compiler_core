@@ -57,6 +57,9 @@ impl ModElement {
     pub fn get_sym_table_stack(&self) -> Arc<Mutex<SymbolTableStack>> {
         Arc::clone(&self.sym_table_stack)
     }
+    pub fn set_priority(&mut self, new: i32) {
+        self.priority = new;
+    }
 }
 
 impl Ord for ModElement {

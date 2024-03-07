@@ -1,33 +1,21 @@
-use std::sync::{Arc, Mutex};
-
-use crate::frontend::{
-    ast::{
+use crate::frontend::ast::{
         ast_struct::{
             ASTNode, 
-            AST,
             ModAST,
             ModElement,
         },
         syntax_element::SyntaxElement,
-    }, 
-    symbol_table::symbol_table_struct::SymbolTableStack
-};
+    };
 
 
-pub fn ast_stitch(input: Vec<(AST, SymbolTableStack)>) -> ModAST {
+pub fn ast_stitch(input: Vec<ModElement>) -> ModAST {
     let mut mod_ast: ModAST = ModAST::new(); 
-
-    for (ast, sym_table_stack) in input {
-        let root_node: ASTNode = ast.get_root();
-        let priority: i32 = get_ast_priority(root_node);
-
-        let arc_mutex_sym_table_stack: Arc<Mutex<SymbolTableStack>> = Arc::new(Mutex::new(sym_table_stack));
-        
-        let mod_element: ModElement = ModElement::new(ast, arc_mutex_sym_table_stack, priority);
-
-        mod_ast.add_child(mod_element); 
+    for mut mod_element in input {
+        let root = mod_element.get_ast().get_root();
+        let priority = get_ast_priority(root);
+        mod_element.set_priority(priority);
+        mod_ast.add_child(mod_element);
     }
-
     mod_ast
 }
 

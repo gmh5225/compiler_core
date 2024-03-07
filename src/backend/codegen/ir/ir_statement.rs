@@ -152,12 +152,7 @@ impl IRGenerator {
                     match symbol_table.get(&name) {
                         Some(symbol_info) => {
                             let llvm_val: LLVMValueRef = match &symbol_info.get_value() {
-                                SymbolValue::StrValue(_) => {
-                                    unimplemented!("Need to add strvalues to implementation")
-                                },
-                                SymbolValue::Node(node_val) => {
-                                    self.ir_router(node_val, symbol_table_stack)
-                                },
+                                _ => {panic!("unipmlemented")}
                             };
     
                             nonvoid_return(self.get_builder(), llvm_val)

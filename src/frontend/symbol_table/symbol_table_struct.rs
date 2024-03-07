@@ -1,7 +1,6 @@
 use std::{collections::HashMap, sync::{Arc, Mutex}};
 use crate::frontend::ast::{
-    data_type::DataType, 
-    ast_struct::ASTNode
+    ast_struct::ASTNode, data_type::DataType, syntax_element::FunctionParameter
 };
 
 /// Initialized values in a scope
@@ -10,10 +9,13 @@ pub struct SymbolTable {
     values: HashMap<String, SymbolInfo>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SymbolValue {
     StrValue(Box<str>),
-    Node(Box<ASTNode>),
+    Node(Box<ASTNode>), // this means the symbolvalue is calculated
+    EnumValue { variants: Vec<String> },
+    StructValue { fields: Vec<(String, DataType)> },
+    FunctionValue { parameters: Vec<FunctionParameter>, return_type: Option<DataType> },
 }
 
 /// Information on a symbol in a symboltable

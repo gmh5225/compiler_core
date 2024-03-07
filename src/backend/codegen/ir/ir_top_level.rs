@@ -12,7 +12,7 @@ use crate::{
         syntax_element::FunctionParameter, 
         data_type::DataType, ast_struct::ASTNode
     }, 
-    symbol_table::symbol_table::SymbolTableStack}, 
+    symbol_table::symbol_table_struct::SymbolTableStack}, 
 };
 
 use llvm::prelude::LLVMValueRef;

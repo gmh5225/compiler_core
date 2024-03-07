@@ -12,6 +12,7 @@ pub enum DataType {
     String,
     Function,
     Unknown,
+    None,
     Struct,
     Enum,
 }
@@ -42,6 +43,9 @@ impl fmt::Display for DataType {
             },
             DataType::Enum => {
                 write!(f, "Enum")
+            },
+            DataType::None => {
+                write!(f, "None")
             }
         }
     }

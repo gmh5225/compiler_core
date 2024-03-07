@@ -7,7 +7,7 @@ use crate::frontend::{
         }, data_type::DataType
     },
     parser::parser_core::Parser, 
-    symbol_table::symbol_table::SymbolTable,
+    symbol_table::symbol_table_struct::SymbolTable,
 };
 
 impl Parser {
@@ -15,8 +15,6 @@ impl Parser {
         match self.get_input().get(self.get_current()) {
             Some(Token::FUNCTION) => {
                 self.consume_token(Token::FUNCTION)?;
-
-                self.get_sym_table_stack().push(SymbolTable::new());
 
                 let (identifier, parameters, return_type) = self.parse_function_declaration()?;
                 let function_body: Vec<ASTNode> = self.parse_block()?;
@@ -92,11 +90,8 @@ impl Parser {
     
     /// Parses an enum into a name and variants
     /// format of enum currently: enum foo {variant, variant2, variant3}
-    // pub fn parse_enum(&mut self) -> Result<(String, Vec<String>), Vec<ErrorType>> {
     pub fn parse_enum(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         self.consume_token(Token::ENUM)?;
-
-        self.get_sym_table_stack().push(SymbolTable::new());
     
         let enum_name = if let Some(Token::IDENTIFIER(name_chars)) = self.get_input().get(self.get_current()) {
             self.consume_token(Token::IDENTIFIER(name_chars.clone()))?;
@@ -133,8 +128,6 @@ impl Parser {
     pub fn parse_struct(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         self.consume_token(Token::STRUCT)?;
     
-        self.get_sym_table_stack().push(SymbolTable::new());
-
         let struct_name = if let Some(Token::IDENTIFIER(name_chars)) = self.get_input().get(self.get_current()) {
             self.consume_token(Token::IDENTIFIER(name_chars.clone()))?;
             name_chars.iter().collect()

@@ -14,9 +14,8 @@ use compiler_core::frontend::{
 #[test]
 fn test_empty_input() { 
     let tokens: Vec<Token> = vec![];
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast = Parser::parse(tokens).expect("Failed to parse");
     assert_eq!(ast.get_root().get_element(), SyntaxElement::TopLevelExpression);
-    assert_eq!(sym_table.size(), 1);
     assert!(ast.get_root().get_children().is_empty());
 }
 
@@ -31,8 +30,7 @@ fn test_single_function_declaration() {
         Token::RBRACKET,
         Token::EOF,
     ];
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
-    assert_eq!(sym_table.size(), 2);
+    let ast = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::FunctionDeclaration { ref name, .. } => {
             assert_eq!(name, "my_func");
@@ -62,7 +60,7 @@ fn test_function_with_parameters_and_return_type() {
         Token::RBRACKET,
         Token::EOF,
     ];
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast= Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::FunctionDeclaration { ref name, ref parameters, .. } => {
             assert_eq!(name, "calculate");
@@ -90,7 +88,7 @@ fn test_function_with_body() {
         Token::RBRACKET,
         Token::EOF,
     ];
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::FunctionDeclaration { ref name, .. } => {
             assert_eq!(name, "test");
@@ -114,7 +112,7 @@ fn test_if_statement_parsing() {
         Token::RBRACKET,
         Token::EOF,
     ];
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
             match condition.get_element() {
@@ -141,7 +139,7 @@ fn test_initialization_parsing() {
         Token::SEMICOLON,
         Token::EOF,
     ];
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::Initialization { variable, data_type, value } => {
             assert_eq!(variable, "x");
@@ -172,7 +170,7 @@ fn test_for_loop_parsing() {
         Token::EOF,
     ];
 
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::ForLoop { initializer, condition, increment, body } => {
             assert!(initializer.is_none(), "Expected no initializer in ForLoop");
@@ -214,7 +212,7 @@ fn test_while_loop_parsing() {
         Token::RBRACKET,
         Token::EOF,
     ];
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::WhileLoop { condition, body } => {
             match condition.get_element() {
@@ -255,7 +253,7 @@ fn test_do_while_loop_parsing() {
         Token::SEMICOLON,
         Token::EOF,
     ];
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast= Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::DoWhileLoop { body, condition } => {
             let body_nodes = &(*body);
@@ -288,7 +286,7 @@ fn test_continue_statement_parsing() {
         Token::SEMICOLON,
         Token::EOF,
     ];
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::Continue => {  },
         _ => panic!("Expected ContinueStatement"),
@@ -304,7 +302,7 @@ fn test_match_statement_parsing() {
         Token::RBRACKET,
         Token::EOF,
     ];
-    let (ast, sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast = Parser::parse(tokens).expect("Failed to parse");
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::MatchStatement { to_match, arms } => {
             match to_match.get_element() {
@@ -356,7 +354,7 @@ fn test_function_with_if_else_statement() {
         Token::EOF,
     ];
 
-    let (ast, _sym_table) = Parser::parse(tokens).expect("Failed to parse");
+    let ast = Parser::parse(tokens).expect("Failed to parse");
 
     match ast.get_root().get_children().first().unwrap().get_element() {
         SyntaxElement::FunctionDeclaration { name, parameters, return_type, .. } => {

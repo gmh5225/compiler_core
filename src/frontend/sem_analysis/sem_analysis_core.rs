@@ -14,7 +14,7 @@ use crate::frontend::{
         sem_rule::RulesConfig
     },
     utils::error::ErrorType,
-    symbol_table::symbol_table::SymbolTableStack,
+    symbol_table::symbol_table_struct::SymbolTableStack,
 };
 
 pub struct SemAnalysis{
@@ -51,7 +51,7 @@ impl<'a> SemAnalysis {
     
         for mod_element in elements {
             let ast: AST = mod_element.get_ast();
-            let arc_mutex_symbol_table_stack = mod_element.get_sym_table_stack();
+            let arc_mutex_symbol_table_stack: Arc<Mutex<SymbolTableStack>> = mod_element.get_sym_table_stack();
             
             if let Some(e) = semantic_analysis.analyze_mod(ast, &arc_mutex_symbol_table_stack) {
                 errors.extend(e);
@@ -85,8 +85,6 @@ impl<'a> SemAnalysis {
             Some(errors)
         }
     }
-
-    
     
     
     /// analyzes each node, recursively, until it has checked all nodes, and appends errors

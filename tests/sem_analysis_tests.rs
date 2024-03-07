@@ -5,7 +5,7 @@ use compiler_core::frontend::{
     ast::ast_struct::{ AST, ASTNode }, 
     ast::{syntax_element::SyntaxElement, sem_rule::SemanticRule, ast_struct::{ModAST, ModElement}}, 
     ast::{data_type::DataType, sem_rule::RulesConfig},
-    symbol_table::symbol_table::{SymbolTable, SymbolTableStack},
+    symbol_table::symbol_table_struct::{SymbolTable, SymbolTableStack},
     utils::error::*,
 };
 

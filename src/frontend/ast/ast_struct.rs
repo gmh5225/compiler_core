@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex};
 use std::fmt;
 use crate::frontend::{
     ast::syntax_element::SyntaxElement, 
-    symbol_table::symbol_table::SymbolTableStack
+    symbol_table::symbol_table_struct::SymbolTableStack
 };
 
 pub struct ModAST {
@@ -56,6 +56,9 @@ impl ModElement {
     }
     pub fn get_sym_table_stack(&self) -> Arc<Mutex<SymbolTableStack>> {
         Arc::clone(&self.sym_table_stack)
+    }
+    pub fn set_priority(&mut self, new: i32) {
+        self.priority = new;
     }
 }
 

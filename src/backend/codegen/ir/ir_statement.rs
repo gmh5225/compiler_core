@@ -1,21 +1,31 @@
 use std::{ffi::CString, sync::{Arc, Mutex}};
 
 use crate::{
-    frontend::{ast::{
-        ast_struct::ASTNode, 
-        syntax_element::{MatchArm, SyntaxElement}, 
-        data_type::DataType,
-    }, 
-    symbol_table::symbol_table::{SymbolTableStack, SymbolValue}},
     backend::{
         codegen::ir::ir_codegen_core::IRGenerator, 
         llvm_lib::ir_lib::{
+            element::{
+                create_break_statement, 
+                create_continue_statement
+            }, 
             ops, 
             return_type::nonvoid_return,
-            element::create_continue_statement,
-            element::create_break_statement,
         }
     }, 
+    frontend::{
+        ast::{
+            ast_struct::ASTNode, 
+            data_type::DataType, 
+            syntax_element::{
+                MatchArm, 
+                SyntaxElement,
+            }
+        }, 
+        symbol_table::{
+            symbol_table_struct::SymbolTableStack, 
+            symbol_table_struct::SymbolValue,
+        },
+} 
 };
 
 use llvm::prelude::LLVMValueRef;
@@ -142,12 +152,7 @@ impl IRGenerator {
                     match symbol_table.get(&name) {
                         Some(symbol_info) => {
                             let llvm_val: LLVMValueRef = match &symbol_info.get_value() {
-                                SymbolValue::StrValue(_) => {
-                                    unimplemented!("Need to add strvalues to implementation")
-                                },
-                                SymbolValue::Node(node_val) => {
-                                    self.ir_router(node_val, symbol_table_stack)
-                                },
+                                _ => {panic!("unipmlemented")}
                             };
     
                             nonvoid_return(self.get_builder(), llvm_val)

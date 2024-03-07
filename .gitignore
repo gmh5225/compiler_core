@@ -4,4 +4,4 @@
 /src/backend/codegen/target/
 /.vscode/
 /.DS_Store
-/reg_tests/basic_test/target/
+/regression_testing/basic_test/target/

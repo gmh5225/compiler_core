@@ -7,7 +7,6 @@ use std::ffi::CString;
 use llvm::{core, prelude::*}; // change to not use wild star import
 use llvm::prelude::LLVMValueRef;
 
-use crate::frontend::symbol_table::symbol_table::SymbolTableStack;
 use crate::frontend::{ 
     ast::ast_struct::{ 
         AST, 
@@ -16,6 +15,7 @@ use crate::frontend::{
         ModElement,
     }, 
     ast::syntax_element::SyntaxElement, 
+    symbol_table::symbol_table_struct::SymbolTableStack
 };
 
 pub struct IRGenerator {

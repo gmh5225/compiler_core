@@ -7,10 +7,10 @@ use crate::frontend::{
         }, data_type::DataType
     },
     parser::parser_core::Parser, 
-    symbol_table::symbol_table_struct::SymbolTable,
 };
 
 impl Parser {
+    /// Parses a function
     pub fn parse_function(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         match self.get_input().get(self.get_current()) {
             Some(Token::FUNCTION) => {
@@ -29,9 +29,8 @@ impl Parser {
         }
     }
 
-    /// After reading a function token, consumes the function declaration
-    /// format of function declaration currently: fn foo(a: int, b: bool) {}
-    pub fn parse_function_declaration(&mut self) -> Result<(String, Vec<FunctionParameter>, Option<DataType>), Vec<ErrorType>> {
+    /// Parses a function declaration
+    fn parse_function_declaration(&mut self) -> Result<(String, Vec<FunctionParameter>, Option<DataType>), Vec<ErrorType>> {
         if let Some(Token::IDENTIFIER(name_chars)) = self.get_input().get(self.get_current()) {
             self.consume_token(Token::IDENTIFIER(name_chars.clone()))?;
             let name: String = name_chars.iter().collect();
@@ -89,7 +88,6 @@ impl Parser {
     }
     
     /// Parses an enum into a name and variants
-    /// format of enum currently: enum foo {variant, variant2, variant3}
     pub fn parse_enum(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         self.consume_token(Token::ENUM)?;
     
@@ -124,7 +122,6 @@ impl Parser {
     }
     
     /// Parses a struct into a name and fields
-    /// format of a struct currently: struct foo {field: type, field2: type2}
     pub fn parse_struct(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         self.consume_token(Token::STRUCT)?;
     

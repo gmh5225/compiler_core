@@ -8,19 +8,35 @@ use crate::frontend::{
 };
 
 impl<'a> SemAnalysis {
-    pub fn sem_for_loop(&mut self, initializer: &Option<Box<ASTNode>>, condition: &Box<ASTNode>, increment: &Option<Box<ASTNode>>, body: &Box<Vec<ASTNode>>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
+    /// TODO
+    pub fn sem_for_loop(&mut self, 
+        _initializer: &Option<Box<ASTNode>>, 
+        _condition: &Box<ASTNode>, 
+        _increment: &Option<Box<ASTNode>>, 
+        _body: &Box<Vec<ASTNode>>, 
+        _symbol_table: &Arc<Mutex<SymbolTableStack>>,) 
+    -> Option<Vec<ErrorType>> {
+
         unimplemented!("Sem analysis for loop unimplemented")
     }
 
-    pub fn sem_while_loop(&mut self, condition: &Box<ASTNode>, body: &Box<Vec<ASTNode>>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
+    /// TODO
+    pub fn sem_while_loop(&mut self, _condition: &Box<ASTNode>, _body: &Box<Vec<ASTNode>>, _symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
         unimplemented!("Sem analysis while loop unimplemented")
     }
 
-    pub fn sem_do_while_loop(&mut self, body: &Box<Vec<ASTNode>>, condition: &Box<ASTNode>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
+    /// TODO
+    pub fn sem_do_while_loop(&mut self, _body: &Box<Vec<ASTNode>>, _condition: &Box<ASTNode>, _symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
         unimplemented!("Sem analysis do while loop unimplemented")
     }
 
-    pub fn sem_if_statement(&mut self, condition: &Box<ASTNode>, then_branch: &Box<Vec<ASTNode>>, else_branch: &Option<Box<Vec<ASTNode>>>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
+    /// TODO
+    pub fn sem_if_statement(&mut self, 
+        _condition: &Box<ASTNode>, 
+        _then_branch: &Box<Vec<ASTNode>>, 
+        _else_branch: &Option<Box<Vec<ASTNode>>>, 
+            _symbol_table: &Arc<Mutex<SymbolTableStack>>,) 
+    -> Option<Vec<ErrorType>> {
         None
     }
 }

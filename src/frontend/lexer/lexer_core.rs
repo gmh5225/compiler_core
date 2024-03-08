@@ -7,6 +7,7 @@ use crate::frontend::{
     utils::error::ErrorType,
 };
 
+/// Structure of the lexing process
 pub struct Lexer {
     input: Vec<char>, // Source code
     position: usize, // Current position in source code
@@ -17,7 +18,7 @@ impl Lexer {
     /// Creates a new lexer
     fn new(input: Vec<char>) -> Self {
         Self {
-            input: input,
+            input,
             position: 0,
             current: '~', // EOF token, set initially but not necessarily the first token
         }

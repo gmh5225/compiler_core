@@ -1,10 +1,10 @@
+//! Charge Compiler and Runner
+
 use clap::Parser;
 use compiler_core::compiler;
 
-/// Entry point to the application
-
-#[derive(Parser, Debug)] // this is not the parser we made
-#[clap( author="Union College", 
+#[derive(Parser, Debug)]
+#[clap(author="Union College", 
         version="0.1.0", 
         about="Charge Language Compiler and Runner" )]
 struct Cli {
@@ -35,7 +35,7 @@ fn main() {
         Commands::Compile { file, jit, emit_ir} => {
             let _ = compiler::compile(file, *jit, *emit_ir);
         },
-        Commands::Run { file } => {
+        Commands::Run { file: _ } => {
             unimplemented!("Running unimplemented")
         }
     }

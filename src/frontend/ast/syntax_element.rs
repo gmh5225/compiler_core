@@ -8,12 +8,14 @@ use crate::frontend::ast::{
 };
 use std::fmt;
 
+/// Function parameter in an ast
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FunctionParameter {
     name: String,
     data_type: DataType,
 }
 impl FunctionParameter {
+    /// Creates a new function parameter
     pub fn new(name: String, data_type: DataType) -> Self {
         Self {
             name,
@@ -21,10 +23,12 @@ impl FunctionParameter {
         }
     }
 
+    /// Retrieves the function parameter's name
     pub fn get_name(&self) -> String {
         self.name.clone()
     }
 
+    /// Retrieves the function parametr's data type
     pub fn get_data_type(&self) -> DataType {
         self.data_type.clone()
     }

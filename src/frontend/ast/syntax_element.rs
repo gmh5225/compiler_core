@@ -40,6 +40,7 @@ impl fmt::Display for FunctionParameter {
     }
 }
 
+/// Match arm in an ast
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct MatchArm {
     variant: ASTNode,
@@ -47,6 +48,7 @@ pub struct MatchArm {
 }
 
 impl MatchArm {
+    /// Creates a new match arm
     pub fn new(variant: ASTNode, action: ASTNode) -> Self {
         Self {
             variant,
@@ -54,91 +56,171 @@ impl MatchArm {
         }
     }
 
+    /// Retrieves the variant type of the match arm
     pub fn get_variant(&self) -> ASTNode {
         self.variant.clone()
     }
 
+    /// Retrieves the action based on the variant
     pub fn get_action(&self) -> ASTNode {
         self.action.clone()
     }
 }
 
+/// Syntax element, an aspect of ASTNode's that make up an AST
 #[derive(Debug, Clone, PartialEq, Default, Eq, Hash)]
 pub enum SyntaxElement {
+    /// No expression
     #[default]
     NoExpression,
 
+    /// Module expression
     ModuleExpression,
+
+    /// Top level expression
     TopLevelExpression,
+
+    /// Literal
     Literal {
+        /// Data type of the literal
         data_type: DataType, 
+        /// Value of the literal
         value: String,
-    }, // this is for literal things, eg: Boolean, "true"
+    }, 
+
+    /// Variable
     Variable {
+        /// Data type of the liberal
         data_type: DataType,
+        /// Name of the variable
         name: String,
-    }, // this is for variable names and their types, eg: Boolean, "foo"
+    }, 
+
+    /// Binary expression
     BinaryExpression {
+        /// Left hand side
         left: Box<ASTNode>,
+        /// Operator
         operator: String,
+        /// Right hand side
         right: Box<ASTNode>,
     },
+
+    /// If statement
     IfStatement {
+        /// Condition of the if statement
         condition: Box<ASTNode>,
+        /// If true, then
         then_branch: Box<Vec<ASTNode>>,
+        /// Else
         else_branch: Option<Box<Vec<ASTNode>>>,
     }, 
+
+    /// Assignment of an existing variable
     Assignment {
+        /// Variable name
         variable: String,
+        /// Value to assign
         value: Box<ASTNode>,
     },
+
+    /// Initialization of a variable
     Initialization {
+        /// Variable name
         variable: String,
+        /// Data type of the variable
         data_type: DataType,
+        /// Initial value of the variable
         value: Box<ASTNode>
     },
+
+    /// Function declaration
     FunctionDeclaration {
+        /// Name of the function
         name: String,
+        /// Parameters of the function
         parameters: Vec<FunctionParameter>,
+        /// Return type of the function
         return_type: Option<DataType>,
     },
+
+    /// For loop
     ForLoop {
+        /// Initializer for the for loop
         initializer: Option<Box<ASTNode>>,
+        /// Condition of the for loop
         condition: Box<ASTNode>,
+        /// Increment of variable declared in the for loop definition
         increment: Option<Box<ASTNode>>,
+        /// Body of the for loop
         body: Box<Vec<ASTNode>>,
     },
+
+    /// While loop
     WhileLoop {
+        /// Condition
         condition: Box<ASTNode>,
+        /// Body
         body: Box<Vec<ASTNode>>,
     },
+
+    /// Do while loop
     DoWhileLoop {
+        /// Body 
         body: Box<Vec<ASTNode>>,
+        /// Condition
         condition: Box<ASTNode>,
     },
+
+    /// Break statement
     Break,
+
+    /// Continue statement
     Continue,
+
+    /// Match statement
     MatchStatement {
+        /// Value to be matched
         to_match: Box<ASTNode>,
+        /// Match arms
         arms: Vec<MatchArm>,
     },
+
+    /// Function call
     FunctionCall {
+        /// Name of function
         name: String,
+        /// Aguments to function
         arguments: Vec<ASTNode>,
     },
+
+    /// Struct declaration
     StructDeclaration {
+        /// Name of struct
         name: String,
+        /// Fields of struct
         fields: Vec<(String, DataType)> // change this to a hashmap?
     },
+
+    /// Enum declaration
     EnumDeclaration {
+        /// Name of enum
         name: String,
+        /// Enum variants
         variants: Vec<String>,
     },
-    UnaryExpression { // for things like !x (operator and one operand)
+
+    /// Unary expression
+    UnaryExpression { 
+        /// Unary operator
         operator: String,
+        /// Operand
         operand: Box<ASTNode>,
     },
+
+    /// Return statement
     Return {
+        /// Value of return
         value: Box<ASTNode>,
     }
 }

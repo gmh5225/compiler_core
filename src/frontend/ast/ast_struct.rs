@@ -82,11 +82,13 @@ impl PartialEq for ModElement {
 
 impl Eq for ModElement {} 
 
+/// An Abstract Syntax Tree
 #[derive(Debug, PartialEq, Clone)]
 pub struct AST {
     root: ASTNode,
 }
 
+/// A node of an abstract syntax tree
 #[derive(Debug, Clone, PartialEq, Default, Eq, Hash)]
 pub struct ASTNode {
     element: SyntaxElement,
@@ -94,11 +96,14 @@ pub struct ASTNode {
 }
 
 impl AST {
+    /// Create a new abstract syntax tree
     pub fn new(root: ASTNode) -> Self {
         AST { 
             root 
         }
     }
+
+    /// Retrieves the root of the abstract syntax tree
     pub fn get_root(&self) -> ASTNode {
         self.root.clone()
     }
@@ -106,24 +111,35 @@ impl AST {
 }
 
 impl ASTNode {
+    /// Creates a new ast node
     pub fn new(element: SyntaxElement) -> Self {
         ASTNode {
             element,
             children: Vec::new(),
         }
     }
+
+    /// Gets the syntax element of the node
     pub fn get_element(&self) -> SyntaxElement {
         self.element.clone()
     }
+
+    /// Gets the children of the node
     pub fn get_children(&self) -> Vec<ASTNode> {
         self.children.clone()
     }
+
+    /// Adds a child node
     pub fn add_child(&mut self, to_add: ASTNode) {
         self.children.push(to_add);
     }
+
+    /// Adds children nodes
     pub fn add_children(&mut self, to_add: Vec<ASTNode>) {
         self.children.extend(to_add);
     }
+
+    /// Checks if the element is a return statement
     pub fn is_return(&self) -> bool {
         match &self.element {
             SyntaxElement::Return { value: _ } => true,

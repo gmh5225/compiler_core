@@ -17,6 +17,7 @@ use crate::frontend::{
     symbol_table::symbol_table_struct::SymbolTableStack,
 };
 
+/// Structure for the semantic analysis phase
 pub struct SemAnalysis{
     input: ModAST,
     rules: RulesConfig,
@@ -30,14 +31,18 @@ impl<'a> SemAnalysis {
         }
     }
 
+    /// Retrieves the input module for internal use
     pub fn get_input(&mut self) -> &mut ModAST {
         &mut self.input
     }
+
+    /// Retrieves the configuration
     pub fn get_rules_config(&self) -> &RulesConfig {
         &self.rules
     }
 
-    pub fn output(self) -> ModAST {
+    /// Retrieves the input module for exporting
+    pub fn get_output(self) -> ModAST {
         self.input
     }
 
@@ -59,7 +64,7 @@ impl<'a> SemAnalysis {
         }
     
         if errors.is_empty() {
-            return Ok(semantic_analysis.output());
+            return Ok(semantic_analysis.get_output());
         }
         Err(errors)
     }
@@ -87,7 +92,7 @@ impl<'a> SemAnalysis {
     }
     
     
-    /// analyzes each node, recursively, until it has checked all nodes, and appends errors
+    /// Analyzes each node, recursively, until it has checked all nodes, and appends errors
     fn sem_analysis_router(&mut self, node: &ASTNode, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
         let mut acc_errors: Vec<ErrorType> = Vec::new();
 
@@ -183,6 +188,4 @@ impl<'a> SemAnalysis {
             None
         }
     }
-    
-
 }

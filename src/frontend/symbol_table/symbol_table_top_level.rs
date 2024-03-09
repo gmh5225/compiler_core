@@ -10,6 +10,7 @@ use crate::
 use super::symbol_table_struct::{SymbolInfo, SymbolTable, SymbolValue};
 
 impl SymbolTableStack {
+    /// Adds a function type to the current scope
     pub fn sym_table_fn(&mut self, name: String, parameters: Vec<FunctionParameter>, return_type: Option<DataType>) -> Result<(), Vec<ErrorType>> {
         let current_table = match self.peek() { 
             Some(table) => table, 
@@ -31,6 +32,7 @@ impl SymbolTableStack {
         Ok(())
     }
 
+    /// Adds an enum type to the current scope
     pub fn sym_table_enum(&mut self, name: String, variants: Vec<String>) -> Result<(), Vec<ErrorType>> {  
         let current_table = match self.peek() {
             Some(table) => table,
@@ -49,6 +51,7 @@ impl SymbolTableStack {
         Ok(())
     }
 
+    /// Adds a struct type to the current scope
     pub fn sym_table_struct(&mut self, name: String, fields: Vec<(String, DataType)>) -> Result<(), Vec<ErrorType>> {
         let current_table = match self.peek() {
             Some(table) => table,

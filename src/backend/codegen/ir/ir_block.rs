@@ -11,6 +11,7 @@ use crate::{
 use llvm::prelude::LLVMValueRef;
 
 impl IRGenerator {
+    /// Generates LLVM IR for a do while loop
     pub fn generate_do_while_ir(&mut self, body: &Box<Vec<ASTNode>>, condition: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
         let function = self.get_current_function();
         let do_body_bb = create_basic_block(self.get_context(), function, "do_body");
@@ -36,7 +37,7 @@ impl IRGenerator {
         std::ptr::null_mut()
     }
     
-    
+    /// Generates LLVM IR for a while loop
     pub fn generate_while_ir(&mut self, condition: &Box<ASTNode>, body: &Box<Vec<ASTNode>>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
         let function = self.get_current_function();
         let while_cond_bb = create_basic_block(self.get_context(), function, "while_cond");
@@ -66,6 +67,7 @@ impl IRGenerator {
         std::ptr::null_mut()
     }
     
+    /// Generates LLVM IR for a for loop
     pub fn generate_for_ir(&mut self, initializer: &Option<Box<ASTNode>>, condition: &Box<ASTNode>, increment: &Option<Box<ASTNode>>, body: &Box<Vec<ASTNode>>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
         let function = self.get_current_function();
         let for_cond_bb = create_basic_block(self.get_context(), function, "for_cond");
@@ -109,6 +111,7 @@ impl IRGenerator {
         std::ptr::null_mut()
     }
 
+    /// Generates LLVM IR for an if statement
     pub fn generate_if_ir(&mut self, condition: &Box<ASTNode>, then_branch: &Box<Vec<ASTNode>>, else_branch: &Option<Box<Vec<ASTNode>>>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
         let condition_val = self.ir_router(condition, symbol_table_stack);
     

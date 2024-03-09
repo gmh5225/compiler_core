@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::path::Path;
 
+/// Locates the positions of top level expressions in a file
 pub fn entry_points(path: &Path) -> Vec<usize> {
     let file: Result<File, std::io::Error> = File::open(path);
 

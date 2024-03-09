@@ -9,6 +9,7 @@ use crate::{
 };
 
 impl IRGenerator {
+    /// Generates LLVM IR for a literal
     pub fn generate_literal_ir(&self, data_type: DataType, value: String) -> LLVMValueRef {
         match data_type {
             DataType::Integer => {
@@ -46,7 +47,8 @@ impl IRGenerator {
         }
     }
 
-    pub fn generate_var_ir(&mut self, data_type: &DataType, name: &String) -> LLVMValueRef {
+    /// TODO
+    pub fn generate_var_ir(&mut self, data_type: &DataType, _name: &String) -> LLVMValueRef {
         match data_type {
             DataType::Integer => {
                 // let val: i64 = match value.parse::<i64>() {

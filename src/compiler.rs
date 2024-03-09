@@ -4,21 +4,26 @@ use std::{
 
 use crate::{
     backend::{
-        codegen::ir::ir_codegen_core::IRGenerator, execute::execution_engine::ExecutionEngine, llvm_lib::ir_lib::utils::write_to_file
-    }, constants::DEFAULT_PRIORITY_MODELEMENT, frontend::{
+        codegen::ir::ir_codegen_core::IRGenerator, 
+        execute::execution_engine::ExecutionEngine, 
+        llvm_lib::ir_lib::utils::write_to_file,
+    }, 
+    constants::DEFAULT_PRIORITY_MODELEMENT, 
+    frontend::{
         ast::{
-            ast_stitcher::ast_stitch, ast_struct::{
-                ModAST, ModElement, AST
-            }, sem_rule::{RulesConfig, SemanticRule}, syntax_element::SyntaxElement
-        }, lexer::{
-            lexer_core::Lexer, token::Token
-        }, parser::parser_core::Parser, sem_analysis::sem_analysis_core::SemAnalysis, symbol_table::{self, symbol_table_struct::SymbolTableStack}, 
-        utils::{
-            entry_points::entry_points, error::ErrorType
-        }
-    }
+            ast_stitcher::ast_stitch,
+            ast_struct::{ModAST, ModElement, AST,}, 
+            sem_rule::{RulesConfig, SemanticRule,}, 
+            syntax_element::SyntaxElement
+        }, 
+        lexer::{lexer_core::Lexer, token::Token}, 
+        parser::parser_core::Parser, sem_analysis::sem_analysis_core::SemAnalysis, 
+        symbol_table::symbol_table_struct::SymbolTableStack, 
+        utils::{entry_points::entry_points, error::ErrorType,},
+    },
 };
 
+/// Main driver of the compiler
 pub fn compile(file_path: &str, jit: bool, emit_ir: bool) -> Result<Vec<u8>, Vec<ErrorType>> {
     let path: &Path = Path::new(file_path);
     validate_file_path(path, file_path)?;
@@ -55,6 +60,7 @@ pub fn compile(file_path: &str, jit: bool, emit_ir: bool) -> Result<Vec<u8>, Vec
     ast_to_obj(mod_ast, rules, jit, emit_ir)
 }
 
+/// Ensures the passed in file exists
 fn validate_file_path(path: &Path, file_path: &str) -> Result<(), Vec<ErrorType>> {
     if !path.exists() || !path.is_file() {
         eprintln!("Error: File not found - {}", file_path);
@@ -63,15 +69,16 @@ fn validate_file_path(path: &Path, file_path: &str) -> Result<(), Vec<ErrorType>
     Ok(())
 }
 
+/// Reads a configuration file 
 fn read_config() -> RulesConfig {
-    // read configuration file
     let rules: HashMap<SyntaxElement, Vec<SemanticRule>> = HashMap::new();
     RulesConfig::new(rules)
 }
 
+/// Generates a mod element from an input program
 fn generate_mod_element(content: String) -> Result<ModElement, Vec<ErrorType>> {
     let tokens: Vec<Token> = Lexer::lex(&content)?;
-    let mut ast= Parser::parse(tokens)?;
+    let ast: AST = Parser::parse(tokens)?;
     match SymbolTableStack::gen_sym_table_stack(ast) {
         Ok((ast, symbol_table_stack)) => {
             let arc_mutex_sym_table_stack = Arc::new(Mutex::new(symbol_table_stack));
@@ -81,8 +88,9 @@ fn generate_mod_element(content: String) -> Result<ModElement, Vec<ErrorType>> {
             Err(e)
         }
     }
-    }
+}
 
+/// Generates object code, JIT or static from a module
 fn ast_to_obj(content: ModAST, rules: RulesConfig, jit: bool, emit_ir: bool) -> Result<Vec<u8>, Vec<ErrorType>> {
     let sem_analysis_result: Result<ModAST, Vec<ErrorType>> = SemAnalysis::sem_analysis(content, rules);
 

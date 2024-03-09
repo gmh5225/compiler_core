@@ -18,6 +18,7 @@ use crate::{
 use llvm::prelude::LLVMValueRef;
 
 impl IRGenerator {
+    /// Generates LLVM IR for a function declaration
     pub fn generate_fn_declaration_ir(
             &mut self, 
             name: &String, 
@@ -51,13 +52,14 @@ impl IRGenerator {
         function
     }
     
-
-    pub fn generate_enum_declaration_ir(&mut self, name: &String, variants: &Vec<String>) -> LLVMValueRef {
+    /// TODO
+    pub fn generate_enum_declaration_ir(&mut self, _name: &String, _variants: &Vec<String>) -> LLVMValueRef {
         std::ptr::null_mut()
 
     }
 
-    pub fn generate_struct_declaration_ir(&mut self, name: &String, fields: &Vec<(String, DataType)>) -> LLVMValueRef {
+    /// TODO
+    pub fn generate_struct_declaration_ir(&mut self, _name: &String, _fields: &Vec<(String, DataType)>) -> LLVMValueRef {
         std::ptr::null_mut()
    
     }

@@ -21,10 +21,7 @@ use crate::{
                 SyntaxElement,
             }
         }, 
-        symbol_table::{
-            symbol_table_struct::SymbolTableStack, 
-            symbol_table_struct::SymbolValue,
-        },
+        symbol_table::symbol_table_struct::SymbolTableStack,
 } 
 };
 
@@ -33,6 +30,7 @@ use llvm::LLVMValue;
 use llvm::LLVMBasicBlock;
 
 impl IRGenerator {
+    /// Generates LLVM IR for a binary expression 
     pub fn generate_binary_exp_ir(&mut self, left: &Box<ASTNode>, operator: &String, right: &Box<ASTNode>, 
             symbol_table_stack: &Arc<Mutex<SymbolTableStack>>)-> LLVMValueRef {
         let left_val: *mut LLVMValue = self.ir_router(left, symbol_table_stack);
@@ -95,35 +93,42 @@ impl IRGenerator {
         } 
     }
 
-    pub fn generate_match_ir(&mut self, to_match: &Box<ASTNode>, arms: &Vec<MatchArm>)-> LLVMValueRef {
+    /// TODO
+    pub fn generate_match_ir(&mut self, _to_match: &Box<ASTNode>, _arms: &Vec<MatchArm>)-> LLVMValueRef {
         std::ptr::null_mut()
 
     }
 
-    pub fn generate_fn_call_ir(&mut self, name: &String, arguments: &Vec<ASTNode>)-> LLVMValueRef {
+    /// TODO
+    pub fn generate_fn_call_ir(&mut self, _name: &String, _arguments: &Vec<ASTNode>)-> LLVMValueRef {
         std::ptr::null_mut()
 
     }
 
-    pub fn generate_initialization_ir(&mut self, variable: &String, data_type: &DataType, value: &Box<ASTNode>)-> LLVMValueRef {
+    /// TODO
+    pub fn generate_initialization_ir(&mut self, _variable: &String, _data_type: &DataType, _value: &Box<ASTNode>)-> LLVMValueRef {
         std::ptr::null_mut()
 
     }
 
-    pub fn generate_assignment_ir(&mut self, variable: &String, value: &Box<ASTNode>)-> LLVMValueRef {
+    /// TODO
+    pub fn generate_assignment_ir(&mut self, _variable: &String, _value: &Box<ASTNode>)-> LLVMValueRef {
         std::ptr::null_mut()
 
     }
 
+    /// Generates LLVM IR for a break statement
     pub fn generate_break_ir(&mut self, break_block: *mut LLVMBasicBlock ) {
         create_break_statement(self.get_builder(), break_block)
     }
 
+    /// Generates LLVM IR for a continue statement
     pub fn generate_continue_ir(&mut self, continue_block: *mut LLVMBasicBlock) {
         create_continue_statement(self.get_builder(), continue_block)
 
     }
 
+    /// Generates LLVM IR for a unary operation 
     pub fn generate_unary_ir(&mut self, operator: &String, operand: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>)-> LLVMValueRef {
         let operand_ir: *mut LLVMValue = self.ir_router(operand, symbol_table_stack);
         match operator.as_str() {
@@ -143,6 +148,7 @@ impl IRGenerator {
         }
     }
 
+    /// TODO
     pub fn generate_return_ir(&mut self, value: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
         if let Some(symbol_table_arc) = symbol_table_stack.lock().unwrap().peek() {
             let symbol_table = symbol_table_arc.lock().unwrap();

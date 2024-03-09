@@ -18,6 +18,7 @@ use crate::frontend::{
     symbol_table::symbol_table_struct::SymbolTableStack
 };
 
+/// Generates LLVM IR for a module
 pub struct IRGenerator {
     context: LLVMContextRef,
     module: LLVMModuleRef,
@@ -47,27 +48,34 @@ impl IRGenerator {
         }
     }
 
+    /// Retrieves the current context
     pub fn get_context(&self) -> LLVMContextRef {
         self.context
     }
+    /// Retrieves the current function being built
     pub fn get_current_function(&self) -> LLVMValueRef {
         self.current_function.expect("No function is currently being processed")
     }
+    /// Sets the current function being built
     pub fn set_current_function(&mut self, function: LLVMValueRef) {
         self.current_function = Some(function)
     }
+    /// Retrieves the module
     pub fn get_module(&self) -> LLVMModuleRef {
         self.module
     }
+    /// Retrieves the builder
     pub fn get_builder(&self) -> LLVMBuilderRef {
         self.builder
     }
+    /// Retrieves the current insert block
     pub fn get_current_block(&self) -> LLVMBasicBlockRef {
         unsafe {
             core::LLVMGetInsertBlock(self.builder)
         }
     }
 
+    /// Generates LLVM IR from a module
     pub fn generate_ir(mut input: ModAST) -> LLVMModuleRef {
         let mut ir_generator: IRGenerator = IRGenerator::new();
 
@@ -86,6 +94,7 @@ impl IRGenerator {
         ir_generator.module
     }
 
+    /// Routes the LLVM IR generation process
     pub fn ir_router(&mut self, node: &ASTNode, sym_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {        
         let node_ir: LLVMValueRef = match &node.get_element() {
             SyntaxElement::ModuleExpression |

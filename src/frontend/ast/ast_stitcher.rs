@@ -7,7 +7,7 @@ use crate::frontend::ast::{
         syntax_element::SyntaxElement,
     };
 
-
+/// Pieces together mod elements into a cohesive module
 pub fn ast_stitch(input: Vec<ModElement>) -> ModAST {
     let mut mod_ast: ModAST = ModAST::new(); 
     for mut mod_element in input {

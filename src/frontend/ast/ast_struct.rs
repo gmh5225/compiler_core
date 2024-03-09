@@ -12,30 +12,36 @@ use crate::frontend::{
     symbol_table::symbol_table_struct::SymbolTableStack
 };
 
+/// A Module TODO rename this to Module
 pub struct ModAST {
     children: BinaryHeap<ModElement>,
 }
 
 impl ModAST {
+    /// A new module
     pub fn new() -> Self {
         ModAST {
             children: BinaryHeap::new(),
         }
     }
 
+    /// Adds a child to the module
     pub fn add_child(&mut self, child: ModElement) {
         self.children.push(child);
     }
 
+    /// Retrieves the child with the highest priority
     pub fn get_child(&mut self) -> Option<ModElement> {
         self.children.pop()
     }
 
+    /// Retrieves all children
     pub fn get_children(&mut self) -> &mut BinaryHeap<ModElement> {
         &mut self.children
     }
 }
 
+/// An element of a module
 #[derive(Clone)]
 pub struct ModElement {
     ast: AST,
@@ -44,6 +50,7 @@ pub struct ModElement {
 }
 
 impl ModElement {
+    /// Creates a new module element
     pub fn new(ast: AST, sym_table_stack: Arc<Mutex<SymbolTableStack>>, priority: i32) -> Self {
         Self {
             ast,
@@ -51,12 +58,18 @@ impl ModElement {
             priority,
         }
     }
+    
+    /// Retrieves the ast of the mod element
     pub fn get_ast(&self) -> AST {
         self.ast.clone()
     }
+
+    /// Retrieves the symbol table stack of the mod element
     pub fn get_sym_table_stack(&self) -> Arc<Mutex<SymbolTableStack>> {
         Arc::clone(&self.sym_table_stack)
     }
+
+    /// Retrieves the priority of the mod element
     pub fn set_priority(&mut self, new: i32) {
         self.priority = new;
     }

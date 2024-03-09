@@ -5,11 +5,12 @@ use crate::frontend::{
     }, 
     symbol_table::symbol_table_struct::SymbolTableStack, 
     utils::error::ErrorType,
-    };
+};
 
 use super::symbol_table_struct::{SymbolInfo, SymbolValue};
 
 impl SymbolTableStack {
+    /// Adds a new variable into the current scope
     pub fn sym_table_init(&mut self, variable: String, value: Box<ASTNode>, data_type: DataType) -> Result<(), Vec<ErrorType>> {
         let current_table = match self.peek() {
             Some(table) => table,

@@ -47,7 +47,6 @@ impl Parser {
     }
     
     /// Parses a variable reassignment (variable is already initialized)
-    /// format: x = 10
     pub fn parse_assignment(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         let variable_name: String = 
             if let Some(Token::IDENTIFIER(name_chars)) = self.get_input().get(self.get_current()) {
@@ -81,7 +80,6 @@ impl Parser {
     }
     
     /// Parses a binary expression
-    /// format: expr operator expr
     pub fn parse_binary_expression(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         let lhs: Option<ASTNode> = self.parse_router()?;
         if let Some(lhs_unwrapped) = lhs {
@@ -91,7 +89,7 @@ impl Parser {
                     self.consume_token(op_token.clone())?;
     
                     let mut rhs: Option<ASTNode> = self.parse_router()?; // i think this is a bug
-                    // actually the whole function idk this needs work
+                    // TODO actually the whole function idk this needs work
                     let operator: String = self.operator_to_char(op_token).to_string();
     
                     while let Some(_) = self.get_next_operator_with_higher_precedence(precedence.try_into().unwrap()) {

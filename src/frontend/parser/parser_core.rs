@@ -86,7 +86,7 @@ impl Parser {
     }
 
     /// Entry point to the main parsing logic. Serves as a way to match the current token type to the file/expression we want to parse
-    // Need to actually return errors here
+    // TODO Need to actually return errors here
     pub fn parse_router(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {

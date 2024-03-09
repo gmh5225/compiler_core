@@ -10,6 +10,7 @@ use crate::frontend::{
 };
 
 impl Parser {
+    /// Parses a primitive value
     pub fn parse_primitive(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
@@ -31,6 +32,7 @@ impl Parser {
         } panic!("parse_primitive panic")
     }
 
+    /// Parses an identifier
     pub fn parse_identifier(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         let input = self.get_input();
         let name_chars: &Vec<char> = match input.get(self.get_current()) {
@@ -48,6 +50,7 @@ impl Parser {
         } // need to expand this
     }
 
+    /// Parses a protected keyword
     pub fn parse_protected_keyword(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
@@ -81,5 +84,25 @@ impl Parser {
                 _ => panic!("Are you sure this is a protected keyword? {:?}", self.get_input().get(self.get_current()))
             }
         } panic!("parse_protected_keyword panic")
+    }
+
+    /// Consumes a type token
+    pub fn consume_type(&mut self) -> Result<DataType, ErrorType> {
+        if let Some(token) = self.get_input().get(self.get_current()) {
+            match token {
+                Token::TINTEGER => {
+                    self.consume_token(Token::TINTEGER)?;
+                    Ok(DataType::Integer)
+                }
+                Token::TBOOLEAN => {
+                    self.consume_token(Token::TBOOLEAN)?;
+                    Ok(DataType::Boolean)
+                }  
+                _ => panic!("not a type"),
+            }
+        }
+        else {
+            panic!("no type to consume");
+        }
     }
 }

@@ -1,19 +1,25 @@
-/*
-Defines acceptable data types
- */
-
 use std::fmt;
 
+/// Acceptable data types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DataType {
+    /// Integer type
     Integer,
+    /// Float type
     Float,
+    /// Boolean type
     Boolean,
+    /// String type
     String,
+    /// Function type
     Function,
+    /// Unknown type
     Unknown,
+    /// No type
     None,
+    /// Struct type
     Struct,
+    /// Enum type
     Enum,
 }
 

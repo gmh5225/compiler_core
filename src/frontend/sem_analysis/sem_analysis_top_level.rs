@@ -11,15 +11,16 @@ use crate::frontend::{
 };
 
 impl<'a> SemAnalysis {
+    /// Completes semantic analysis on a function declaration
     pub fn sem_function_dec(&mut self, 
-                            name: &String, 
-                            parameters: &Vec<FunctionParameter>, 
-                            return_type: &Option<DataType>, 
-                            symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) 
-                                -> Option<Vec<ErrorType>> {
+        name: &String, 
+        parameters: &Vec<FunctionParameter>, 
+        return_type: &Option<DataType>, 
+        symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) 
+    -> Option<Vec<ErrorType>> {
+
         let mut errors: Vec<ErrorType> = Vec::new();
 
-        // can be mutable but doesn't need to be for now
         let stack: MutexGuard<'_, SymbolTableStack> = symbol_table_stack.lock().unwrap();
 
         // deny functional polymorphism
@@ -54,10 +55,13 @@ impl<'a> SemAnalysis {
         None
     }
     
-    pub fn sem_struct_dec(&mut self, name: &String, fields: &Vec<(String, DataType)>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
+    /// TODO
+    pub fn sem_struct_dec(&mut self, _name: &String, _fields: &Vec<(String, DataType)>, _symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
         unimplemented!("Sem analysis of structs unimplemented")
     }
-    pub fn sem_enum_dec(&mut self, name: &String, variants: &Vec<String>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
+
+    /// TODO
+    pub fn sem_enum_dec(&mut self, _name: &String, _variants: &Vec<String>, _symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
         unimplemented!("Sem analysis of enums unimplemented")
     }
 }

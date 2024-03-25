@@ -8,8 +8,11 @@ use compiler_core::frontend::{
     parser::parser_core::*,
 };
 
+/// --- UTILITIES SECTION --- ///
 /// cargo test --test parser_tests
 /// panic!("{:?}", self.get_input().get(self.get_current()));
+
+/// --- BASELINE SECTION --- ///
 
 #[test]
 fn test_empty_input() { 
@@ -18,6 +21,8 @@ fn test_empty_input() {
     assert_eq!(ast.get_root().get_element(), SyntaxElement::TopLevelExpression);
     assert!(ast.get_root().get_children().is_empty());
 }
+
+/// --- TOP LEVEL EXPRESSION SECTION --- ///
 
 #[test]
 fn test_single_function_declaration() {
@@ -30,18 +35,26 @@ fn test_single_function_declaration() {
         Token::RBRACKET,
         Token::EOF,
     ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::FunctionDeclaration { ref name, .. } => {
-            assert_eq!(name, "my_func");
-        },
-        _ => panic!("Expected FunctionDeclaration"),
-    }
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+
+    let mut function_declaration_node = ASTNode::new(SyntaxElement::FunctionDeclaration);
+
+    let identifier_node: ASTNode = ASTNode::new(SyntaxElement::Identifier("my_func".to_string()));
+    let block_expression_node: ASTNode = ASTNode::new(SyntaxElement::BlockExpression);
+
+    function_declaration_node.add_child(identifier_node);
+    function_declaration_node.add_child(block_expression_node);
+
+    let mut top_level_expr = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(function_declaration_node);
+
+    let expected_ast: AST = AST::new(top_level_expr);
+
+    assert_eq!(ast, expected_ast);
 }
 
 #[test]
-fn test_function_with_parameters_and_return_type() { 
-    //fn calculate (x:Integer,y:Integer):Boolean {}
+fn test_function_with_parameters_and_return_type() {
     let tokens: Vec<Token> = vec![
         Token::FUNCTION,
         Token::IDENTIFIER(vec!['c', 'a', 'l', 'c', 'u', 'l', 'a', 't', 'e']),
@@ -60,14 +73,36 @@ fn test_function_with_parameters_and_return_type() {
         Token::RBRACKET,
         Token::EOF,
     ];
-    let ast= Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::FunctionDeclaration { ref name, ref parameters, .. } => {
-            assert_eq!(name, "calculate");
-            assert_eq!(parameters.len(), 2);
-        },
-        _ => panic!("Expected FunctionDeclaration with parameters"),
-    }
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+
+    let mut function_declaration_node = ASTNode::new(SyntaxElement::FunctionDeclaration);
+    let identifier_node = ASTNode::new(SyntaxElement::Identifier("calculate".to_string()));
+    function_declaration_node.add_child(identifier_node);
+
+    let mut parameter_x_node = ASTNode::new(SyntaxElement::Parameter);
+    parameter_x_node.add_child(ASTNode::new(SyntaxElement::Identifier("x".to_string())));
+    parameter_x_node.add_child(ASTNode::new(SyntaxElement::Type(DataType::Integer)));
+
+    let mut parameter_y_node = ASTNode::new(SyntaxElement::Parameter);
+    parameter_y_node.add_child(ASTNode::new(SyntaxElement::Identifier("y".to_string())));
+    parameter_y_node.add_child(ASTNode::new(SyntaxElement::Type(DataType::Integer)));
+
+    function_declaration_node.add_child(parameter_x_node);
+    function_declaration_node.add_child(parameter_y_node);
+
+    let return_type_node: ASTNode = ASTNode::new(SyntaxElement::Type(DataType::Boolean));
+    function_declaration_node.add_child(return_type_node);
+
+    let block_expression_node: ASTNode = ASTNode::new(SyntaxElement::BlockExpression);
+
+    function_declaration_node.add_child(block_expression_node);
+
+    let mut top_level_expr = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(function_declaration_node);
+
+    let expected_ast: AST = AST::new(top_level_expr);
+
+    assert_eq!(ast, expected_ast);
 }
 
 #[test]
@@ -88,239 +123,39 @@ fn test_function_with_body() {
         Token::RBRACKET,
         Token::EOF,
     ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::FunctionDeclaration { ref name, .. } => {
-            assert_eq!(name, "test");
-            assert!(!ast.get_root().get_children().is_empty());
-        },
-        _ => panic!("Expected FunctionDeclaration with body"),
-    }
+
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+
+    let mut function_declaration_node: ASTNode = ASTNode::new(SyntaxElement::FunctionDeclaration);
+    let identifier_node = ASTNode::new(SyntaxElement::Identifier("test".to_string()));
+    function_declaration_node.add_child(identifier_node);
+
+    let mut block_expression_node = ASTNode::new(SyntaxElement::BlockExpression);
+    let mut initialization_node = ASTNode::new(SyntaxElement::Initialization);
+
+    let variable_node: ASTNode = ASTNode::new(SyntaxElement::Identifier("x".to_string()));
+    let type_node: ASTNode = ASTNode::new(SyntaxElement::Type(DataType::Integer));
+    let value_node: ASTNode = ASTNode::new(SyntaxElement::Literal { value: "1".to_string() });
+
+    initialization_node.add_child(variable_node);
+    initialization_node.add_child(type_node);
+    initialization_node.add_child(value_node);
+
+    block_expression_node.add_child(initialization_node);
+
+    function_declaration_node.add_child(block_expression_node);
+
+    let mut top_level_expr = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(function_declaration_node);
+
+    let expected_ast: AST = AST::new(top_level_expr);
+
+    assert_eq!(ast, expected_ast);
 }
 
-#[test]
-fn test_if_statement_parsing() {
-    let tokens = vec![
-        Token::IF,
-        Token::LPAREN,
-        Token::TRUE,
-        Token::RPAREN,
-        Token::LBRACKET,
-        Token::RETURN,
-        Token::TRUE,
-        Token::SEMICOLON,
-        Token::RBRACKET,
-        Token::EOF,
-    ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
-            match condition.get_element() {
-                SyntaxElement::Literal { data_type, value } => {
-                    assert_eq!(data_type, DataType::Boolean);
-                    assert_eq!(value, "true");
-                },
-                _ => panic!("Expected Literal"),
-            }            assert!(else_branch.is_none());
-        },
-        _ => panic!("Expected IfStatement"),
-    }
-}
-
-#[test]
-fn test_initialization_parsing() {
-    let tokens = vec![
-        Token::LET,
-        Token::IDENTIFIER(vec!['x']),
-        Token::COLON,
-        Token::TBOOLEAN,
-        Token::EQUAL,
-        Token::TRUE,
-        Token::SEMICOLON,
-        Token::EOF,
-    ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::Initialization { variable, data_type, value } => {
-            assert_eq!(variable, "x");
-            match value.get_element() {
-                SyntaxElement::Literal { data_type, value } => {
-                    assert_eq!(data_type, DataType::Boolean);
-                    assert_eq!(value, "true");
-                },
-                _ => panic!("Expected Literal"),
-            }   
-            },
-        _ => panic!("Expected Initialization"),
-    }
-}
-
-#[test]
-fn test_for_loop_parsing() {
-    let tokens = vec![
-        Token::FOR,
-        Token::LPAREN,
-        Token::TRUE, 
-        Token::SEMICOLON,
-        Token::RPAREN,
-        Token::LBRACKET,
-        Token::BREAK,
-        Token::SEMICOLON,
-        Token::RBRACKET,
-        Token::EOF,
-    ];
-
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::ForLoop { initializer, condition, increment, body } => {
-            assert!(initializer.is_none(), "Expected no initializer in ForLoop");
-            
-            match condition.get_element() {
-                SyntaxElement::Literal { data_type, value } => {
-                    assert_eq!(data_type, DataType::Boolean);
-                    assert_eq!(value, "true");
-                },
-                _ => panic!("Expected Literal"),
-            }
-
-            assert!(increment.is_none(), "Expected no increment in ForLoop");
-
-            let body_nodes: &Vec<ASTNode> = &(*body);
-            match body_nodes.first() {
-                Some(node) => match node.get_element() {
-                    SyntaxElement::Break => {},
-                    _ => panic!("Body's first node is not a BreakStatement"),
-                },
-                None => panic!("Body is empty"),
-            }
-        },
-        _ => panic!("Expected ForLoop"),
-    }
-}
-
-
-#[test]
-fn test_while_loop_parsing() {
-    let tokens = vec![
-        Token::WHILE,
-        Token::LPAREN,
-        Token::TRUE,
-        Token::RPAREN,
-        Token::LBRACKET,
-        Token::BREAK,
-        Token::SEMICOLON,
-        Token::RBRACKET,
-        Token::EOF,
-    ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::WhileLoop { condition, body } => {
-            match condition.get_element() {
-                SyntaxElement::Literal { data_type, value } => {
-                    assert_eq!(data_type, DataType::Boolean);
-                    assert_eq!(value, "true");
-                },
-                _ => panic!("Expected Literal"),
-            }  
-
-            let body_nodes = &(*body);
-            match body_nodes.first() {
-                Some(node) => {
-                    match node.get_element() {
-                        SyntaxElement::Break => {},
-                        _ => panic!("Body's first node is not a BreakStatement"),
-                    }
-                },
-                None => panic!("Body is empty"),
-            }
-        },
-        _ => panic!("Expected WhileLoop"),
-    }
-}
-
-#[test]
-fn test_do_while_loop_parsing() {
-    let tokens: Vec<Token> = vec![
-        Token::DO,
-        Token::LBRACKET,
-        Token::BREAK,
-        Token::SEMICOLON,
-        Token::RBRACKET,
-        Token::WHILE,
-        Token::LPAREN,
-        Token::TRUE,
-        Token::RPAREN,
-        Token::SEMICOLON,
-        Token::EOF,
-    ];
-    let ast= Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::DoWhileLoop { body, condition } => {
-            let body_nodes = &(*body);
-            match body_nodes.first() {
-                Some(node) => {
-                    match node.get_element() {
-                        SyntaxElement::Break => {},
-                        _ => panic!("Body's first node is not a BreakStatement"),
-                    }
-                },
-                None => panic!("Body is empty"),
-            }
-
-            match condition.get_element() {
-                SyntaxElement::Literal { data_type, value } => {
-                    assert_eq!(data_type, DataType::Boolean);
-                    assert_eq!(value, "true");
-                },
-                _ => panic!("Expected Literal"),
-            }
-        },
-        _ => panic!("Expected DoWhileLoop"),
-    }
-}
-
-#[test]
-fn test_continue_statement_parsing() {
-    let tokens = vec![
-        Token::CONTINUE,
-        Token::SEMICOLON,
-        Token::EOF,
-    ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::Continue => {  },
-        _ => panic!("Expected ContinueStatement"),
-    }
-}
-
-#[test]
-fn test_match_statement_parsing() {
-    let tokens = vec![
-        Token::MATCH,
-        Token::IDENTIFIER(vec!['x']),
-        Token::LBRACKET,
-        Token::RBRACKET,
-        Token::EOF,
-    ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::MatchStatement { to_match, arms } => {
-            match to_match.get_element() {
-                SyntaxElement::Variable{data_type, name} => {
-                    assert_eq!(name, "x");
-                    assert_eq!(data_type, DataType::Unknown);
-                },
-                _ => panic!("Expected Variable in to_match"),
-            }
-            assert!(arms.is_empty(), "Expected no match arms");
-        },
-        _ => panic!("Expected MatchStatement"),
-    }
-}
 #[test]
 fn test_function_with_if_else_statement() {
-    // Token sequence for the function foo
-    let tokens = vec![
+    let tokens: Vec<Token> = vec![
         Token::FUNCTION,
         Token::IDENTIFIER(vec!['f', 'o', 'o']),
         Token::LPAREN,
@@ -354,54 +189,294 @@ fn test_function_with_if_else_statement() {
         Token::EOF,
     ];
 
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+
+    let mut function_declaration_node = ASTNode::new(SyntaxElement::FunctionDeclaration);
+    let identifier_node = ASTNode::new(SyntaxElement::Identifier("foo".to_string()));
+    function_declaration_node.add_child(identifier_node);
+
+    let mut parameter_a_node = ASTNode::new(SyntaxElement::Parameter);
+    parameter_a_node.add_child(ASTNode::new(SyntaxElement::Identifier("a".to_string())));
+    parameter_a_node.add_child(ASTNode::new(SyntaxElement::Type(DataType::Integer)));
+    function_declaration_node.add_child(parameter_a_node);
+
+    let mut parameter_b_node = ASTNode::new(SyntaxElement::Parameter);
+    parameter_b_node.add_child(ASTNode::new(SyntaxElement::Identifier("b".to_string())));
+    parameter_b_node.add_child(ASTNode::new(SyntaxElement::Type(DataType::Integer)));
+    function_declaration_node.add_child(parameter_b_node);
+
+    let return_type_node = ASTNode::new(SyntaxElement::Type(DataType::Boolean));
+    function_declaration_node.add_child(return_type_node);
+
+    let mut if_statement_node = ASTNode::new(SyntaxElement::IfStatement);
+    let condition_node = ASTNode::new(SyntaxElement::Literal { value: "false".to_string() });
+
+    let mut then_branch_node = ASTNode::new(SyntaxElement::BlockExpression);
+    let mut then_return_node = ASTNode::new(SyntaxElement::Return);
+    let mut then_return_value = ASTNode::new(SyntaxElement::AssignedValue);
+    let then_return_value_node = ASTNode::new(SyntaxElement::Literal { value: "false".to_string() });
+    then_return_value.add_child(then_return_value_node);
+
+    then_return_node.add_child(then_return_value);
+    then_branch_node.add_child(then_return_node);
+
+    let mut else_branch_node = ASTNode::new(SyntaxElement::BlockExpression);
+    let mut else_return_node = ASTNode::new(SyntaxElement::Return);
+    let mut else_return_value: ASTNode = ASTNode::new(SyntaxElement::AssignedValue);
+    let else_return_value_node = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    else_return_value.add_child(else_return_value_node);
+
+    else_return_node.add_child(else_return_value);
+    else_branch_node.add_child(else_return_node);
+
+    if_statement_node.add_child(condition_node);
+    if_statement_node.add_child(then_branch_node);
+    if_statement_node.add_child(else_branch_node);
+
+    let mut block_expression_node = ASTNode::new(SyntaxElement::BlockExpression);
+    block_expression_node.add_child(if_statement_node);
+
+    function_declaration_node.add_child(block_expression_node);
+
+    let mut top_level_expr = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(function_declaration_node);
+
+    let expected_ast: AST = AST::new(top_level_expr);
+
+    assert_eq!(ast, expected_ast, "The parsed AST does not match the expected AST.");
+}
+
+
+/// --- BLOCK EXPRESSION SECTION --- ///
+
+#[test]
+fn test_for_loop_parsing() {
+    let tokens: Vec<Token> = vec![
+        Token::FOR,
+        Token::LPAREN,
+        Token::TRUE, 
+        Token::SEMICOLON,
+        Token::RPAREN,
+        Token::LBRACKET,
+        Token::BREAK,
+        Token::SEMICOLON,
+        Token::RBRACKET,
+        Token::EOF,
+    ];
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+
+    let mut for_loop_node: ASTNode = ASTNode::new(SyntaxElement::ForLoop);
+
+    let mut condition_node: ASTNode = ASTNode::new(SyntaxElement::Condition);
+    let condition_value_node: ASTNode = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    condition_node.add_child(condition_value_node);
+
+    let mut body_node: ASTNode = ASTNode::new(SyntaxElement::BlockExpression);
+    let break_node: ASTNode = ASTNode::new(SyntaxElement::Break);
+
+    body_node.add_child(break_node);
+
+    for_loop_node.add_child(condition_node);
+    for_loop_node.add_child(body_node);
+
+    let mut top_level_expr: ASTNode = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(for_loop_node);
+
+    let expected_ast: AST = AST::new(top_level_expr);
+    assert_eq!(ast, expected_ast);
+}
+
+#[test]
+fn test_while_loop_parsing() {
+    let tokens: Vec<Token> = vec![
+        Token::WHILE,
+        Token::LPAREN,
+        Token::TRUE,
+        Token::RPAREN,
+        Token::LBRACKET,
+        Token::BREAK,
+        Token::SEMICOLON,
+        Token::RBRACKET,
+        Token::EOF,
+    ];
+    let actual_ast = Parser::parse(tokens).expect("Failed to parse");
+
+    let mut while_loop_node = ASTNode::new(SyntaxElement::WhileLoop);
+    
+    let mut condition_node: ASTNode = ASTNode::new(SyntaxElement::Condition);
+    let condition_value_node = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    condition_node.add_child(condition_value_node);
+
+    let mut body_node = ASTNode::new(SyntaxElement::BlockExpression);
+    let break_node = ASTNode::new(SyntaxElement::Break);
+
+    body_node.add_child(break_node);
+
+    while_loop_node.add_child(condition_node); 
+    while_loop_node.add_child(body_node); 
+
+    let mut top_level_expr = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(while_loop_node);
+
+    let expected_ast: AST = AST::new(top_level_expr);
+
+    assert_eq!(actual_ast, expected_ast);
+}
+
+#[test]
+fn test_do_while_loop_parsing() {
+    let tokens: Vec<Token> = vec![
+        Token::DO,
+        Token::LBRACKET,
+        Token::BREAK,
+        Token::SEMICOLON,
+        Token::RBRACKET,
+        Token::WHILE,
+        Token::LPAREN,
+        Token::TRUE,
+        Token::RPAREN,
+        Token::SEMICOLON,
+        Token::EOF,
+    ];
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+
+    let mut do_while_loop_node = ASTNode::new(SyntaxElement::DoWhileLoop);
+    
+    let mut body_node = ASTNode::new(SyntaxElement::BlockExpression);
+    let break_node = ASTNode::new(SyntaxElement::Break);
+    body_node.add_child(break_node);
+
+    let mut condition_node = ASTNode::new(SyntaxElement::Condition);
+    let condition_value_node = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    condition_node.add_child(condition_value_node);
+
+    do_while_loop_node.add_child(body_node); 
+    do_while_loop_node.add_child(condition_node); 
+
+    let mut top_level_expr = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(do_while_loop_node);
+
+    let expected_ast: AST = AST::new(top_level_expr);
+
+    assert_eq!(ast, expected_ast)
+}
+
+/// --- STATEMENT SECTION --- ///
+
+#[test]
+fn test_if_statement_parsing() {
+    let tokens: Vec<Token> = vec![
+        Token::IF,
+        Token::LPAREN,
+        Token::TRUE,
+        Token::RPAREN,
+        Token::LBRACKET,
+        Token::RETURN,
+        Token::TRUE,
+        Token::SEMICOLON,
+        Token::RBRACKET,
+        Token::EOF,
+    ];
+
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+
+    let mut if_statement_node: ASTNode = ASTNode::new(SyntaxElement::IfStatement);
+
+    let condition_node: ASTNode = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+
+    let mut then_branch_node: ASTNode = ASTNode::new(SyntaxElement::BlockExpression);
+    let mut return_node: ASTNode = ASTNode::new(SyntaxElement::Return);
+    let mut assigned_value_node: ASTNode = ASTNode::new(SyntaxElement::AssignedValue);
+
+    let return_value_node: ASTNode = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    assigned_value_node.add_child(return_value_node);
+
+    return_node.add_child(assigned_value_node);
+    then_branch_node.add_child(return_node);
+
+    if_statement_node.add_child(condition_node);
+    if_statement_node.add_child(then_branch_node);
+
+    let mut top_level_expr = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(if_statement_node);
+
+    let expected_ast: AST = AST::new(top_level_expr);
+
+    assert_eq!(ast, expected_ast, "The parsed AST does not match the expected AST.");
+}
+
+#[test]
+fn test_initialization_parsing() {
+    let tokens = vec![
+        Token::LET,
+        Token::IDENTIFIER(vec!['x']),
+        Token::COLON,
+        Token::TBOOLEAN,
+        Token::EQUAL,
+        Token::TRUE,
+        Token::SEMICOLON,
+        Token::EOF,
+    ];
     let ast = Parser::parse(tokens).expect("Failed to parse");
 
-    match ast.get_root().get_children().first().unwrap().get_element() {
-        SyntaxElement::FunctionDeclaration { name, parameters, return_type, .. } => {
-            assert_eq!(name, "foo");
-            assert_eq!(parameters.len(), 2);
-            assert_eq!(return_type, Some(DataType::Boolean));
-        },
-        _ => panic!("Expected FunctionDeclaration"),
-    }
+    let mut initialization_node = ASTNode::new(SyntaxElement::Initialization);
+    let variable_node = ASTNode::new(SyntaxElement::Identifier("x".to_string()));
+    let type_node = ASTNode::new(SyntaxElement::Type(DataType::Boolean));
+    let value_node = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
 
-    let function_body = ast.get_root().get_children().first().unwrap().get_children();
-    match function_body.first().unwrap().get_element() {
-        SyntaxElement::IfStatement { ref condition, ref then_branch, ref else_branch } => {
-            match condition.get_element() {
-                SyntaxElement::Literal { data_type, value } => {
-                    assert_eq!(data_type, DataType::Boolean);
-                    assert_eq!(value, "false");
-                },
-                _ => panic!("Expected Literal in If condition"),
-            }
+    initialization_node.add_child(variable_node);
+    initialization_node.add_child(type_node);
+    initialization_node.add_child(value_node);
 
-            match then_branch.first().unwrap().get_element() {
-                SyntaxElement::Return { value } => {
-                    match value.get_element() {
-                        SyntaxElement::Literal { data_type, value } => {
-                            assert_eq!(data_type, DataType::Boolean);
-                            assert_eq!(value, "false");
-                        },
-                        _ => panic!("Expected Literal in Return statement"),
-                    }
-                },
-                _ => panic!("Expected Return in Then branch"),
-            }
+    let mut top_level_expr = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(initialization_node);
 
-            match else_branch.as_ref().unwrap().first().unwrap().get_element() {
-                SyntaxElement::Return { value } => {
-                    match value.get_element() {
-                        SyntaxElement::Literal { data_type, value } => {
-                            assert_eq!(data_type, DataType::Boolean);
-                            assert_eq!(value, "true");
-                        },
-                        _ => panic!("Expected Literal in Return statement"),
-                    }
-                },
-                _ => panic!("Expected Return in Else branch"),
-            }
-        },
-        _ => panic!("Expected IfStatement"),
-    }
+    let expected_ast: AST = AST::new(top_level_expr);
+
+    assert_eq!(ast, expected_ast);
+}
+
+#[test]
+fn test_continue_statement_parsing() {
+    let tokens = vec![
+        Token::CONTINUE,
+        Token::SEMICOLON,
+        Token::EOF,
+    ];
+    let ast = Parser::parse(tokens).expect("Failed to parse");
+
+    let continue_node = ASTNode::new(SyntaxElement::Continue);
+
+    let mut top_level_expr = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(continue_node);
+
+    let expected_ast: AST = AST::new(top_level_expr);
+
+    assert_eq!(ast, expected_ast);
+}
+
+#[test]
+fn test_match_statement_parsing() {
+    let tokens = vec![
+        Token::MATCH,
+        Token::IDENTIFIER(vec!['x']),
+        Token::LBRACKET,
+        Token::RBRACKET,
+        Token::EOF,
+    ];
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
+
+    let mut match_statement_node: ASTNode = ASTNode::new(SyntaxElement::MatchStatement);
+    let variable_node: ASTNode = ASTNode::new(SyntaxElement::Identifier("x".to_string()));
+    let arms_node: ASTNode = ASTNode::new(SyntaxElement::BlockExpression); 
+
+    match_statement_node.add_child(variable_node);
+    match_statement_node.add_child(arms_node);
+
+    let mut top_level_expr: ASTNode = ASTNode::new(SyntaxElement::TopLevelExpression);
+    top_level_expr.add_child(match_statement_node);
+
+    let expected_ast: AST = AST::new(top_level_expr);
+
+    assert_eq!(ast, expected_ast);
 }

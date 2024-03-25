@@ -7,9 +7,8 @@ use crate::
 ;
 
 impl SymbolTableStack {
-    /// Drives the symbol table stack generation process. If the ast is well formed, returns back 
-    ///     the original ast and the generated symbol table stack, else errors
-    pub fn gen_sym_table_stack(ast: AST) -> Result<(AST, SymbolTableStack), Vec<ErrorType>> {
+    /// Drives the symbol table stack generation process returns back the original ast and the generated symbol table stack, else errors
+    pub fn  gen_sym_table_stack(ast: AST) -> Result<(AST, SymbolTableStack), Vec<ErrorType>> {
         let mut sym_table_stack: SymbolTableStack = SymbolTableStack::new();
         let global_scope: SymbolTable = SymbolTable::new(); 
         sym_table_stack.push(global_scope);
@@ -35,36 +34,36 @@ impl SymbolTableStack {
 
     }
 
-    fn sym_table_stack_router(&mut self, node: &ASTNode) -> Result<(), Vec<ErrorType>> {
+    pub fn sym_table_stack_router(&mut self, node: &ASTNode) -> Result<(), Vec<ErrorType>> {
         let mut errors: Vec<ErrorType> = Vec::new();
             
         match node.get_element() {
-            SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
-                match self.sym_table_fn(name, parameters, return_type) {
+            SyntaxElement::FunctionDeclaration => {
+                match self.sym_table_fn(node) {
                     Ok(_) => {}
                     Err(e) => {
                         errors.extend(e);
                     }
                 }
             },
-            SyntaxElement::StructDeclaration { name, fields } => {
-                match self.sym_table_struct(name, fields) {
+            SyntaxElement::StructDeclaration => {
+                match self.sym_table_struct(node) {
                     Ok(_) => {}
                     Err(e) => {
                         errors.extend(e);
                     }
                 }
             },
-            SyntaxElement::EnumDeclaration { name, variants } => {
-                match self.sym_table_enum(name, variants) {
+            SyntaxElement::EnumDeclaration => {
+                match self.sym_table_enum(node) {
                     Ok(_) => {}
                     Err(e) => {
                         errors.extend(e);
                     }
                 }
             },
-            SyntaxElement::Initialization { variable, value, data_type } => {
-                match self.sym_table_init(variable, value, data_type) {
+            SyntaxElement::Initialization => {
+                match self.sym_table_init(node) {
                     Ok(_) => {}
                     Err(e) => {
                         errors.extend(e);

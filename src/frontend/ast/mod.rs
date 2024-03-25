@@ -11,4 +11,4 @@ pub mod syntax_element;
 pub mod ast_stitcher;
 
 /// Defines semantic rules
-pub mod sem_rule;
+pub mod rules_config;

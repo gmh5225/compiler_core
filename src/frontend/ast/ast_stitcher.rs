@@ -1,15 +1,15 @@
 use crate::frontend::ast::{
         ast_struct::{
             ASTNode, 
-            ModAST,
+            Module,
             ModElement,
         },
         syntax_element::SyntaxElement,
     };
 
 /// Pieces together mod elements into a cohesive module
-pub fn ast_stitch(input: Vec<ModElement>) -> ModAST {
-    let mut mod_ast: ModAST = ModAST::new(); 
+pub fn ast_stitch(input: Vec<ModElement>) -> Module {
+    let mut mod_ast: Module = Module::new(); 
     for mut mod_element in input {
         let root = mod_element.get_ast().get_root();
         let priority = get_ast_priority(root);

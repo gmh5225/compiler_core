@@ -5,7 +5,7 @@ use compiler_core::{
         ast::{
             syntax_element::SyntaxElement, 
             ast_struct::{
-                ASTNode, AST, ModElement, ModAST
+                ASTNode, AST, ModElement, Module
             }, 
             data_type::DataType
         }, 
@@ -31,7 +31,7 @@ fn test_function_declaration() {
 
     let mod_element: ModElement = ModElement::new(function_ast, Arc::clone(&symbol_table_stack), 0);
 
-    let mut mod_ast: ModAST = ModAST::new();
+    let mut mod_ast: Module = Module::new();
     mod_ast.add_child(mod_element);
 
     let module = IRGenerator::generate_ir(mod_ast);
@@ -56,20 +56,20 @@ fn test_function_with_if_else() {
 
     let if_condition = ASTNode::new(SyntaxElement::Literal {
         data_type: DataType::Boolean,
-        value: "true".to_string(),
+        value: "true",
     });
 
     let then_branch_node = ASTNode::new(SyntaxElement::Return {
         value: Box::new(ASTNode::new(SyntaxElement::Literal {
             data_type: DataType::Integer,
-            value: "1".to_string(),
+            value: "1",
         })),
     });
 
     let else_branch_node = ASTNode::new(SyntaxElement::Return {
         value: Box::new(ASTNode::new(SyntaxElement::Literal {
             data_type: DataType::Integer,
-            value: "0".to_string(),
+            value: "0",
         })),
     });
 
@@ -91,7 +91,7 @@ fn test_function_with_if_else() {
 
     let mod_element: ModElement = ModElement::new(function_ast, Arc::clone(&symbol_table_stack), 0);
 
-    let mut mod_ast: ModAST = ModAST::new();
+    let mut mod_ast: Module = Module::new();
     mod_ast.add_child(mod_element);
 
     let module = IRGenerator::generate_ir(mod_ast);
@@ -115,13 +115,13 @@ fn test_function_with_while_loop() {
     }
     let while_condition = ASTNode::new(SyntaxElement::Literal {
         data_type: DataType::Boolean,
-        value: "true".to_string(),
+        value: "true",
     });
 
     let while_body_node = ASTNode::new(SyntaxElement::Return {
         value: Box::new(ASTNode::new(SyntaxElement::Literal {
             data_type: DataType::Integer,
-            value: "42".to_string(),
+            value: "42",
         })),
     });
 
@@ -142,7 +142,7 @@ fn test_function_with_while_loop() {
 
     let mod_element: ModElement = ModElement::new(function_ast, Arc::clone(&symbol_table_stack), 0);
 
-    let mut mod_ast: ModAST = ModAST::new();
+    let mut mod_ast: Module = Module::new();
     mod_ast.add_child(mod_element);
 
     let module = IRGenerator::generate_ir(mod_ast);
@@ -167,13 +167,13 @@ fn test_function_with_do_while_loop() {
     }
     let do_while_condition = ASTNode::new(SyntaxElement::Literal {
         data_type: DataType::Boolean,
-        value: "true".to_string(),
+        value: "true",
     });
 
     let do_while_body_node = ASTNode::new(SyntaxElement::Return {
         value: Box::new(ASTNode::new(SyntaxElement::Literal {
             data_type: DataType::Integer,
-            value: "24".to_string(),
+            value: "24",
         })),
     });
 
@@ -194,7 +194,7 @@ fn test_function_with_do_while_loop() {
 
     let mod_element: ModElement = ModElement::new(function_ast, Arc::clone(&symbol_table_stack), 0);
 
-    let mut mod_ast: ModAST = ModAST::new();
+    let mut mod_ast: Module = Module::new();
     mod_ast.add_child(mod_element);
 
     let module = IRGenerator::generate_ir(mod_ast);

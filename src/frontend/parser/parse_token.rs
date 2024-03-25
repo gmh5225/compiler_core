@@ -16,16 +16,16 @@ impl Parser {
             match self.get_input().get(self.get_current()) {
                 Some(Token::INT(value)) => {
                     self.consume_token(Token::INT(value.clone()))?;
-                    let value_str = value.iter().collect::<String>();
-                    return Ok(Some(ASTNode::new(SyntaxElement::Literal{data_type: DataType::Integer, value: value_str})));
+                    let value_str: String = value.iter().collect();
+                    return Ok(Some(ASTNode::new(SyntaxElement::Literal{value: value_str})));
                 },
                 Some(Token::TRUE) => {
                     self.consume_token(Token::TRUE)?;
-                    return Ok(Some(ASTNode::new(SyntaxElement::Literal{data_type: DataType::Boolean, value: "true".to_string()})))
+                    return Ok(Some(ASTNode::new(SyntaxElement::Literal{value: "true".to_string()})))
                 },
                 Some(Token::FALSE) => {
                     self.consume_token(Token::FALSE)?;
-                    return Ok(Some(ASTNode::new(SyntaxElement::Literal{data_type: DataType::Boolean, value: "false".to_string()})))
+                    return Ok(Some(ASTNode::new(SyntaxElement::Literal{value: "false".to_string()})))
                 },
                 _ => panic!("{:?}", self.get_input().get(self.get_current()))
             }
@@ -46,8 +46,8 @@ impl Parser {
             Some(Token::EQUAL) => {
                 return self.parse_assignment();
             }
-            _ => return Ok(Some(ASTNode::new(SyntaxElement::Variable { data_type: DataType::Unknown, name: name_chars.iter().collect() })))
-        } // need to expand this
+            _ => return Ok(Some(ASTNode::new(SyntaxElement::Identifier(name_chars.iter().collect())))),
+        } 
     }
 
     /// Parses a protected keyword
@@ -70,8 +70,16 @@ impl Parser {
                         Ok(Some(value)) => {value}
                         _ => panic!("return panic")
                     };
+
+                    let mut assigned_value_node: ASTNode = ASTNode::new(SyntaxElement::AssignedValue);
+                    assigned_value_node.add_child(value);
+                    
                     self.consume_token(Token::SEMICOLON)?;
-                    return Ok(Some(ASTNode::new(SyntaxElement::Return{value: Box::new(value)})))
+
+                    let mut return_node: ASTNode = ASTNode::new(SyntaxElement::Return);
+                    return_node.add_child(assigned_value_node);
+
+                    return Ok(Some(return_node));
                 }
                 Some(Token::SEMICOLON) => {
                     self.consume_token(Token::SEMICOLON)?;

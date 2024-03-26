@@ -91,9 +91,9 @@ impl Parser {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
                 // top level expressions
-                Some(Token::FUNCTION) => return self.parse_function(),
-                Some(Token::STRUCT) => return self.parse_struct(), 
-                Some(Token::ENUM) => return self.parse_enum(),
+                Some(Token::FUNCTION) => return self.parse_function_declaration(),
+                Some(Token::STRUCT) => return self.parse_struct_declaration(), 
+                Some(Token::ENUM) => return self.parse_enum_declaration(),
 
                 // statements
                 Some(Token::IF) => return self.parse_if_statement(),
@@ -113,6 +113,8 @@ impl Parser {
                 // unary operations
                 Some(Token::LOGICALNOT) => return self.parse_unary_expression(), 
 
+                Some(Token::LBRACKET) => return self.parse_block(),
+                
                 // base elements like primitives, and protected keywords
                 Some(Token::INT(_)) | 
                 Some(Token::TRUE) | 

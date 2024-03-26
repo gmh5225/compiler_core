@@ -1,7 +1,7 @@
-use std::{collections::HashMap, sync::{Arc, Mutex}};
-use crate::frontend::ast::{
-    ast_struct::ASTNode, data_type::DataType, syntax_element::FunctionParameter
-};
+use std::{collections::{HashMap, HashSet}, fmt, sync::{Arc, Mutex}};
+use crate::frontend::{ast::{
+    ast_struct::ASTNode, data_type::DataType,
+}, utils::error::ErrorType};
 
 /// Initialized values in a scope
 #[derive(Clone)]
@@ -16,7 +16,7 @@ pub enum SymbolValue {
     StrValue(Box<str>),
 
     /// A calculated symbol value
-    Node(Box<ASTNode>),
+    Node(ASTNode),
 
     /// An enum's value (variants)
     EnumValue { 
@@ -33,14 +33,14 @@ pub enum SymbolValue {
     /// A function's value (params, return type)
     FunctionValue { 
         /// Parameters of the function
-        parameters: Vec<FunctionParameter>, 
+        parameters: Vec<(String, DataType)>, 
         /// Return type of the function
         return_type: Option<DataType>,
     },
 }
 
 /// Information on a symbol in a symboltable
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SymbolInfo {
     data_type: DataType,
     value: SymbolValue,
@@ -129,4 +129,74 @@ impl SymbolTableStack {
     pub fn get_elements(&self) -> &Vec<Arc<Mutex<SymbolTable>>> {
         &self.elements
     }
+
+    pub fn get_element(&self, index: usize) -> Result<Arc<Mutex<SymbolTable>>, ErrorType> {
+        if index < self.elements.len() {
+            match self.elements.get(index) {
+                Some(arc_mutex_symbol_table) => {
+                    return Ok(arc_mutex_symbol_table.clone());
+                },
+                None => {
+                    return Err(ErrorType::DevError{});
+                }
+            }
+        } 
+        Err(ErrorType::DevError{})
+    }
 }
+
+impl fmt::Debug for SymbolTable {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut builder = f.debug_map();
+        for (key, value) in &self.values {
+            builder.entry(&key, &value);
+        }
+        builder.finish()
+    }
+}
+
+impl fmt::Debug for SymbolTableStack {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("SymbolTableStack")
+         .field("size", &self.elements.len())
+         .field("tables", &self.elements.iter().map(|table_arc| {
+             match table_arc.lock() {
+                 Ok(lock) => format!("{:?}", lock), 
+                 Err(_) => "PoisonedLock".to_string(), 
+             }
+         }).collect::<Vec<String>>())
+         .finish()
+    }
+}
+
+
+impl PartialEq for SymbolTableStack {
+    fn eq(&self, other: &Self) -> bool {
+        if self.elements.len() != other.elements.len() {
+            return false;
+        }
+
+        for (self_table, other_table) in self.elements.iter().zip(&other.elements) {
+            let self_table_lock = match self_table.lock() {
+                Ok(lock) => lock,
+                Err(_) => return false, 
+            };
+            let other_table_lock = match other_table.lock() {
+                Ok(lock) => lock,
+                Err(_) => return false, 
+            };
+
+            let self_keys: HashSet<_> = self_table_lock.values.keys().collect();
+            let other_keys: HashSet<_> = other_table_lock.values.keys().collect();
+
+            if self_keys != other_keys {
+                return false;
+            }
+            // TODO make this better
+        }
+
+        true
+    }
+}
+
+impl Eq for SymbolTableStack {}

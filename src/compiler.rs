@@ -1,5 +1,7 @@
 use std::{
-    collections::HashMap, fs, path::Path, sync::{Arc, Mutex}
+    fs, 
+    path::Path, 
+    sync::{Arc, Mutex},
 };
 
 use crate::{
@@ -12,9 +14,8 @@ use crate::{
     frontend::{
         ast::{
             ast_stitcher::ast_stitch,
-            ast_struct::{ModAST, ModElement, AST,}, 
-            sem_rule::{RulesConfig, SemanticRule,}, 
-            syntax_element::SyntaxElement
+            ast_struct::{Module, ModElement, AST,}, 
+            rules_config::RulesConfig, 
         }, 
         lexer::{lexer_core::Lexer, token::Token}, 
         parser::parser_core::Parser, sem_analysis::sem_analysis_core::SemAnalysis, 
@@ -55,7 +56,7 @@ pub fn compile(file_path: &str, jit: bool, emit_ir: bool) -> Result<Vec<u8>, Vec
     }
 
     let rules: RulesConfig = read_config();
-    let mod_ast: ModAST = ast_stitch(mod_elements);
+    let mod_ast: Module = ast_stitch(mod_elements);
 
     ast_to_obj(mod_ast, rules, jit, emit_ir)
 }
@@ -71,8 +72,7 @@ fn validate_file_path(path: &Path, file_path: &str) -> Result<(), Vec<ErrorType>
 
 /// Reads a configuration file 
 fn read_config() -> RulesConfig {
-    let rules: HashMap<SyntaxElement, Vec<SemanticRule>> = HashMap::new();
-    RulesConfig::new(rules)
+    RulesConfig::new()
 }
 
 /// Generates a mod element from an input program
@@ -91,8 +91,8 @@ fn generate_mod_element(content: String) -> Result<ModElement, Vec<ErrorType>> {
 }
 
 /// Generates object code, JIT or static from a module
-fn ast_to_obj(content: ModAST, rules: RulesConfig, jit: bool, emit_ir: bool) -> Result<Vec<u8>, Vec<ErrorType>> {
-    let sem_analysis_result: Result<ModAST, Vec<ErrorType>> = SemAnalysis::sem_analysis(content, rules);
+fn ast_to_obj(content: Module, rules: RulesConfig, jit: bool, emit_ir: bool) -> Result<Vec<u8>, Vec<ErrorType>> {
+    let sem_analysis_result: Result<Module, Vec<ErrorType>> = SemAnalysis::sem_analysis(content, rules);
 
     match sem_analysis_result {
         Ok(processed_content) => {

@@ -23,6 +23,7 @@ pub enum Token {
     /// Modulo decrement (%=) 
     MODASSIGN,
 
+
     /// --- MULTI-CHARACTER SECTION --- ///
     /// Integer
     INT(Vec<char>),
@@ -54,6 +55,7 @@ pub enum Token {
 
     /// Exponent
     EXPONENT,
+
 
     /// --- SCOPE CHANGING SECTION --- ///
     /// Function 
@@ -98,6 +100,7 @@ pub enum Token {
     /// Arrow
     ARROW,
 
+
     ///  --- SPECIAL CHARACTER SECTION --- ///
     /// Right bracket }
     RBRACKET,
@@ -131,6 +134,7 @@ pub enum Token {
     
     /// Double colon ::
     COLONCOLON,
+
 
     /// --- BOOLEAN SECTION --- ///
     /// Logical and (&&)
@@ -166,6 +170,7 @@ pub enum Token {
     /// Greater than or equal to (>=)
     GREATERTHANEQUAL,
 
+    
     /// --- TYPE ANNOTATION SECTION --- ///
     /// Integer type
     TINTEGER,

@@ -1,38 +1,37 @@
 /*
-Checks an AST for semantic correctness
+Checks a Module for semantic correctness
  */
 
-use std::sync::{Mutex, Arc};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use crate::frontend::{ 
     ast::{ 
         ast_struct::{ 
-            ASTNode, 
-            ModAST, AST, ModElement, 
-        }, 
-        syntax_element::SyntaxElement, 
-        sem_rule::RulesConfig
-    },
-    utils::error::ErrorType,
-    symbol_table::symbol_table_struct::SymbolTableStack,
+            ASTNode, ModElement, Module, AST 
+        }, rules_config::RulesConfig, syntax_element::SyntaxElement
+    }, symbol_table::symbol_table_struct::{SymbolTable, SymbolTableStack}, utils::error::ErrorType
 };
 
 /// Structure for the semantic analysis phase
 pub struct SemAnalysis{
-    input: ModAST,
-    rules: RulesConfig,
+    input: Module,
+    current_sym_table_stack: Option<Arc<Mutex<SymbolTableStack>>>,
+    rules: RulesConfig, 
+    current_table_index: i64,
 }
 
-impl<'a> SemAnalysis {
-    fn new(input: ModAST, rules: RulesConfig) -> Self {
+impl SemAnalysis {
+    fn new(input: Module, rules: RulesConfig) -> Self {
         Self {
             input,
+            current_sym_table_stack: None,
             rules,
+            current_table_index: 0,
         }
     }
 
     /// Retrieves the input module for internal use
-    pub fn get_input(&mut self) -> &mut ModAST {
+    fn get_input(&mut self) -> &mut Module {
         &mut self.input
     }
 
@@ -42,12 +41,60 @@ impl<'a> SemAnalysis {
     }
 
     /// Retrieves the input module for exporting
-    pub fn get_output(self) -> ModAST {
+    pub fn get_output(self) -> Module {
         self.input
     }
 
-    /// checks an ast for semantic correctness
-    pub fn sem_analysis(input: ModAST, rules: RulesConfig) -> Result<ModAST, Vec<ErrorType>> { 
+    /// Retrieves the current symbol table
+    pub fn get_current_sym_table(&self) -> Result<Arc<Mutex<SymbolTable>>, ErrorType> {
+        match &self.current_sym_table_stack {
+            Some(stack) => {
+                let locked_stack: MutexGuard<'_, SymbolTableStack> = stack.lock().unwrap();
+                locked_stack.get_element(self.current_table_index.try_into().unwrap())
+            }
+            _ => {
+                panic!("Unable to retrieve current symbol table stack")
+            }
+        }
+    }
+
+    pub fn set_current_sym_table_stack(&mut self, sym_table_stack: Arc<Mutex<SymbolTableStack>>) -> Result<(), ErrorType> {
+        self.current_sym_table_stack = Some(sym_table_stack);
+        Ok(())
+    }    
+
+    /// Increments the current symbol table stack pointer
+    pub fn increment_sym_table_stack_pointer(&mut self) -> Result<(), ErrorType> {
+        match &self.current_sym_table_stack {
+            Some(stack) => {
+                let stack_unlocked  = stack.lock().unwrap();
+                if self.current_table_index < stack_unlocked.get_elements().len().try_into().unwrap() {
+                    self.current_table_index = self.current_table_index + 1;
+                    return Ok(());
+                }
+                return Err(ErrorType::DevError{});
+            }
+            _ => return Err(ErrorType::DevError{}),
+        }
+    }
+
+    /// Decrements the current symbol table stack pointer
+    pub fn decrement_sym_table_stack_pointer(&mut self) -> Result<(), ErrorType> {
+        match &self.current_sym_table_stack {
+            Some(stack) => {
+                let stack_unlocked  = stack.lock().unwrap();
+                if self.current_table_index < stack_unlocked.get_elements().len().try_into().unwrap() {
+                    self.current_table_index = self.current_table_index - 1;
+                    return Ok(());
+                }
+                return Err(ErrorType::DevError{});
+            }
+            _ => return Err(ErrorType::DevError{}),
+        }
+    }
+
+    /// Checks if a module is well formed
+    pub fn sem_analysis(input: Module, rules: RulesConfig) -> Result<Module, Vec<ErrorType>> { 
         let mut semantic_analysis: SemAnalysis = SemAnalysis::new(input, rules);
     
         let mut errors: Vec<ErrorType> = Vec::new();
@@ -57,8 +104,10 @@ impl<'a> SemAnalysis {
         for mod_element in elements {
             let ast: AST = mod_element.get_ast();
             let arc_mutex_symbol_table_stack: Arc<Mutex<SymbolTableStack>> = mod_element.get_sym_table_stack();
-            
-            if let Some(e) = semantic_analysis.analyze_mod(ast, &arc_mutex_symbol_table_stack) {
+
+            semantic_analysis.set_current_sym_table_stack(arc_mutex_symbol_table_stack)?;
+
+            if let Some(e) = semantic_analysis.analyze_mod_element(ast) {
                 errors.extend(e);
             }
         }
@@ -69,15 +118,15 @@ impl<'a> SemAnalysis {
         Err(errors)
     }
     
-
-    fn analyze_mod(&mut self, ast: AST, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
+    /// Checks if a mod element is well formed
+    fn analyze_mod_element(&mut self, ast: AST) -> Option<Vec<ErrorType>> {
         let mut errors: Vec<ErrorType> = Vec::new();
     
         for child in ast.get_root().get_children() {
             let root_element = ast.get_root().get_element();
 
             if root_element == SyntaxElement::ModuleExpression || root_element == SyntaxElement::TopLevelExpression {
-                if let Some(e) = self.sem_analysis_router(&child, symbol_table_stack) {
+                if let Some(e) = self.sem_analysis_router(&child) {
                     errors.extend(e);
                 }
                     
@@ -93,97 +142,114 @@ impl<'a> SemAnalysis {
     
     
     /// Analyzes each node, recursively, until it has checked all nodes, and appends errors
-    fn sem_analysis_router(&mut self, node: &ASTNode, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        let mut acc_errors: Vec<ErrorType> = Vec::new();
+    pub fn sem_analysis_router(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
+        let mut errors: Vec<ErrorType> = Vec::new();
 
         let syn_errors: Option<Vec<ErrorType>> = match &node.get_element() {
+            // --- OPAQUE EXPRESSION SECTION --- //
             SyntaxElement::NoExpression
             | SyntaxElement::ModuleExpression
-            | SyntaxElement::TopLevelExpression => { None },
+            | SyntaxElement::TopLevelExpression
+
+            // TODO
+            | SyntaxElement::LoopInitializer
+            | SyntaxElement::LoopIncrement 
+            | SyntaxElement::Condition 
+            | SyntaxElement::Action 
+            | SyntaxElement::Variant 
+            | SyntaxElement::AssignedValue 
+            | SyntaxElement::Field 
+            | SyntaxElement::Parameter 
+            | SyntaxElement::Operand => { None },
+
     
-            // top level
-            SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
-                self.sem_function_dec(name, parameters, return_type, symbol_table)
+            // --- TOP LEVEL EXPRESSION SECTION --- //
+            SyntaxElement::FunctionDeclaration => {
+                self.sem_function_dec(&node)
             },
-            SyntaxElement::StructDeclaration { name, fields } => {
-                self.sem_struct_dec(name, fields, symbol_table)
+            SyntaxElement::StructDeclaration => {
+                self.sem_struct_dec(&node)
             },
-            SyntaxElement::EnumDeclaration { name, variants } => {
-                self.sem_enum_dec(name, variants, symbol_table)
-            },
-
-            // block
-            SyntaxElement::ForLoop { initializer, condition, increment, body } => {
-                self.sem_for_loop(initializer, condition, increment, body, symbol_table)
-            },
-            SyntaxElement::WhileLoop { condition, body } => {
-                self.sem_while_loop(condition, body, symbol_table)
-            },
-            SyntaxElement::DoWhileLoop { body, condition } => {
-                self.sem_do_while_loop(body, condition, symbol_table)
-            },
-            SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
-                self.sem_if_statement(condition, then_branch, else_branch, symbol_table)
+            SyntaxElement::EnumDeclaration => {
+                self.sem_enum_dec(&node)
             },
 
-            // statement
-            SyntaxElement::BinaryExpression { left, operator, right } => {
-                self.sem_bin_exp(left, operator, right, symbol_table)
+            // --- BLOCK EXPRESSION SECTION --- //
+            SyntaxElement::BlockExpression => todo!(),
+            SyntaxElement::ForLoop => {
+                self.sem_for_loop(&node)
             },
-            SyntaxElement::Assignment { variable, value } => {
-                self.sem_assignment(variable, value, symbol_table)
+            SyntaxElement::WhileLoop => {
+                self.sem_while_loop(&node)
             },
-            SyntaxElement::Initialization { variable, data_type, value } => {
-                self.sem_initialization(variable, data_type, value, symbol_table)
+            SyntaxElement::DoWhileLoop => {
+                self.sem_do_while_loop(&node)
             },
-            SyntaxElement::MatchStatement { to_match, arms } => {
-                self.sem_match_statement(to_match, arms, symbol_table)
+            SyntaxElement::IfStatement => {
+                self.sem_if_statement(&node)
             },
-            SyntaxElement::FunctionCall { name, arguments } => {
-                self.sem_function_call(name, arguments, symbol_table)
+
+
+            // --- STATEMENT SECTION --- //
+            SyntaxElement::BinaryExpression => {
+                self.sem_bin_exp(&node)
             },
-            SyntaxElement::UnaryExpression { operator, operand } => {
-                self.sem_unary_exp(operator, operand, symbol_table)
+            SyntaxElement::Assignment  => {
+                self.sem_assignment(&node)
             },
-            SyntaxElement::Return { value } => {
-                self.sem_return(value, symbol_table)
+            SyntaxElement::Initialization => {
+                self.sem_initialization(&node)
+            },
+            SyntaxElement::MatchStatement  => {
+                self.sem_match_statement(&node)
+            },
+            SyntaxElement::FunctionCall  => {
+                self.sem_function_call(&node)
+            },
+            SyntaxElement::UnaryExpression => {
+                self.sem_unary_exp(&node)
+            },
+            SyntaxElement::Return => {
+                self.sem_return(&node)
             },
             SyntaxElement::Break => {
-                self.sem_break(symbol_table)
+                self.sem_break(&node)
             },
             SyntaxElement::Continue => {
-                self.sem_continue(symbol_table)
+                self.sem_continue(&node)
             },
+            SyntaxElement::ElifStatement => todo!(),
+            SyntaxElement::ElseStatement => todo!(),
+            SyntaxElement::MatchArm => todo!(),
 
-            // these might not be necessary or maybe they should be errors if hitting here? not sure
-            // SyntaxElement::Literal { data_type, value } => {
-            //     self.sem_literal(data_type, value, symbol_table)
-            // },
-            // SyntaxElement::Variable { data_type, name } => {
-            //     self.sem_variable(data_type, name, symbol_table)
-            // },
-            _ => {panic!("Should this be hit?")}
+            // --- PRIMITIVE SECTION TODO --- //
+            SyntaxElement::Literal(_) => todo!(),
+            SyntaxElement::Mutable(_) => todo!(),
+            SyntaxElement::Variable => todo!(),
+            SyntaxElement::Identifier(_) => todo!(),
+            SyntaxElement::Operator(_) => todo!(),
+            SyntaxElement::Type(_) => todo!(),
         };
     
         match syn_errors {
             Some(err) => {
-                acc_errors.extend(err)
+                errors.extend(err)
             }
             _ => {}
         }
         // Recursively check each child and accumulate errors
         for child in &node.get_children() {
-            let syn_errors = self.sem_analysis_router(child, symbol_table);
-            match syn_errors {
+            let sym_errors = self.sem_analysis_router(child);
+            match sym_errors {
                 Some(err) => {
-                    acc_errors.extend(err)
+                    errors.extend(err)
                 }
                 _ => {}
             }
         }
     
-        if !acc_errors.is_empty() {
-            Some(acc_errors.clone()) 
+        if !errors.is_empty() {
+            Some(errors) 
         } else {
             None
         }

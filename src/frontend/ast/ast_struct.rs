@@ -13,14 +13,14 @@ use crate::frontend::{
 };
 
 /// A Module TODO rename this to Module
-pub struct ModAST {
+pub struct Module {
     children: BinaryHeap<ModElement>,
 }
 
-impl ModAST {
+impl Module {
     /// A new module
     pub fn new() -> Self {
-        ModAST {
+        Module {
             children: BinaryHeap::new(),
         }
     }
@@ -105,7 +105,7 @@ pub struct AST {
 #[derive(Debug, Clone, PartialEq, Default, Eq, Hash)]
 pub struct ASTNode {
     element: SyntaxElement,
-    children: Vec<ASTNode>,
+    children: Vec<ASTNode>, 
 }
 
 impl AST {
@@ -150,14 +150,6 @@ impl ASTNode {
     /// Adds children nodes
     pub fn add_children(&mut self, to_add: Vec<ASTNode>) {
         self.children.extend(to_add);
-    }
-
-    /// Checks if the element is a return statement
-    pub fn is_return(&self) -> bool {
-        match &self.element {
-            SyntaxElement::Return { value: _ } => true,
-            _ => false,
-        }
     }
 }
 

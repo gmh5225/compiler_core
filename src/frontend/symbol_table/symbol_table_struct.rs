@@ -40,7 +40,7 @@ pub enum SymbolValue {
 }
 
 /// Information on a symbol in a symboltable
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SymbolInfo {
     data_type: DataType,
     value: SymbolValue,
@@ -145,13 +145,30 @@ impl SymbolTableStack {
     }
 }
 
+impl fmt::Debug for SymbolTable {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut builder = f.debug_map();
+        for (key, value) in &self.values {
+            builder.entry(&key, &value);
+        }
+        builder.finish()
+    }
+}
+
 impl fmt::Debug for SymbolTableStack {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("SymbolTableStack")
          .field("size", &self.elements.len())
+         .field("tables", &self.elements.iter().map(|table_arc| {
+             match table_arc.lock() {
+                 Ok(lock) => format!("{:?}", lock), 
+                 Err(_) => "PoisonedLock".to_string(), 
+             }
+         }).collect::<Vec<String>>())
          .finish()
     }
 }
+
 
 impl PartialEq for SymbolTableStack {
     fn eq(&self, other: &Self) -> bool {

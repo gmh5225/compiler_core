@@ -1,11 +1,11 @@
 use crate::frontend::{ 
-    utils::error::ErrorType,
-    lexer::token::Token,
     ast::{
         ast_struct::ASTNode, syntax_element::SyntaxElement, 
-    },
-    parser::parser_core::Parser,
-};
+    }, 
+    lexer::token::Token,
+    parser::parser_core::Parser, 
+    utils::error::ErrorType
+ };
 
 impl Parser {
     /// Creates the children of an expression that changes scope. Used for all scope changing expressions except structs and enums
@@ -66,14 +66,21 @@ impl Parser {
                         }
                     };   
 
+                    let mut assigned_value_node: ASTNode = ASTNode::new(SyntaxElement::AssignedValue);
+                    assigned_value_node.add_child(value);
+
                     let mut initialization_node: ASTNode = ASTNode::new(SyntaxElement::Initialization);
 
                     let identifer_node: ASTNode = ASTNode::new(SyntaxElement::Identifier(variable_name));
-                    initialization_node.add_child(identifer_node);
 
                     let type_node: ASTNode = ASTNode::new(SyntaxElement::Type(data_type));
-                    initialization_node.add_child(type_node);
-                    initialization_node.add_child(value);
+                    let mut var_node: ASTNode = ASTNode::new(SyntaxElement::Variable);
+
+                    var_node.add_child(identifer_node);
+                    var_node.add_child(type_node);
+
+                    initialization_node.add_child(var_node);
+                    initialization_node.add_child(assigned_value_node);
 
                     Ok(Some(initialization_node))
                 },

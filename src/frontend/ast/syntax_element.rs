@@ -10,43 +10,19 @@ pub enum SyntaxElement {
 
     /// --- BASE EXPRESSION SECTION --- ///
     /// Literal
-    Literal {
-        /// Value of the literal
-        value: String,
-    },
-
-    /// Mutable Literal
-    MutLiteral {
-        /// Value of the literal
-        value: String,
-    },
-
-    /// Variable
-    Variable {
-        /// Mutability
-        is_mutable: bool,
-    },
-
-    /// Binary expression
-    BinaryExpression,
-
-    /// Unary expression
-    UnaryExpression,
+    Literal(String),
 
     /// Identifier
     Identifier(String),
 
-    /// Function call
-    FunctionCall,
-
     /// Operator
-    Operator(&'static str),
-
-    /// Operand
-    Operand,
+    Operator(String),
 
     /// Type
     Type(DataType),
+
+    /// Mutability
+    Mutable(bool), //TODO
 
 
     /// --- CONTROL FLOW SECTION --- ///
@@ -111,15 +87,7 @@ pub enum SyntaxElement {
     /// Block
     BlockExpression,
 
-    /// --- LOOP CONTROL SECTION --- ///
-    /// Initializer to a loop
-    LoopInitializer,
-
-    /// Incrementer on a loop
-    LoopIncrement,
-
-
-    /// --- MISC SECTION --- ///
+    /// --- STATEMENT SECTION --- ///
     /// Condition,
     Condition,
 
@@ -129,7 +97,7 @@ pub enum SyntaxElement {
     /// Variant,
     Variant,
 
-    /// Assigned value (used in initialization, assignment, and return)
+    /// Assigned value (used in: initialization, assignment, return)
     AssignedValue,
 
     /// Field of a struct
@@ -137,6 +105,29 @@ pub enum SyntaxElement {
 
     /// Parameter
     Parameter,
+
+    /// Variable
+    Variable,
+
+    /// Binary expression
+    BinaryExpression,
+
+    /// Unary expression
+    UnaryExpression,
+
+    /// Function call
+    FunctionCall,
+
+    /// Operand
+    Operand,
+
+
+    /// --- LOOP CONTROL SECTION --- ///
+    /// Initializer to a loop
+    LoopInitializer,
+
+    /// Incrementer on a loop
+    LoopIncrement,
 }
 
 
@@ -144,9 +135,8 @@ impl fmt::Display for SyntaxElement {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             SyntaxElement::NoExpression => write!(f, "NoExpression"),
-            SyntaxElement::Literal { value } => write!(f, "Literal({})", value),
-            SyntaxElement::MutLiteral { value } => write!(f, "MutLiteral({})", value),
-            SyntaxElement::Variable { is_mutable } => write!(f, "Variable(is_mutable: {})", is_mutable),
+            SyntaxElement::Literal(value) => write!(f, "Literal({})", value),
+            SyntaxElement::Variable => write!(f, "Variable)"),
             SyntaxElement::BinaryExpression => write!(f, "BinaryExpression"),
             SyntaxElement::UnaryExpression => write!(f, "UnaryExpression"),
             SyntaxElement::Identifier(id) => write!(f, "Identifier({})", id),
@@ -181,6 +171,7 @@ impl fmt::Display for SyntaxElement {
             SyntaxElement::AssignedValue => write!(f, "AssignedValue"),
             SyntaxElement::Field => write!(f, "Field"),
             SyntaxElement::MatchArm => write!(f, "MatchArm"),
+            SyntaxElement::Mutable(val) => write!(f, "Mutable: {:?}", val),
         }
     }
 }

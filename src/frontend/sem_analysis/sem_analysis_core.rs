@@ -105,7 +105,7 @@ impl SemAnalysis {
             let ast: AST = mod_element.get_ast();
             let arc_mutex_symbol_table_stack: Arc<Mutex<SymbolTableStack>> = mod_element.get_sym_table_stack();
 
-            semantic_analysis.set_current_sym_table_stack(arc_mutex_symbol_table_stack);
+            semantic_analysis.set_current_sym_table_stack(arc_mutex_symbol_table_stack)?;
 
             if let Some(e) = semantic_analysis.analyze_mod_element(ast) {
                 errors.extend(e);
@@ -223,9 +223,9 @@ impl SemAnalysis {
             SyntaxElement::MatchArm => todo!(),
 
             // --- PRIMITIVE SECTION TODO --- //
-            SyntaxElement::Literal { value } => todo!(),
-            SyntaxElement::MutLiteral { value } => todo!(),
-            SyntaxElement::Variable { is_mutable } => todo!(),
+            SyntaxElement::Literal(_) => todo!(),
+            SyntaxElement::Mutable(_) => todo!(),
+            SyntaxElement::Variable => todo!(),
             SyntaxElement::Identifier(_) => todo!(),
             SyntaxElement::Operator(_) => todo!(),
             SyntaxElement::Type(_) => todo!(),

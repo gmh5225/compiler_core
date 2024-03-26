@@ -17,15 +17,15 @@ impl Parser {
                 Some(Token::INT(value)) => {
                     self.consume_token(Token::INT(value.clone()))?;
                     let value_str: String = value.iter().collect();
-                    return Ok(Some(ASTNode::new(SyntaxElement::Literal{value: value_str})));
+                    return Ok(Some(ASTNode::new(SyntaxElement::Literal(value_str))));
                 },
                 Some(Token::TRUE) => {
                     self.consume_token(Token::TRUE)?;
-                    return Ok(Some(ASTNode::new(SyntaxElement::Literal{value: "true".to_string()})))
+                    return Ok(Some(ASTNode::new(SyntaxElement::Literal("true".to_string()))))
                 },
                 Some(Token::FALSE) => {
                     self.consume_token(Token::FALSE)?;
-                    return Ok(Some(ASTNode::new(SyntaxElement::Literal{value: "false".to_string()})))
+                    return Ok(Some(ASTNode::new(SyntaxElement::Literal("false".to_string()))))
                 },
                 _ => panic!("{:?}", self.get_input().get(self.get_current()))
             }

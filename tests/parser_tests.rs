@@ -132,14 +132,20 @@ fn test_function_with_body() {
 
     let mut block_expression_node = ASTNode::new(SyntaxElement::BlockExpression);
     let mut initialization_node = ASTNode::new(SyntaxElement::Initialization);
+    let mut assigned_value_node: ASTNode = ASTNode::new(SyntaxElement::AssignedValue);
+    let mut variable_node: ASTNode = ASTNode::new(SyntaxElement::Variable);
 
-    let variable_node: ASTNode = ASTNode::new(SyntaxElement::Identifier("x".to_string()));
+    let variable_id_node: ASTNode = ASTNode::new(SyntaxElement::Identifier("x".to_string()));
     let type_node: ASTNode = ASTNode::new(SyntaxElement::Type(DataType::Integer));
-    let value_node: ASTNode = ASTNode::new(SyntaxElement::Literal { value: "1".to_string() });
+    let value_node: ASTNode = ASTNode::new(SyntaxElement::Literal("1".to_string()));
+
+    variable_node.add_child(variable_id_node);
+    variable_node.add_child(type_node);
+
+    assigned_value_node.add_child(value_node);
 
     initialization_node.add_child(variable_node);
-    initialization_node.add_child(type_node);
-    initialization_node.add_child(value_node);
+    initialization_node.add_child(assigned_value_node);
 
     block_expression_node.add_child(initialization_node);
 
@@ -209,12 +215,12 @@ fn test_function_with_if_else_statement() {
     function_declaration_node.add_child(return_type_node);
 
     let mut if_statement_node = ASTNode::new(SyntaxElement::IfStatement);
-    let condition_node = ASTNode::new(SyntaxElement::Literal { value: "false".to_string() });
+    let condition_node = ASTNode::new(SyntaxElement::Literal("false".to_string() ));
 
     let mut then_branch_node = ASTNode::new(SyntaxElement::BlockExpression);
     let mut then_return_node = ASTNode::new(SyntaxElement::Return);
     let mut then_return_value = ASTNode::new(SyntaxElement::AssignedValue);
-    let then_return_value_node = ASTNode::new(SyntaxElement::Literal { value: "false".to_string() });
+    let then_return_value_node = ASTNode::new(SyntaxElement::Literal("false".to_string()));
     then_return_value.add_child(then_return_value_node);
 
     then_return_node.add_child(then_return_value);
@@ -223,7 +229,7 @@ fn test_function_with_if_else_statement() {
     let mut else_branch_node = ASTNode::new(SyntaxElement::BlockExpression);
     let mut else_return_node = ASTNode::new(SyntaxElement::Return);
     let mut else_return_value: ASTNode = ASTNode::new(SyntaxElement::AssignedValue);
-    let else_return_value_node = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    let else_return_value_node = ASTNode::new(SyntaxElement::Literal("true".to_string() ));
     else_return_value.add_child(else_return_value_node);
 
     else_return_node.add_child(else_return_value);
@@ -268,7 +274,7 @@ fn test_for_loop_parsing() {
     let mut for_loop_node: ASTNode = ASTNode::new(SyntaxElement::ForLoop);
 
     let mut condition_node: ASTNode = ASTNode::new(SyntaxElement::Condition);
-    let condition_value_node: ASTNode = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    let condition_value_node: ASTNode = ASTNode::new(SyntaxElement::Literal("true".to_string()));
     condition_node.add_child(condition_value_node);
 
     let mut body_node: ASTNode = ASTNode::new(SyntaxElement::BlockExpression);
@@ -304,7 +310,7 @@ fn test_while_loop_parsing() {
     let mut while_loop_node = ASTNode::new(SyntaxElement::WhileLoop);
     
     let mut condition_node: ASTNode = ASTNode::new(SyntaxElement::Condition);
-    let condition_value_node = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    let condition_value_node = ASTNode::new(SyntaxElement::Literal("true".to_string()));
     condition_node.add_child(condition_value_node);
 
     let mut body_node = ASTNode::new(SyntaxElement::BlockExpression);
@@ -347,7 +353,7 @@ fn test_do_while_loop_parsing() {
     body_node.add_child(break_node);
 
     let mut condition_node = ASTNode::new(SyntaxElement::Condition);
-    let condition_value_node = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    let condition_value_node = ASTNode::new(SyntaxElement::Literal("true".to_string()));
     condition_node.add_child(condition_value_node);
 
     do_while_loop_node.add_child(body_node); 
@@ -382,13 +388,13 @@ fn test_if_statement_parsing() {
 
     let mut if_statement_node: ASTNode = ASTNode::new(SyntaxElement::IfStatement);
 
-    let condition_node: ASTNode = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    let condition_node: ASTNode = ASTNode::new(SyntaxElement::Literal("true".to_string()));
 
     let mut then_branch_node: ASTNode = ASTNode::new(SyntaxElement::BlockExpression);
     let mut return_node: ASTNode = ASTNode::new(SyntaxElement::Return);
     let mut assigned_value_node: ASTNode = ASTNode::new(SyntaxElement::AssignedValue);
 
-    let return_value_node: ASTNode = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    let return_value_node: ASTNode = ASTNode::new(SyntaxElement::Literal("true".to_string()));
     assigned_value_node.add_child(return_value_node);
 
     return_node.add_child(assigned_value_node);
@@ -417,18 +423,25 @@ fn test_initialization_parsing() {
         Token::SEMICOLON,
         Token::EOF,
     ];
-    let ast = Parser::parse(tokens).expect("Failed to parse");
+    let ast: AST = Parser::parse(tokens).expect("Failed to parse");
 
-    let mut initialization_node = ASTNode::new(SyntaxElement::Initialization);
-    let variable_node = ASTNode::new(SyntaxElement::Identifier("x".to_string()));
-    let type_node = ASTNode::new(SyntaxElement::Type(DataType::Boolean));
-    let value_node = ASTNode::new(SyntaxElement::Literal { value: "true".to_string() });
+    let mut initialization_node: ASTNode = ASTNode::new(SyntaxElement::Initialization);
+
+    let var_id_node: ASTNode = ASTNode::new(SyntaxElement::Identifier("x".to_string()));
+    let type_node: ASTNode = ASTNode::new(SyntaxElement::Type(DataType::Boolean));
+
+    let mut variable_node: ASTNode = ASTNode::new(SyntaxElement::Variable);
+    variable_node.add_child(var_id_node);
+    variable_node.add_child(type_node);
+
+    let value_node: ASTNode = ASTNode::new(SyntaxElement::Literal("true".to_string()));
+    let mut assigned_value_node: ASTNode = ASTNode::new(SyntaxElement::AssignedValue);
+    assigned_value_node.add_child(value_node);
 
     initialization_node.add_child(variable_node);
-    initialization_node.add_child(type_node);
-    initialization_node.add_child(value_node);
+    initialization_node.add_child(assigned_value_node);
 
-    let mut top_level_expr = ASTNode::new(SyntaxElement::TopLevelExpression);
+    let mut top_level_expr: ASTNode = ASTNode::new(SyntaxElement::TopLevelExpression);
     top_level_expr.add_child(initialization_node);
 
     let expected_ast: AST = AST::new(top_level_expr);

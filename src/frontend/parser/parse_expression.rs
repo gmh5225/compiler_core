@@ -6,7 +6,6 @@ use crate::frontend::{
         syntax_element::SyntaxElement,
     },
     parser::parser_core::Parser,
-    parser::binop_precedence::binop_precedence,
 };
 
 impl Parser {
@@ -27,7 +26,7 @@ impl Parser {
                         _ => panic!("This was a hard panic to hit"),
                     };
 
-                    let operator_node: ASTNode = ASTNode::new(SyntaxElement::Operator(operator));
+                    let operator_node: ASTNode = ASTNode::new(SyntaxElement::Operator(operator.to_string()));
 
                     let operand_node: ASTNode = match self.parse_router() {
                         Ok(Some(value)) => value, 

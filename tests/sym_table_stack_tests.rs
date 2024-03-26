@@ -1,9 +1,12 @@
-use compiler_core::{constants::DEFAULT_MUTABILITY_VARIABLES, frontend::{
+use compiler_core::frontend::{
     ast::{
         ast_struct::{ASTNode, AST}, data_type::DataType, syntax_element::SyntaxElement
     }, 
     symbol_table::symbol_table_struct::{SymbolInfo, SymbolTable, SymbolTableStack, SymbolValue}, utils::error::ErrorType,
-}};
+};
+
+/// --- UTILITIES SECTION --- ///
+/// cargo test --test sym_table_stack_tests 
 
 #[test]
 fn test_function_declaration_sym_table() {
@@ -38,6 +41,7 @@ fn test_function_declaration_sym_table() {
 fn test_struct_declaration_sym_table() {
     let mut expected_sts: SymbolTableStack = SymbolTableStack::new();
     let mut global_scope: SymbolTable = SymbolTable::new();
+
     let struct_value: SymbolValue = SymbolValue::StructValue { 
         fields: vec![("field1".to_string(), DataType::Integer)],
     };
@@ -119,15 +123,18 @@ fn test_variable_initialization_sym_table() {
 
     let var_id: ASTNode = ASTNode::new(SyntaxElement::Identifier("test_var".to_string()));
     let var_type: ASTNode = ASTNode::new(SyntaxElement::Type(DataType::Boolean));
-    let mut var_value: ASTNode = ASTNode::new(SyntaxElement::Variable { 
-        is_mutable: DEFAULT_MUTABILITY_VARIABLES, 
-    });
+    let mut var_value: ASTNode = ASTNode::new(SyntaxElement::Variable);
     var_value.add_child(var_id);
     var_value.add_child(var_type);
 
+    let mut assigned_value_node: ASTNode = ASTNode::new(SyntaxElement::AssignedValue);
+    let assigned_value_literal: ASTNode = ASTNode::new(SyntaxElement::Literal("true".to_string()));
+    assigned_value_node.add_child(assigned_value_literal);
+
     let mut root: ASTNode = ASTNode::new(SyntaxElement::Initialization);
     root.add_child(var_value);
-    
+    root.add_child(assigned_value_node);
+
     let ast: AST = AST::new(root);
     let result_sts_gen: Result<(AST, SymbolTableStack), Vec<ErrorType>> = SymbolTableStack::gen_sym_table_stack(ast);
 

@@ -150,14 +150,14 @@ impl IRGenerator {
             },
             
             // primitive
-            SyntaxElement::Literal{value} => {
+            SyntaxElement::Literal(value) => {
                 self.generate_literal_ir(node)                           
             },
-            SyntaxElement::Variable{is_mutable} => {
+            SyntaxElement::Variable => {
                 self.generate_var_ir(node)
             },
             SyntaxElement::NoExpression => todo!(),
-            SyntaxElement::MutLiteral { value } => todo!(),
+            SyntaxElement::Mutable(_) => todo!(),
             SyntaxElement::Identifier(_) => todo!(),
             SyntaxElement::Operator(_) => todo!(),
             SyntaxElement::Operand => todo!(),

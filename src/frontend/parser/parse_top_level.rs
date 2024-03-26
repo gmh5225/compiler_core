@@ -90,7 +90,6 @@ impl Parser {
                 }
             }
     
-            let mut return_type: Option<DataType> = None;
             let mut return_node: Option<ASTNode> = None;
 
             match self.get_input().get(self.get_current()) {
@@ -125,7 +124,7 @@ impl Parser {
             panic!("enums have names silly!")
         };
 
-        let mut enum_node_name = ASTNode::new(SyntaxElement::Identifier(enum_name));
+        let enum_node_name = ASTNode::new(SyntaxElement::Identifier(enum_name));
     
         self.consume_token(Token::LBRACE)?;
     
@@ -177,7 +176,7 @@ impl Parser {
             if let Some(Token::IDENTIFIER(field_name_chars)) = self.get_input().get(self.get_current()) {
                 self.consume_token(Token::IDENTIFIER(field_name_chars.clone()))?;
                 let field_name = field_name_chars.iter().collect::<String>();
-                let field_name_node: ASTNode = ASTNode::new(SyntaxElement::Literal{value: field_name});
+                let field_name_node: ASTNode = ASTNode::new(SyntaxElement::Literal(field_name));
 
                 self.consume_token(Token::COLON)?;
                 let field_type: DataType = self.consume_type()?;
@@ -201,7 +200,7 @@ impl Parser {
     
         self.consume_token(Token::RBRACE)?;
     
-        let mut identifier_node: ASTNode = ASTNode::new(SyntaxElement::Identifier(struct_name));
+        let identifier_node: ASTNode = ASTNode::new(SyntaxElement::Identifier(struct_name));
         
         let mut struct_node: ASTNode = ASTNode::new(SyntaxElement::StructDeclaration);
         struct_node.add_child(identifier_node);

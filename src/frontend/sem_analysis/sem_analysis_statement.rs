@@ -1,3 +1,5 @@
+use std::f32::consts::E;
+
 use crate::frontend::{
     ast::{
         ast_struct::ASTNode, syntax_element::SyntaxElement, 
@@ -10,41 +12,42 @@ use crate::frontend::{
 impl SemAnalysis {
     /// Completes semantic analysis of variable assignment
     pub fn sem_assignment(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
-        // let mut errors: Vec<ErrorType> = Vec::new();
+        let mut errors: Vec<ErrorType> = Vec::new();
         
-        // let table = match self.get_current_sym_table() {
-        //     Ok(table) => table.lock().unwrap(),
-        //     Err(e) => {
-        //         return Some(vec![e]);
-        //     }
-        // };
-    
-        // if let SyntaxElement::Assignment = node.get_element() {
-        //     for child in node.get_children() {
-        //         match child.get_element() {
-        //             SyntaxElement::Identifier(name) => {
-        //                 if let Some(e) = self.check_if_assigned(&name, &table) {
-        //                     errors.push(e);
-        //                 }
-        //             }
-        //             SyntaxElement::AssignedValue => {
-        //                 if let Some(child_errors) = self.sem_analysis_router(&child) {
-        //                     errors.extend(child_errors);
-        //                 }
-        //             }
-        //             _ => errors.push(ErrorType::DevError{})
-        //         }
-        //     }
-        // } else {
-        //     errors.push(ErrorType::DevError{});
-        // }
-    
-        // if errors.is_empty() {
-        //     None
-        // } else {
-        //     Some(errors)
-        // }
-        None
+        match self.get_current_sym_table() {
+            Ok(table) => {
+                let locked_table = table.lock().unwrap();
+                    
+                if let SyntaxElement::Assignment = node.get_element() {
+                    for child in node.get_children() {
+                        match child.get_element() {
+                            SyntaxElement::Identifier(name) => {
+                                if let Some(e) = self.check_if_assigned(&name, &locked_table) {
+                                    errors.push(e);
+                                }
+                            }
+                            SyntaxElement::AssignedValue => {
+                                if let Some(child_errors) = self.sem_analysis_router(&child) {
+                                    errors.extend(child_errors);
+                                }
+                            }
+                            _ => errors.push(ErrorType::DevError{})
+                        }
+                    }
+                } else {
+                    errors.push(ErrorType::DevError{});
+                }
+            
+
+            }
+            Err(e) => {
+                return Some(vec![e]);
+            }
+    }
+    if !errors.is_empty() {
+        return Some(errors);
+    }
+    None
     }
     
 

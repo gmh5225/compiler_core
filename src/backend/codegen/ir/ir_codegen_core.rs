@@ -139,8 +139,8 @@ impl IRGenerator {
             SyntaxElement::Initialization => {
                 self.generate_initialization_ir(node)
             },
-            SyntaxElement::Assignment { variable, value } => {
-                self.generate_assignment_ir(variable, value, sym_table_stack)
+            SyntaxElement::Assignment => {
+                self.generate_assignment_ir(node)
             },
             SyntaxElement::UnaryExpression => {
                 self.generate_unary_ir(node)

@@ -25,11 +25,7 @@ use llvm::prelude::LLVMValueRef;
 impl IRGenerator {
     pub fn generate_fn_declaration_ir(
             &mut self, 
-            name: &String, 
-            parameters: &Vec<FunctionParameter>, 
-            return_type: &Option<DataType>,
-            body: &Vec<ASTNode>,
-            symbol_table_stack: &Arc<Mutex<SymbolTableStack>>,) -> LLVMValueRef {
+            node: ASTNode) -> LLVMValueRef {
 
         let llvm_return_type = match return_type {
             Some(data_type) => self.map_data_type(data_type),
@@ -59,7 +55,7 @@ impl IRGenerator {
     }
     
 
-    pub fn generate_enum_declaration_ir(&mut self, name: &String, variants: &Vec<String>) -> LLVMValueRef {
+    pub fn generate_enum_declaration_ir(&mut self, node: ASTNode) -> LLVMValueRef {
         // let enum_type = int_type(self.get_context()); 
         // let mut variant_values = Vec::new();
 

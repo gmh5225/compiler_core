@@ -15,12 +15,13 @@ use crate::{
     },
     frontend::{
         ast::{
-            ast_struct::{ASTNode, ModAST, ModElement, AST},
+            ast_struct::{ASTNode, Module, ModElement, AST},
             syntax_element::SyntaxElement, 
-        }, symbol_table::symbol_table::SymbolTableStack
+        }, symbol_table::symbol_table_struct::SymbolTableStack
     },
 };
 
+/// Generates LLVM IR for a module
 pub struct IRGenerator {
     context: LLVMContextRef,
     module: LLVMModuleRef,
@@ -45,21 +46,27 @@ impl IRGenerator {
     
     }
 
+    /// Retrieves the current context
     pub fn get_context(&self) -> LLVMContextRef {
         self.context
     }
+    /// Retrieves the current function being built
     pub fn get_current_function(&self) -> LLVMValueRef {
         self.current_function.expect("No function is currently being processed")
     }
+    /// Sets the current function being built
     pub fn set_current_function(&mut self, function: LLVMValueRef) {
         self.current_function = Some(function)
     }
+    /// Retrieves the module
     pub fn get_module(&self) -> LLVMModuleRef {
         self.module
     }
+    /// Retrieves the builder
     pub fn get_builder(&self) -> LLVMBuilderRef {
         self.builder
     }
+    /// Retrieves the current insert block
     pub fn get_current_block(&self) -> LLVMBasicBlockRef {
         block::get_current_block(self.builder)
     }
@@ -67,7 +74,8 @@ impl IRGenerator {
         &self.store
     }
 
-    pub fn generate_ir(mut input: ModAST) -> LLVMModuleRef {
+    /// Generates LLVM IR from a module
+    pub fn generate_ir(mut input: Module) -> LLVMModuleRef {
         let mut ir_generator: IRGenerator = IRGenerator::new();
 
         let module: &mut BinaryHeap<ModElement> = input.get_children();
@@ -85,6 +93,7 @@ impl IRGenerator {
         ir_generator.module
     }
 
+    /// Routes the LLVM IR generation process
     pub fn ir_router(&mut self, node: &ASTNode, sym_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {        
         let node_ir: LLVMValueRef = match &node.get_element() {
             SyntaxElement::ModuleExpression |
@@ -93,63 +102,80 @@ impl IRGenerator {
             },
 
             // top level expressions
-            SyntaxElement::FunctionDeclaration { name, parameters, return_type } => {
-                self.generate_fn_declaration_ir(name, parameters, return_type, &node.get_children(), sym_table_stack)
+            SyntaxElement::FunctionDeclaration => {
+                self.generate_fn_declaration_ir(node)
             },
-            SyntaxElement::EnumDeclaration { name, variants } => {
-                self.generate_enum_declaration_ir(name, variants)
+            SyntaxElement::EnumDeclaration => {
+                self.generate_enum_declaration_ir(node)
             },
-            SyntaxElement::StructDeclaration { name, fields } => {
-                self.generate_struct_declaration_ir(name, fields)
+            SyntaxElement::StructDeclaration => {
+                self.generate_struct_declaration_ir(node)
             },
             
             // block expresions
-            SyntaxElement::DoWhileLoop { body, condition } => { // doing the important ones first of course
-                self.generate_do_while_ir(body, condition, sym_table_stack)
+            SyntaxElement::DoWhileLoop => { 
+                self.generate_do_while_ir(node)
             },
-            SyntaxElement::WhileLoop { condition, body } => {
-                self.generate_while_ir(condition, body, sym_table_stack)
+            SyntaxElement::WhileLoop => {
+                self.generate_while_ir(node)
             },
-            SyntaxElement::ForLoop { initializer, condition, increment, body } => {
-                self.generate_for_ir(initializer, condition, increment, body, sym_table_stack)
+            SyntaxElement::ForLoop => {
+                self.generate_for_ir(node)
             },
-            SyntaxElement::IfStatement { condition, then_branch, else_branch } => {
-                self.generate_if_ir(condition, then_branch, else_branch, sym_table_stack)
+            SyntaxElement::IfStatement => {
+                self.generate_if_ir(node)
             },
         
             // statements
-            SyntaxElement::BinaryExpression { left, operator, right } => {
-                self.generate_binary_exp_ir(left, operator, right, sym_table_stack)    
+            SyntaxElement::BinaryExpression => {
+                self.generate_binary_exp_ir(node)    
             },
-            SyntaxElement::MatchStatement { to_match, arms } => {
-                self.generate_match_ir(to_match, arms)
+            SyntaxElement::MatchStatement => {
+                self.generate_match_ir(node)
             },
-            SyntaxElement::FunctionCall { name, arguments } => {
-                self.generate_fn_call_ir(name, arguments)
+            SyntaxElement::FunctionCall => {
+                self.generate_fn_call_ir(node)
             },
-            SyntaxElement::Initialization { variable, data_type, value } => {
-                self.generate_initialization_ir(variable, data_type, value)
+            SyntaxElement::Initialization => {
+                self.generate_initialization_ir(node)
             },
             SyntaxElement::Assignment { variable, value } => {
                 self.generate_assignment_ir(variable, value, sym_table_stack)
             },
-            SyntaxElement::UnaryExpression { operator, operand } => {
-                self.generate_unary_ir(operator, operand, sym_table_stack)
+            SyntaxElement::UnaryExpression => {
+                self.generate_unary_ir(node)
             },
-            SyntaxElement::Return { value } => {
-                self.generate_return_ir(value, sym_table_stack)
+            SyntaxElement::Return => {
+                self.generate_return_ir(node)
             },
             
             // primitive
-            SyntaxElement::Literal { data_type, value } => {
-                self.generate_literal_ir(*data_type, value.to_string())                           
+            SyntaxElement::Literal(value) => {
+                self.generate_literal_ir(node)                           
             },
-            SyntaxElement::Variable { data_type, name } => {
-                self.generate_var_ir(data_type, name)
+            SyntaxElement::Variable => {
+                self.generate_var_ir(node)
             },
-
-            _ => panic!("Unrecognized syntax element {:?}", node)
-
+            SyntaxElement::NoExpression => todo!(),
+            SyntaxElement::Mutable(_) => todo!(),
+            SyntaxElement::Identifier(_) => todo!(),
+            SyntaxElement::Operator(_) => todo!(),
+            SyntaxElement::Operand => todo!(),
+            SyntaxElement::Type(_) => todo!(),
+            SyntaxElement::ElifStatement => todo!(),
+            SyntaxElement::ElseStatement => todo!(),
+            SyntaxElement::Break => todo!(),
+            SyntaxElement::Continue => todo!(),
+            SyntaxElement::MatchArm => todo!(),
+            SyntaxElement::BlockExpression => todo!(),
+            SyntaxElement::LoopInitializer => todo!(),
+            SyntaxElement::LoopIncrement => todo!(),
+            SyntaxElement::Condition => todo!(),
+            SyntaxElement::Action => todo!(),
+            SyntaxElement::Variant => todo!(),
+            SyntaxElement::AssignedValue => todo!(),
+            SyntaxElement::Field => todo!(),
+            SyntaxElement::Parameter => todo!(),
         };
 
         node_ir 

@@ -1,80 +1,192 @@
-/*
-Defines acceptable tokens in the program
- */
-
+/// Defines acceptable tokens in the program
 #[derive(PartialEq, Debug, Clone)]
 pub enum Token {
+    /// End of file
     EOF,
 
-    /// Assignment
+    /// --- ASSIGNMENT SECTION --- ///
+    /// Let
     LET,
-    PLUSASSIGN, // +=
+
+    /// Increment (+=)
+    PLUSASSIGN, 
+
+    /// Decrement (-=)
     MINUSASSIGN,
+
+    /// Multiply increment (*=)
     MULTIPLYASSIGN,
+
+    /// Divide increment (/=) 
     DIVIDEASSIGN,
+
+    /// Modulo decrement (%=) 
     MODASSIGN,
 
-    /// Multi-char
+
+    /// --- MULTI-CHARACTER SECTION --- ///
+    /// Integer
     INT(Vec<char>),
+
+    /// Identifier
     IDENTIFIER(Vec<char>),
 
-    /// Binary operations
+    /// --- BINARY OP SECTION --- ///
+    /// Division
     DIVIDE,
+
+    /// Floor division
     FLOORDIVISION,
+
+    /// Subtraction
     MINUS,
+
+    /// Addition
     PLUS,
+
+    /// Assignment
     EQUAL,
+
+    /// Modulo (%)
     MOD,
+
+    /// Multiply
     MULTIPLY,
+
+    /// Exponent
     EXPONENT,
 
-    /// Scope changing
+
+    /// --- SCOPE CHANGING SECTION --- ///
+    /// Function 
     FUNCTION,
+    
+    /// Struct
     STRUCT,
+
+    /// Enum
     ENUM,
+
+    /// If
     IF,
+
+    /// Else if
     ELIF,
+
+    /// Else
     ELSE,
+
+    /// Return
     RETURN,
+
+    /// For
     FOR,
+
+    /// While
     WHILE,
+
+    /// Do
     DO,
+
+    /// Break
     BREAK,
+
+    /// Continue
     CONTINUE,
+
+    /// Match expression
     MATCH,
+
+    /// Arrow
     ARROW,
 
-    /// Special chars
-    RBRACKET, // }
-    LBRACKET, // {
-    LPAREN, // (
-    RPAREN, // )
+
+    ///  --- SPECIAL CHARACTER SECTION --- ///
+    /// Right bracket }
+    RBRACKET,
+
+    /// Left bracket {
+    LBRACKET,
+
+    /// Left parenthesis (
+    LPAREN,
+
+    /// Right parenthesis
+    RPAREN,
+
+    /// Semicolon
     SEMICOLON,
+
+    /// Comma
     COMMA,
+
+    /// Colon
     COLON,
-    LBRACE, // [
-    RBRACE, // ]
+
+    /// Left bracket [
+    LBRACE,
+
+    ///  Right bracket ]
+    RBRACE,
+
+    /// Dot
     DOT,
+    
+    /// Double colon ::
     COLONCOLON,
 
-    /// Boolean
+
+    /// --- BOOLEAN SECTION --- ///
+    /// Logical and (&&)
     LOGICALAND,
+
+    /// Logical or (|)
     LOGICALOR,
+
+    /// Logical not (!)
     LOGICALNOT,
+
+    /// 1
     TRUE,
+
+    /// 0
     FALSE,
+
+    /// Less than (<)
     LESSTHAN,
+
+    /// Greater than (>)
     GREATERTHAN,
+
+    /// Not equal (!=)
     NOTEQUAL,
-    EQUALEQUAL, // ==
+
+    /// Equality check (==)
+    EQUALEQUAL, 
+
+    /// Less than or equal to (<=)
     LESSTHANEQUAL,
+
+    /// Greater than or equal to (>=)
     GREATERTHANEQUAL,
 
-    /// Tokens for type annotations, not actual types. See data_type for acceptable types
+    
+    /// --- TYPE ANNOTATION SECTION --- ///
+    /// Integer type
     TINTEGER,
+
+    /// Float type
     TFLOAT,
+
+    /// Boolean type
     TBOOLEAN,
+
+    /// String type
     TSTRING,
+
+    /// Character type
     TCHAR,
+
+    /// Void type
     TVOID,
 }

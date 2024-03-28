@@ -1,6 +1,7 @@
 use threadpool::ThreadPool;
 use std::sync::mpsc::{channel, Sender};
 
+/// Executes a function in parallel using a thread pool, collecting the results
 pub fn thread_pool_executor<T, F, I>(input: Vec<I>, predicate: F) -> Vec<T>
     where T: Send + 'static,
           F: FnOnce() -> T + Send + 'static + Clone, 

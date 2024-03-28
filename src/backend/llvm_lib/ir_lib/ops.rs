@@ -121,6 +121,7 @@ pub fn generate_bitwise_not(builder: *mut llvm::LLVMBuilder, operand_ir: LLVMVal
     }
 }
 
+/// logical not
 pub fn generate_logical_not(builder: *mut llvm::LLVMBuilder, context: LLVMContextRef, operand_ir: LLVMValueRef, name: CString) -> LLVMValueRef {
     unsafe {
         core::LLVMBuildICmp(builder, llvm::LLVMIntPredicate::LLVMIntEQ, operand_ir, core::LLVMConstInt(core::LLVMInt1TypeInContext(context), 0, 0), name.as_ptr())    

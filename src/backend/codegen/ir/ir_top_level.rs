@@ -14,9 +14,10 @@ use crate::{
     }, 
     frontend::{
         ast::{
-            ast_struct::ASTNode, data_type::DataType, syntax_element::FunctionParameter
+            ast_struct::ASTNode, data_type::DataType,
     }, 
-    symbol_table::symbol_table::SymbolTableStack}, 
+    symbol_table::symbol_table_struct::SymbolTableStack
+}, 
 };
 
 use llvm::prelude::LLVMValueRef;
@@ -35,11 +36,11 @@ impl IRGenerator {
             None => void_type(self.get_context()),
         };
     
-        let mut llvm_param_types = Vec::new();
-        for param in parameters {
-            let param_type = self.map_data_type(&param.get_data_type());
-            llvm_param_types.push(param_type);
-        }
+    //     let mut llvm_param_types = Vec::new();
+    //     for param in parameters {
+    //         let param_type = self.map_data_type(&param.get_data_type());
+    //         llvm_param_types.push(param_type);
+    //     }
     
         let function_type = create_function_type(llvm_return_type, &llvm_param_types, false);
         let function = add_function_to_module(self.get_module(), name, function_type);
@@ -47,13 +48,14 @@ impl IRGenerator {
 
         position_builder(self.get_builder(), entry_bb);
     
-        self.set_current_function(function);
+    //     self.set_current_function(function);
     
-        for node in body.iter() {
-            self.ir_router(node, symbol_table_stack);
-        }
+    //     for node in body.iter() {
+    //         self.ir_router(node, symbol_table_stack);
+    //     }
     
-        function
+    //     function
+    std::ptr::null_mut()
     }
     
 
@@ -68,7 +70,8 @@ impl IRGenerator {
         std::ptr::null_mut()
     }
 
-    pub fn generate_struct_declaration_ir(&mut self, name: &String, fields: &Vec<(String, DataType)>) -> LLVMValueRef {
+    /// TODO
+    pub fn generate_struct_declaration_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
         std::ptr::null_mut()
    
     }

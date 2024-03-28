@@ -23,4 +23,6 @@ impl Store {
     pub fn get_allocation(&self, variable_name: &str) -> Option<&LLVMValueRef> {
         self.allocations.get(variable_name)
     }
+
+    
 }

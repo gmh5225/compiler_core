@@ -17,7 +17,7 @@ pub fn create_integer(val: i64, context: LLVMContextRef) -> LLVMValueRef {
     }
 }
 
-// creates a float
+/// creates a float
 pub fn create_float(val: f64, context: LLVMContextRef) -> LLVMValueRef {
     unsafe {
         core::LLVMConstReal(core::LLVMDoubleTypeInContext(context), val)
@@ -129,6 +129,7 @@ pub fn create_break_statement(builder: LLVMBuilderRef, break_block: LLVMBasicBlo
     }
 }
 
+/// creates a function
 pub fn create_function_type(return_type: LLVMTypeRef, param_types: &[LLVMTypeRef], is_var_arg: bool) -> LLVMTypeRef {
     unsafe {
         core::LLVMFunctionType(
@@ -140,6 +141,7 @@ pub fn create_function_type(return_type: LLVMTypeRef, param_types: &[LLVMTypeRef
     }
 }
 
+/// adds a function to a module
 pub fn add_function_to_module(module: LLVMModuleRef, function_name: &str, function_type: LLVMTypeRef) -> LLVMValueRef {
     let c_name = CString::new(function_name).expect("Failed to create CString for function name");
     unsafe {
@@ -147,12 +149,14 @@ pub fn add_function_to_module(module: LLVMModuleRef, function_name: &str, functi
     }
 }
 
+/// creates a conditional
 pub fn create_cond_br(builder: LLVMBuilderRef, condition: LLVMValueRef, then_bb: LLVMBasicBlockRef, else_bb: LLVMBasicBlockRef) -> LLVMValueRef {
     unsafe {
         core::LLVMBuildCondBr(builder, condition, then_bb, else_bb)
     }
 }
 
+/// creates a break statement
 pub fn create_br(builder: LLVMBuilderRef, target_bb: LLVMBasicBlockRef) -> LLVMValueRef {
     unsafe {
         core::LLVMBuildBr(builder, target_bb)

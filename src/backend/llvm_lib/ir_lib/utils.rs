@@ -4,12 +4,14 @@ use std::fs;
 use llvm_sys::core;
 use llvm_sys::prelude::LLVMModuleRef;
 
+/// Gets the parameter of a function
 pub fn get_param(function: *mut llvm::LLVMValue, index: u32) -> *mut llvm::LLVMValue{
     unsafe {
         core::LLVMGetParam(function, index)
     }
 }
 
+/// Writes an LLVM module to a file
 pub fn write_to_file(module: &LLVMModuleRef, file_name: &str) -> Result<(), String> {
     if module.is_null() {
         return Err("LLVM module reference is null".into());

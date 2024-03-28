@@ -141,12 +141,12 @@ impl IRGenerator {
             },
             
             // primitive
-            // SyntaxElement::Literal { data_type, value } => {
-            //     self.generate_literal_ir(*data_type, value.to_string())                           
-            // },
-            // SyntaxElement::Variable { data_type, name } => {
-            //     self.generate_var_ir(data_type, name)
-            // },
+            SyntaxElement::Literal { data_type, value } => {
+                self.generate_literal_ir(*data_type, value.to_string())                           
+            },
+            SyntaxElement::Variable { data_type, name } => {
+                self.generate_var_ir(data_type, name)
+            },
 
             _ => panic!("Unrecognized syntax element {:?}", node)
 

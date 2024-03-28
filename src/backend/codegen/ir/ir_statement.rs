@@ -98,14 +98,15 @@ impl IRGenerator {
 
     pub fn generate_assignment_ir(&mut self, variable: &String, value: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
         let new_value_ir: *mut LLVMValue = self.ir_router(value, symbol_table_stack);
+        let builder = self.get_builder();
 
         let store = self.get_store();
         let store_locked = store.lock().unwrap();
         let variable_alloc: Option<&*mut LLVMValue> = store_locked.get_allocation(variable);
-        
+
         match variable_alloc {
             Some(var) => {
-                var::reassign_var(self.get_builder(), var.clone(), new_value_ir);
+                var::reassign_var(builder, var.clone(), new_value_ir);
             }
             None => {
                 panic!("Missing var alloc")

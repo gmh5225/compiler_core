@@ -4,7 +4,9 @@ use crate::{
     backend::{
         codegen::ir::ir_codegen_core::IRGenerator, 
         llvm_lib::ir_lib::{
-            element::{create_break_statement, create_continue_statement}, ops, return_type::nonvoid_return, var::reassign_var
+            element::{create_break_statement, create_continue_statement}, ops, return_type::nonvoid_return, 
+            var
+
         }
     }, frontend::{ast::{
         ast_struct::ASTNode, data_type::DataType, syntax_element::{MatchArm, SyntaxElement}
@@ -97,9 +99,18 @@ impl IRGenerator {
     pub fn generate_assignment_ir(&mut self, variable: &String, value: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
         let new_value_ir: *mut LLVMValue = self.ir_router(value, symbol_table_stack);
 
-        let variable_alloc: Option<&*mut LLVMValue> = self.get_store().get_allocation(variable);
-
-        reassign_var(self.get_builder(), variable_alloc, new_value_ir);
+        let store = self.get_store();
+        let store_locked = store.lock().unwrap();
+        let variable_alloc: Option<&*mut LLVMValue> = store_locked.get_allocation(variable);
+        
+        match variable_alloc {
+            Some(var) => {
+                var::reassign_var(self.get_builder(), var.clone(), new_value_ir);
+            }
+            None => {
+                panic!("Missing var alloc")
+            }
+        }
 
         new_value_ir
     }
@@ -134,30 +145,30 @@ impl IRGenerator {
     pub fn generate_return_ir(&mut self, value: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
         if let Some(symbol_table_arc) = symbol_table_stack.lock().unwrap().peek() {
             let symbol_table = symbol_table_arc.lock().unwrap();
+            std::ptr::null_mut()
+            // match value.get_element() {
+            //     SyntaxElement::Variable => {
+            //         match symbol_table.get(&name) {
+            //             Some(symbol_info) => {
+            //                 let llvm_val: LLVMValueRef = match &symbol_info.get_value() {
+            //                     SymbolValue::StrValue(_) => {
+            //                         unimplemented!("Need to add strvalues to implementation")
+            //                     },
+            //                     SymbolValue::Node(node_val) => {
+            //                         self.ir_router(node_val, symbol_table_stack)
+            //                     },
+            //                 };
     
-            match value.get_element() {
-                SyntaxElement::Variable { name, .. } => {
-                    match symbol_table.get(&name) {
-                        Some(symbol_info) => {
-                            let llvm_val: LLVMValueRef = match &symbol_info.get_value() {
-                                SymbolValue::StrValue(_) => {
-                                    unimplemented!("Need to add strvalues to implementation")
-                                },
-                                SymbolValue::Node(node_val) => {
-                                    self.ir_router(node_val, symbol_table_stack)
-                                },
-                            };
-    
-                            nonvoid_return(self.get_builder(), llvm_val)
-                        },
-                        None => panic!("Variable not found in symbol table: {}", name),
-                    }
-                },
-                _ => {
-                    let val: *mut LLVMValue = self.ir_router( value, symbol_table_stack);
-                    nonvoid_return(self.get_builder(), val)
-                }
-            }
+            //                 nonvoid_return(self.get_builder(), llvm_val)
+            //             },
+            //             None => panic!("Variable not found in symbol table: {}", name),
+            //         }
+            //     },
+            //     _ => {
+            //         let val: *mut LLVMValue = self.ir_router( value, symbol_table_stack);
+            //         nonvoid_return(self.get_builder(), val)
+            //     }
+            // }
         } else {
             panic!("No symbol table found in the stack");
         }

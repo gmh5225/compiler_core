@@ -122,10 +122,11 @@ impl ASTNode {
         self.children.extend(to_add);
     }
     pub fn is_return(&self) -> bool {
-        match &self.element {
-            SyntaxElement::Return { value: _ } => true,
-            _ => false,
-        }
+        // match &self.element {
+        //     SyntaxElement::Return { value: _ } => true,
+        //     _ => false,
+        // }
+        true
     }
 }
 

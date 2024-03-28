@@ -8,8 +8,8 @@ use crate::{
                 add_function_to_module, create_function_type
             }, 
             init_ir::create_basic_block, 
-            types::{int_type, void_type}, 
-            utils::position_builder
+            types::void_type, 
+            block::position_builder
         }
     }, 
     frontend::{

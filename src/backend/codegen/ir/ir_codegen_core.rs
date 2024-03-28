@@ -26,7 +26,7 @@ pub struct IRGenerator {
     module: LLVMModuleRef,
     builder: LLVMBuilderRef,
     current_function: Option<LLVMValueRef>,
-    store: Store,
+    store: Arc<Mutex<Store>>,
 }
 
 impl IRGenerator {
@@ -34,7 +34,7 @@ impl IRGenerator {
         let context: LLVMContextRef = init_ir::create_context();
         let module: LLVMModuleRef = init_ir::create_module("dummy_module", context);
         let builder: LLVMBuilderRef = init_ir::create_builder(context);
-        let mut store = Store::new();
+        let store: Arc<Mutex<Store>> = Arc::new(Mutex::new(Store::new()));
         Self {
             context,
             module,
@@ -63,8 +63,8 @@ impl IRGenerator {
     pub fn get_current_block(&self) -> LLVMBasicBlockRef {
         block::get_current_block(self.builder)
     }
-    pub fn get_store(&self) -> Store {
-        self.store
+    pub fn get_store(&mut self) -> &Arc<Mutex<Store>> {
+        &self.store
     }
 
     pub fn generate_ir(mut input: ModAST) -> LLVMModuleRef {
@@ -141,12 +141,12 @@ impl IRGenerator {
             },
             
             // primitive
-            SyntaxElement::Literal { data_type, value } => {
-                self.generate_literal_ir(*data_type, value.to_string())                           
-            },
-            SyntaxElement::Variable { data_type, name } => {
-                self.generate_var_ir(data_type, name)
-            },
+            // SyntaxElement::Literal { data_type, value } => {
+            //     self.generate_literal_ir(*data_type, value.to_string())                           
+            // },
+            // SyntaxElement::Variable { data_type, name } => {
+            //     self.generate_var_ir(data_type, name)
+            // },
 
             _ => panic!("Unrecognized syntax element {:?}", node)
 

@@ -7,45 +7,45 @@ use crate::frontend::{
 impl SemAnalysis {
     /// Completes semantic analysis on a function declaration
     pub fn sem_function_dec(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
-        let mut errors: Vec<ErrorType> = Vec::new();
+        // let mut errors: Vec<ErrorType> = Vec::new();
 
-        let mut has_body: bool = false;
+        // let mut has_body: bool = false;
 
-        match self.get_current_sym_table() {
-            Ok(table) => {
-                let locked_table = table.lock().unwrap();
+        // match self.get_current_sym_table() {
+        //     Ok(table) => {
+        //         let locked_table = table.lock().unwrap();
 
-                for child in node.get_children() {
-                    match child.get_element() {
-                        SyntaxElement::Parameter => {},
-                        SyntaxElement::Type(_fn_type) => {},
-                        SyntaxElement::FunctionDeclaration => {},
+        //         for child in node.get_children() {
+        //             match child.get_element() {
+        //                 SyntaxElement::Parameter => {},
+        //                 SyntaxElement::Type(_fn_type) => {},
+        //                 SyntaxElement::FunctionDeclaration => {},
 
-                        SyntaxElement::BlockExpression => {
-                            has_body = true;
+        //                 SyntaxElement::BlockExpression => {
+        //                     has_body = true;
 
-                            match self.increment_sym_table_stack_pointer() {
-                                Ok(_) => {}
-                                Err(e) => errors.push(e)
-                            }
+        //                     match self.increment_sym_table_stack_pointer() {
+        //                         Ok(_) => {}
+        //                         Err(e) => errors.push(e)
+        //                     }
 
-                            self.sem_analysis_router(&child);
-                        }
-                        _ => panic!("Unexpected node: {:?}", child)
-                    }
-                }
-                if !has_body {
-                    errors.push(ErrorType::DevError{})
-                }
+        //                     self.sem_analysis_router(&child);
+        //                 }
+        //                 _ => panic!("Unexpected node: {:?}", child)
+        //             }
+        //         }
+        //         if !has_body {
+        //             errors.push(ErrorType::DevError{})
+        //         }
         
-                if !errors.is_empty() {
-                    return Some(errors);
-                }
-            }
-            Err(e) => {
-                panic!("Missing symbol table")
-            }
-        }
+        //         if !errors.is_empty() {
+        //             return Some(errors);
+        //         }
+        //     }
+        //     Err(e) => {
+        //         panic!("Missing symbol table")
+        //     }
+        // }
         None
     }
     

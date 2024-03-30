@@ -1,13 +1,13 @@
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use crate::{constants::DEFAULT_MUTABILITY_VARIABLES, frontend::{
+use crate::frontend::{
     ast::{
         ast_struct::ASTNode, 
         data_type::DataType, syntax_element::SyntaxElement
     }, 
     symbol_table::symbol_table_struct::{SymbolInfo, SymbolTable, SymbolTableStack, SymbolValue}, 
     utils::error::ErrorType,
-}};
+};
 
 
 impl SymbolTableStack {

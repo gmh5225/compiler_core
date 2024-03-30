@@ -151,6 +151,13 @@ impl ASTNode {
     pub fn add_children(&mut self, to_add: Vec<ASTNode>) {
         self.children.extend(to_add);
     }
+    pub fn is_return(&self) -> bool {
+        // match &self.element {
+        //     SyntaxElement::Return { value: _ } => true,
+        //     _ => false,
+        // }
+        true
+    }
 }
 
 impl fmt::Display for ASTNode {

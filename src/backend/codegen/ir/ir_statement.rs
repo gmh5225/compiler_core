@@ -2,20 +2,21 @@ use std::{ffi::CString, sync::{Arc, Mutex}};
 
 use crate::{
     backend::{
-        codegen::ir::ir_codegen_core::IRGenerator, 
+        codegen::{ir::ir_codegen_core::IRGenerator, store::Store}, 
         llvm_lib::ir_lib::{
             element::{create_break_statement, create_continue_statement}, ops, return_type::nonvoid_return, 
             var
 
         }
-    }, frontend::{ast::
-        ast_struct::ASTNode, 
+    }, frontend::{ast::{
+        ast_struct::ASTNode, syntax_element::SyntaxElement}, 
         symbol_table::symbol_table_struct::{SymbolTableStack, SymbolValue}} 
 };
 
 use llvm::prelude::LLVMValueRef;
 use llvm::LLVMValue;
 use llvm::LLVMBasicBlock;
+use llvm::LLVMBuilder;
 
 impl IRGenerator {
     /// Generates LLVM IR for a binary expression 
@@ -99,33 +100,68 @@ impl IRGenerator {
 
     }
 
-    pub fn generate_assignment_ir(&mut self, variable: &String, value: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
-        let new_value_ir: *mut LLVMValue = self.ir_router(value, symbol_table_stack);
-        let builder = self.get_builder();
-
-        let store = self.get_store();
-        let store_locked = store.lock().unwrap();
-        let variable_alloc: Option<&*mut LLVMValue> = store_locked.get_allocation(variable);
-
-        match variable_alloc {
-            Some(var) => {
-                var::reassign_var(builder, var.clone(), new_value_ir);
+    pub fn generate_assignment_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
+        if let SyntaxElement::Assignment = node.get_element() {
+            let children: Vec<ASTNode> = node.get_children();
+    
+            let mut var_node: Option<&ASTNode> = None;
+            let mut val_node: Option<&ASTNode> = None;
+    
+            for child in children.iter() {
+                match child.get_element() {
+                    SyntaxElement::Variable => {
+                        var_node = Some(child);
+                    },
+                    SyntaxElement::AssignedValue => {
+                        val_node = Some(child);
+                    },
+                    _ => panic!("Unexpected node: {:?}", child)
+                }
             }
-            None => {
-                panic!("Missing var alloc")
+    
+            let var_node: &ASTNode = var_node.expect("Assignment missing variable.");
+            let val_node: &ASTNode = val_node.expect("Assignment missing value.");
+    
+            let mut var_id: Option<String> = None;
+    
+            for child in var_node.get_children() {
+                match child.get_element() {
+                    SyntaxElement::Identifier(name) => {
+                        var_id = Some(name.clone());
+                    }
+                    _ => panic!("Unexpected node: {:?}", child)
+                }
             }
+    
+            let var_id: String = var_id.expect("Variable name missing.");
+    
+            let new_value_ir: *mut LLVMValue = self.ir_router(val_node);
+    
+            let builder: *mut LLVMBuilder = self.get_builder();
+    
+            let store: &Arc<Mutex<Store>> = self.get_store();
+            let store_locked = store.lock().unwrap();
+    
+            let variable_alloc: Option<&*mut LLVMValue> = Some(store_locked.get_allocation(&var_id).expect("Missing var alloc"));
+    
+            var::reassign_var(builder, *variable_alloc.unwrap(), new_value_ir);
+    
+            new_value_ir
+        } else {
+            panic!("Expected Assignment node, got: {:?}", node.get_element());
         }
-
-        new_value_ir
     }
+    
 
     /// Generates LLVM IR for a break statement
-    pub fn generate_break_ir(&mut self, node: &ASTNode) {
-        // create_break_statement(self.get_builder(), break_block)
+    pub fn generate_break_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
+        create_break_statement(self.get_builder(), self.get_current_block());
+        std::ptr::null_mut()
     }
 
-    pub fn generate_continue_ir(&mut self, continue_block: *mut LLVMBasicBlock) {
-        create_continue_statement(self.get_builder(), continue_block)
+    pub fn generate_continue_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
+        create_continue_statement(self.get_builder(), self.get_current_block());
+        std::ptr::null_mut()
     }
 
     /// Generates LLVM IR for a unary operation 
@@ -149,9 +185,9 @@ impl IRGenerator {
         std::ptr::null_mut()
     }
 
-    pub fn generate_return_ir(&mut self, value: &Box<ASTNode>, symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {
-        if let Some(symbol_table_arc) = symbol_table_stack.lock().unwrap().peek() {
-            let symbol_table = symbol_table_arc.lock().unwrap();
+    pub fn generate_return_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
+        // if let Some(symbol_table_arc) = symbol_table_stack.lock().unwrap().peek() {
+        //     let symbol_table = symbol_table_arc.lock().unwrap();
             std::ptr::null_mut()
             // match value.get_element() {
             //     SyntaxElement::Variable => {
@@ -176,8 +212,8 @@ impl IRGenerator {
             //         nonvoid_return(self.get_builder(), val)
             //     }
             // }
-        } else {
-            panic!("No symbol table found in the stack");
-        }
+        // } else {
+        //     panic!("No symbol table found in the stack");
+        // }
     }
 }

@@ -149,14 +149,14 @@ pub fn add_function_to_module(module: LLVMModuleRef, function_name: &str, functi
     }
 }
 
-/// creates a conditional
+/// creates a conditional branch
 pub fn create_cond_br(builder: LLVMBuilderRef, condition: LLVMValueRef, then_bb: LLVMBasicBlockRef, else_bb: LLVMBasicBlockRef) -> LLVMValueRef {
     unsafe {
         core::LLVMBuildCondBr(builder, condition, then_bb, else_bb)
     }
 }
 
-/// creates a break statement
+/// creates an unconditional branch
 pub fn create_br(builder: LLVMBuilderRef, target_bb: LLVMBasicBlockRef) -> LLVMValueRef {
     unsafe {
         core::LLVMBuildBr(builder, target_bb)

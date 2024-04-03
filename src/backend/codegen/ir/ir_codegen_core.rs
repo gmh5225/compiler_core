@@ -15,9 +15,9 @@ use crate::{
     },
     frontend::{
         ast::{
-            ast_struct::{ASTNode, Module, ModElement, AST},
+            ast_struct::{ASTNode, ModElement, Module, AST},
             syntax_element::SyntaxElement, 
-        }, symbol_table::symbol_table_struct::SymbolTableStack
+        }, symbol_table::symbol_table_struct::{SymbolTable, SymbolTableStack}
     },
 };
 
@@ -26,8 +26,10 @@ pub struct IRGenerator {
     context: LLVMContextRef,
     module: LLVMModuleRef,
     builder: LLVMBuilderRef,
-    current_function: Option<LLVMValueRef>,
     store: Arc<Mutex<Store>>,
+    current_function: Option<LLVMValueRef>,
+    current_stack: Option<Arc<Mutex<SymbolTableStack>>>,
+    current_stack_pointer: usize,
 }
 
 impl IRGenerator {
@@ -40,8 +42,10 @@ impl IRGenerator {
             context,
             module,
             builder,
-            current_function: None,
             store,
+            current_function: None,
+            current_stack: None,
+            current_stack_pointer: 0,
         }
     
     }
@@ -74,6 +78,30 @@ impl IRGenerator {
         &self.store
     }
 
+    pub fn increment_stack_pointer(&mut self) {
+        self.current_stack_pointer += 1;
+    }
+
+    pub fn decrement_stack_pointer(&mut self) {
+        self.current_stack_pointer -= 1;
+    }
+
+    pub fn reset_stack_pointer(&mut self) {
+        self.current_stack_pointer = 0;
+    }
+    
+    pub fn get_stack(&self) -> Option<Arc<Mutex<SymbolTableStack>>> {
+        self.current_stack.clone()
+    }
+
+    pub fn set_stack(&mut self, new_stack: Arc<Mutex<SymbolTableStack>>) {
+        self.current_stack = Some(new_stack);
+    }
+
+    pub fn get_stack_pointer(&self) -> usize {
+        self.current_stack_pointer
+    }
+
     /// Generates LLVM IR from a module
     pub fn generate_ir(mut input: Module) -> LLVMModuleRef {
         let mut ir_generator: IRGenerator = IRGenerator::new();
@@ -81,12 +109,15 @@ impl IRGenerator {
         let module: &mut BinaryHeap<ModElement> = input.get_children();
 
         while let Some(mod_element) = module.pop() {
-            let ast: AST = mod_element.get_ast();
             let symbol_table_stack: Arc<Mutex<SymbolTableStack>> = mod_element.get_sym_table_stack();
+            ir_generator.set_stack(symbol_table_stack);
+
+            let ast: AST = mod_element.get_ast();
             let root = ast.get_root();
-            ir_generator.ir_router(&root, &symbol_table_stack);
-            for child in ast.get_root().get_children() {
-                ir_generator.ir_router(&child, &symbol_table_stack);
+            ir_generator.ir_router(&root);
+
+            for child in root.get_children() {
+                ir_generator.ir_router(&child);
             }
             
         }
@@ -94,7 +125,7 @@ impl IRGenerator {
     }
 
     /// Routes the LLVM IR generation process
-    pub fn ir_router(&mut self, node: &ASTNode, sym_table_stack: &Arc<Mutex<SymbolTableStack>>) -> LLVMValueRef {        
+    pub fn ir_router(&mut self, node: &ASTNode) -> LLVMValueRef {        
         let node_ir: LLVMValueRef = match &node.get_element() {
             SyntaxElement::ModuleExpression |
             SyntaxElement::TopLevelExpression => {
@@ -150,7 +181,7 @@ impl IRGenerator {
             },
             
             // primitive
-            SyntaxElement::Literal(value) => {
+            SyntaxElement::Literal(_) => {
                 self.generate_literal_ir(node)                           
             },
             SyntaxElement::Variable => {
@@ -167,7 +198,9 @@ impl IRGenerator {
             SyntaxElement::Break => todo!(),
             SyntaxElement::Continue => todo!(),
             SyntaxElement::MatchArm => todo!(),
-            SyntaxElement::BlockExpression => todo!(),
+
+            SyntaxElement::BlockExpression => todo!(), // TODO CRITICAL IN NEW DESIGN
+
             SyntaxElement::LoopInitializer => todo!(),
             SyntaxElement::LoopIncrement => todo!(),
             SyntaxElement::Condition => todo!(),

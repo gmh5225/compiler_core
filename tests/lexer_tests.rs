@@ -334,3 +334,15 @@ fn test_dot_and_coloncolon_operators() {
     ];
     assert_eq!(result, Ok(expected));
 }
+
+#[test]
+fn test_block_comments() {
+    let input = "* / /* */ * /* * / /*";
+    let result = Lexer::lex(input);
+    let expected = vec![
+        Token::MULTIPLY, Token::DIVIDE, Token::BCOMMENTBEGIN,
+        Token::BCOMMENTEND, Token::MULTIPLY, Token::BCOMMENTBEGIN,
+        Token::MULTIPLY, Token::DIVIDE, Token::BCOMMENTBEGIN, Token::EOF,
+    ];
+    assert_eq!(result, Ok(expected));
+}

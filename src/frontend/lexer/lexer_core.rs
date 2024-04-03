@@ -82,7 +82,14 @@ impl Lexer {
         let tok: Result<Token, ErrorType> = match self.current {
             '~' => Ok(Token::EOF),
 
-            '/' => Ok(Token::DIVIDE),
+            '/' => {
+                if self.peek_char() == '*' {
+                    self.read_char(); 
+                    Ok(Token::BCOMMENTBEGIN)
+                } else {
+                    Ok(Token::DIVIDE)
+                }
+            },
             '-' => Ok(Token::MINUS),
             '+' => Ok(Token::PLUS),
             '=' => {
@@ -127,7 +134,14 @@ impl Lexer {
                     Ok(Token::LOGICALNOT)
                 }
             },
-            '*' => Ok(Token::MULTIPLY),
+            '*' => {
+                if self.peek_char() == '/' {
+                    self.read_char(); 
+                    Ok(Token::BCOMMENTEND)
+                } else {
+                    Ok(Token::MULTIPLY)
+                }
+            },
             '^' => Ok(Token::EXPONENT),
             
             '<' => {
@@ -255,6 +269,10 @@ fn get_token(raw_text: &Vec<char>) -> Result<Token, ErrorType> {
         "while" => Ok(Token::WHILE),
         "match" => Ok(Token::MATCH),
         "continue" => Ok(Token::CONTINUE),
+        "Usize" => Ok(Token::TUSIZE),
+        "Object" => Ok(Token::TOBJECT),
+        "Array" => Ok(Token::TARRAY),
+
         _ => Err(ErrorType::UnrecognizedToken { token: String::from("Unrecognized token") }),
     }
 }

@@ -315,11 +315,12 @@ fn test_braces_and_parentheses() {
 
 #[test]
 fn test_type_annotations() {
-    let input = "Integer Float Boolean String Char Void";
+    let input = "Integer Float Boolean String Char Void Usize Object Array";
     let result = Lexer::lex(input);
     let expected = vec![
         Token::TINTEGER, Token::TFLOAT, Token::TBOOLEAN,
         Token::TSTRING, Token::TCHAR, Token::TVOID,
+        Token::TUSIZE, Token::TOBJECT, Token::TARRAY,
         Token::EOF,
     ];
     assert_eq!(result, Ok(expected));

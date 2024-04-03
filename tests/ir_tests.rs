@@ -24,11 +24,13 @@ fn wrap_in_tle(ast_node: ASTNode) -> AST {
 
 #[test]
 fn test_function_declaration() {
-    let function_ast = ASTNode::new(SyntaxElement::FunctionDeclaration {
-        name: "testFunction".to_string(),
-        parameters: vec![],
-        return_type: Some(DataType::Integer),
-    });
+    let mut function_ast = ASTNode::new(SyntaxElement::FunctionDeclaration);
+
+    let fn_id = ASTNode::new(SyntaxElement::Identifier("testFunction".to_string()));
+    let fn_type = ASTNode::new(SyntaxElement::Type(DataType::Integer));
+
+    function_ast.add_child(fn_id);
+    function_ast.add_child(fn_type);
 
     let ast: AST = wrap_in_tle(function_ast);
 
@@ -38,7 +40,7 @@ fn test_function_declaration() {
 
     let mod_ast: ModAST = ast_stitch(vec![(ast, symbol_table_stack)]);
 
-//     let module = IRGenerator::generate_ir(mod_ast);
+    let module = IRGenerator::generate_ir(mod_ast);
 
     match write_to_file(&module, "output_simple_fn.ll"){
         Ok(_) => {},
@@ -51,10 +53,10 @@ fn test_function_declaration() {
 
 #[test]
 fn test_function_with_if_else() {
-    let if_condition = ASTNode::new(SyntaxElement::Literal {
-        data_type: DataType::Boolean,
-        value: "true".to_string(),
-    });
+    let mut if_condition = ASTNode::new(SyntaxElement::Condition);
+
+    let if_value = ASTNode::new(SyntaxElement::Literal("true".to_string()));
+    if_condition.add_child(if_value);
 
 //     let then_branch_node = ASTNode::new(SyntaxElement::Return {
 //         value: Box::new(ASTNode::new(SyntaxElement::Literal {
@@ -92,7 +94,7 @@ fn test_function_with_if_else() {
 
     let mod_ast: ModAST = ast_stitch(vec![(ast, symbol_table_stack)]);
 
-//     let module = IRGenerator::generate_ir(mod_ast);
+    let module = IRGenerator::generate_ir(mod_ast);
 
     match write_to_file(&module, "output_if_else_fn.ll"){
         Ok(_) => {},
@@ -138,7 +140,7 @@ fn test_function_with_while_loop() {
 
     let mod_ast: ModAST = ast_stitch(vec![(ast, symbol_table_stack)]);
 
-//     let module = IRGenerator::generate_ir(mod_ast);
+    let module = IRGenerator::generate_ir(mod_ast);
 
     match write_to_file(&module, "output_while_loop.ll"){
         Ok(_) => {},
@@ -184,7 +186,7 @@ fn test_function_with_do_while_loop() {
 
     let mod_ast: ModAST = ast_stitch(vec![(ast, symbol_table_stack)]);
 
-//     let module = IRGenerator::generate_ir(mod_ast);
+    let module = IRGenerator::generate_ir(mod_ast);
 
     match write_to_file(&module, "output_do_while_loop_fn.ll"){
         Ok(_) => {},

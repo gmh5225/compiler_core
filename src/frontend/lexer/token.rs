@@ -135,6 +135,12 @@ pub enum Token {
     /// Double colon ::
     COLONCOLON,
 
+    /// Block Comment Begin
+    BCOMMENTBEGIN,
+
+    /// Block Comment End
+    BCOMMENTEND,
+
 
     /// --- BOOLEAN SECTION --- ///
     /// Logical and (&&)
@@ -189,4 +195,13 @@ pub enum Token {
 
     /// Void type
     TVOID,
+
+    /// Unsigned Integer type
+    TUSIZE,
+
+    /// Base Object
+    TOBJECT,
+
+    /// Array Type
+    TARRAY,
 }

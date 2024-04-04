@@ -42,10 +42,10 @@ impl IRGenerator {
 
     /// TODO
     pub fn generate_var_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
-        let children: Vec<ASTNode> = node.get_children();
-        for child in children.iter() {
-            self.ir_router(child);
-        }
+        // let children: Vec<ASTNode> = node.get_children();
+        // for child in children.iter() {
+        //     self.ir_router(child);
+        // }
         std::ptr::null_mut()
     }
 }

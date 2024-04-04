@@ -53,6 +53,8 @@ fn test_function_declaration() {
 
 #[test]
 fn test_function_with_if_else() {
+    let mut if_statement = ASTNode::new(SyntaxElement::IfStatement);
+    
     let mut if_condition = ASTNode::new(SyntaxElement::Condition);
 
     let if_value = ASTNode::new(SyntaxElement::Literal("true".to_string()));

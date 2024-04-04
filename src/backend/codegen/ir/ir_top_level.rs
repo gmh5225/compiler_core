@@ -91,7 +91,7 @@ impl IRGenerator {
                     panic!("Unexpected node: {:?}", symbol_value.get_value());
                 }
             } else {
-                panic!("Function call missing");
+                panic!("Function name missing");
             }
         } else {
             panic!("Missing stack");

@@ -144,6 +144,9 @@ impl IRGenerator {
             },
             
             // block expresions
+            SyntaxElement::BlockExpression => {
+                self.generate_block_exp(node)
+            }
             SyntaxElement::DoWhileLoop => { 
                 self.generate_do_while_ir(node)
             },
@@ -187,6 +190,7 @@ impl IRGenerator {
             SyntaxElement::Variable => {
                 self.generate_var_ir(node)
             },
+            
             SyntaxElement::NoExpression => todo!(),
             SyntaxElement::Mutable(_) => todo!(),
             SyntaxElement::Identifier(_) => todo!(),
@@ -198,8 +202,6 @@ impl IRGenerator {
             SyntaxElement::Break => todo!(),
             SyntaxElement::Continue => todo!(),
             SyntaxElement::MatchArm => todo!(),
-
-            SyntaxElement::BlockExpression => todo!(), // TODO CRITICAL IN NEW DESIGN
 
             SyntaxElement::LoopInitializer => todo!(),
             SyntaxElement::LoopIncrement => todo!(),

@@ -31,9 +31,11 @@ fn test_function_declaration() {
 
     let fn_id = ASTNode::new(SyntaxElement::Identifier("testFunction".to_string()));
     let fn_type = ASTNode::new(SyntaxElement::Type(DataType::Integer));
+    let fn_block_exp = ASTNode::new(SyntaxElement::BlockExpression);
 
     function_ast.add_child(fn_id);
     function_ast.add_child(fn_type);
+    function_ast.add_child(fn_block_exp);
 
     let ast: AST = wrap_in_tle(function_ast);
 
@@ -45,6 +47,7 @@ fn test_function_declaration() {
     };
     let fn_info = SymbolInfo::new(DataType::Integer, fn_value);
     symbol_table_global.add("testFunction".to_string(), fn_info);
+    symbol_table_stack.push(symbol_table_global);
     symbol_table_stack.push(SymbolTable::new());
 
     let mod_ast: Module = ast_stitch(vec![ModElement::new(ast, Arc::new(Mutex::new(symbol_table_stack)), DEFAULT_PRIORITY_MODELEMENT)]);
@@ -99,15 +102,25 @@ fn test_function_with_if_else() {
     fn_block.add_child(if_statement);
 
     let fn_type = ASTNode::new(SyntaxElement::Type(DataType::Integer));
+    let fn_id = ASTNode::new(SyntaxElement::Identifier("testFunction".to_string()));
 
     let mut fn_declaration_node = ASTNode::new(SyntaxElement::FunctionDeclaration);
+    
+    fn_declaration_node.add_child(fn_id);
     fn_declaration_node.add_child(fn_type);
     fn_declaration_node.add_child(fn_block);
 
     let ast: AST = wrap_in_tle(fn_declaration_node);
 
     let mut symbol_table_stack = SymbolTableStack::new();
-
+    let mut symbol_table_global = SymbolTable::new();
+    let fn_value = SymbolValue::FunctionValue{
+        parameters: Vec::new(),
+        return_type: Some(DataType::Integer),
+    };
+    let fn_info = SymbolInfo::new(DataType::Integer, fn_value);
+    symbol_table_global.add("testFunction".to_string(), fn_info);
+    symbol_table_stack.push(symbol_table_global);
     symbol_table_stack.push(SymbolTable::new());
 
     let mod_ast: Module = ast_stitch(vec![ModElement::new(ast, Arc::new(Mutex::new(symbol_table_stack)), DEFAULT_PRIORITY_MODELEMENT)]);
@@ -153,6 +166,14 @@ fn test_function_with_while_loop() {
     let ast = wrap_in_tle(fn_declaration_node);
 
     let mut symbol_table_stack = SymbolTableStack::new();
+    let mut symbol_table_global = SymbolTable::new();
+    let fn_value = SymbolValue::FunctionValue{
+        parameters: Vec::new(),
+        return_type: Some(DataType::Integer),
+    };
+    let fn_info = SymbolInfo::new(DataType::Integer, fn_value);
+    symbol_table_global.add("testFunctionWithWhileLoop".to_string(), fn_info);
+    symbol_table_stack.push(symbol_table_global);
     symbol_table_stack.push(SymbolTable::new());
 
     let mod_ast: Module = ast_stitch(vec![ModElement::new(ast, Arc::new(Mutex::new(symbol_table_stack)), DEFAULT_PRIORITY_MODELEMENT)]);
@@ -185,16 +206,26 @@ fn test_function_with_do_while_loop() {
     do_while_statement.add_child(do_while_body);
 
     let fn_type = ASTNode::new(SyntaxElement::Type(DataType::Integer));
+    let mut fn_block = ASTNode::new(SyntaxElement::BlockExpression);
+    fn_block.add_child(do_while_statement);
 
     let mut function_declaration_node = ASTNode::new(SyntaxElement::FunctionDeclaration);
     let fn_id = ASTNode::new(SyntaxElement::Identifier("testFunctionWithDoWhileLoop".to_string()));
     function_declaration_node.add_child(fn_id);
     function_declaration_node.add_child(fn_type);
-    function_declaration_node.add_child(do_while_statement);
+    function_declaration_node.add_child(fn_block);
 
     let ast = wrap_in_tle(function_declaration_node);
 
     let mut symbol_table_stack = SymbolTableStack::new();
+    let mut symbol_table_global = SymbolTable::new();
+    let fn_value = SymbolValue::FunctionValue{
+        parameters: Vec::new(),
+        return_type: Some(DataType::Integer),
+    };
+    let fn_info = SymbolInfo::new(DataType::Integer, fn_value);
+    symbol_table_global.add("testFunctionWithDoWhileLoop".to_string(), fn_info);
+    symbol_table_stack.push(symbol_table_global);
     symbol_table_stack.push(SymbolTable::new());
 
     let mod_ast: Module = ast_stitch(vec![ModElement::new(ast, Arc::new(Mutex::new(symbol_table_stack)), DEFAULT_PRIORITY_MODELEMENT)]);

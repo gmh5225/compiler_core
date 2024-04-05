@@ -16,6 +16,16 @@ use llvm::prelude::LLVMValueRef;
 use llvm_sys::{LLVMBasicBlock, LLVMValue};
 
 impl IRGenerator {
+    pub fn generate_block_exp(&mut self, node: &ASTNode) -> LLVMValueRef {
+        if let SyntaxElement::BlockExpression = node.get_element() {
+            let children: Vec<ASTNode> = node.get_children();
+            self.increment_stack_pointer();
+            for child in children.iter() {
+                self.ir_router(child);
+            }
+        }
+        std::ptr::null_mut()
+    }
     /// Generates LLVM IR for a do while loop
     pub fn generate_do_while_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
         if let SyntaxElement::DoWhileLoop = node.get_element() {

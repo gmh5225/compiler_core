@@ -13,12 +13,12 @@ use crate::{
         ast::{
             ast_struct::ASTNode, data_type::DataType, syntax_element::SyntaxElement,
     }, 
-    symbol_table::symbol_table_struct::{SymbolTable, SymbolTableStack, SymbolValue}
+    symbol_table::symbol_table_struct::{SymbolTable, SymbolValue}
 }, 
 };
 
 use llvm::prelude::LLVMValueRef;
-use llvm_sys::{LLVMBasicBlock, LLVMType, LLVMValue};
+use llvm::{LLVMBasicBlock, LLVMType, LLVMValue};
 
 impl IRGenerator {
     pub fn generate_fn_declaration_ir(&mut self, node: &ASTNode) -> LLVMValueRef {

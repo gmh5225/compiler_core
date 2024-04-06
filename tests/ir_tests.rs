@@ -27,6 +27,10 @@ fn wrap_in_tle(ast_node: ASTNode) -> AST {
 
 #[test]
 fn test_function_declaration() {
+    /* 
+    int testFunction() {}
+    */ 
+    
     let mut function_ast = ASTNode::new(SyntaxElement::FunctionDeclaration);
 
     let fn_id = ASTNode::new(SyntaxElement::Identifier("testFunction".to_string()));
@@ -65,6 +69,15 @@ fn test_function_declaration() {
 
 #[test]
 fn test_function_with_if_else() {
+    /* 
+    int testFunction() {
+        if (true) {
+            return 1;
+        } else {
+            return 1;
+        }
+    }
+    */ 
     let mut if_statement = ASTNode::new(SyntaxElement::IfStatement);
 
     let mut if_condition = ASTNode::new(SyntaxElement::Condition);
@@ -138,6 +151,13 @@ fn test_function_with_if_else() {
 
 #[test]
 fn test_function_with_while_loop() {
+    /*
+    int testFunctionWithWhileLoop() {
+        while (true) {
+            return 42;
+        }
+    }
+    */
     let mut while_condition = ASTNode::new(SyntaxElement::Condition);
     let while_condition_value = ASTNode::new(SyntaxElement::Literal("true".to_string()));
     while_condition.add_child(while_condition_value);
@@ -192,7 +212,16 @@ fn test_function_with_while_loop() {
 
 #[test]
 fn test_function_with_do_while_loop() {
-    let do_while_condition = ASTNode::new(SyntaxElement::Literal("true".to_string()));
+    /*
+    int testFunctionWithDoWhileLoop() {
+        do {
+            return 24;
+        } while (true);
+    }
+     */
+    let mut do_while_condition = ASTNode::new(SyntaxElement::Condition);
+    let do_while_condition_value = ASTNode::new(SyntaxElement::Literal("true".to_string()));
+    do_while_condition.add_child(do_while_condition_value);
 
     let mut return_statement = ASTNode::new(SyntaxElement::Return);
     let return_value = ASTNode::new(SyntaxElement::Literal("24".to_string()));

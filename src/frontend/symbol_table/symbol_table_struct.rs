@@ -141,7 +141,7 @@ impl SymbolTableStack {
                 }
             }
         } 
-        Err(ErrorType::DevError{})
+        panic!("Invalid index: {:} for size {:}", index, self.elements.len())
     }
 }
 

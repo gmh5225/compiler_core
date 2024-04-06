@@ -111,24 +111,24 @@ impl IRGenerator {
         while let Some(mod_element) = module.pop() {
             let symbol_table_stack: Arc<Mutex<SymbolTableStack>> = mod_element.get_sym_table_stack();
             ir_generator.set_stack(symbol_table_stack);
+            ir_generator.reset_stack_pointer();
 
             let ast: AST = mod_element.get_ast();
             let root = ast.get_root();
             ir_generator.ir_router(&root);
-
-            for child in root.get_children() {
-                ir_generator.ir_router(&child);
-            }
-            
         }
         ir_generator.module
     }
 
     /// Routes the LLVM IR generation process
     pub fn ir_router(&mut self, node: &ASTNode) -> LLVMValueRef {        
-        let node_ir: LLVMValueRef = match &node.get_element() {
-            SyntaxElement::ModuleExpression |
+        let node_ir = match &node.get_element() {
+            SyntaxElement::ModuleExpression      |
+            SyntaxElement::NoExpression          |
             SyntaxElement::TopLevelExpression => {
+                for child in node.get_children().iter() {
+                    self.ir_router(child);
+                }
                 std::ptr::null_mut()
             },
 
@@ -162,7 +162,7 @@ impl IRGenerator {
         
             // statements
             SyntaxElement::BinaryExpression => {
-                self.generate_binary_exp_ir(node)    
+                self.generate_binary_exp_ir(node)
             },
             SyntaxElement::MatchStatement => {
                 self.generate_match_ir(node)
@@ -185,34 +185,68 @@ impl IRGenerator {
             
             // primitive
             SyntaxElement::Literal(_) => {
-                self.generate_literal_ir(node)                           
+                self.generate_literal_ir(node)                        
             },
             SyntaxElement::Variable => {
                 self.generate_var_ir(node)
             },
-            
-            SyntaxElement::NoExpression => todo!(),
-            SyntaxElement::Mutable(_) => todo!(),
-            SyntaxElement::Identifier(_) => todo!(),
-            SyntaxElement::Operator(_) => todo!(),
-            SyntaxElement::Operand => todo!(),
-            SyntaxElement::Type(_) => todo!(),
-            SyntaxElement::ElifStatement => todo!(),
-            SyntaxElement::ElseStatement => todo!(),
-            SyntaxElement::Break => todo!(),
-            SyntaxElement::Continue => todo!(),
-            SyntaxElement::MatchArm => todo!(),
 
-            SyntaxElement::LoopInitializer => todo!(),
-            SyntaxElement::LoopIncrement => todo!(),
-            SyntaxElement::Condition => todo!(),
-            SyntaxElement::Action => todo!(),
-            SyntaxElement::Variant => todo!(),
-            SyntaxElement::AssignedValue => todo!(),
-            SyntaxElement::Field => todo!(),
-            SyntaxElement::Parameter => todo!(),
+            // TODO
+            SyntaxElement::LoopIncrement => {
+                std::ptr::null_mut()
+            },
+            SyntaxElement::Condition => {
+                std::ptr::null_mut()
+            },
+            SyntaxElement::Action => {
+                std::ptr::null_mut()
+            },
+            SyntaxElement::Variant => {
+                std::ptr::null_mut()
+            },
+            SyntaxElement::AssignedValue => {
+                std::ptr::null_mut()
+            },
+            SyntaxElement::Field => {
+                std::ptr::null_mut()
+            },
+            SyntaxElement::Parameter => {
+                std::ptr::null_mut()
+            }
+            SyntaxElement::LoopInitializer => {
+                std::ptr::null_mut()
+            }
+            SyntaxElement::Mutable(_) => {
+                std::ptr::null_mut()
+            }
+            SyntaxElement::Identifier(_) => {
+               std::ptr::null_mut()
+            }
+            SyntaxElement::Operator(_) => {
+                std::ptr::null_mut()
+            }
+            SyntaxElement::Operand => {
+                std::ptr::null_mut()
+            }
+            SyntaxElement::Type(_) => {
+                std::ptr::null_mut()
+            }
+            SyntaxElement::ElifStatement => {
+                std::ptr::null_mut()
+            }
+            SyntaxElement::ElseStatement => {
+                std::ptr::null_mut()
+            }
+            SyntaxElement::Break => {
+                std::ptr::null_mut()
+            }
+            SyntaxElement::Continue => {
+                std::ptr::null_mut()
+            }
+            SyntaxElement::MatchArm => {
+                std::ptr::null_mut()
+            }
         };
-
-        node_ir 
+        node_ir
     }
 }

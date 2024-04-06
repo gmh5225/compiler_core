@@ -81,7 +81,9 @@ impl IRGenerator {
     fn extract_function_signature(&self, fn_name: &String) -> (Vec<(String, DataType)>, Option<DataType>) {
         if let Some(stack) = self.get_stack() {
             let locked_stack = stack.lock().unwrap();
+            
             let table: Arc<Mutex<SymbolTable>> = locked_stack.get_element(self.get_stack_pointer()).expect("Unexpected error");
+            
             let locked_table = table.lock().unwrap();
     
             if let Some(symbol_value) = locked_table.get(fn_name) {

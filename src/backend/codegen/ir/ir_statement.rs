@@ -4,7 +4,7 @@ use crate::{
     backend::{
         codegen::{ir::ir_codegen_core::IRGenerator, store::Store}, 
         llvm_lib::ir_lib::{
-            element::{create_break_statement, create_continue_statement}, ops, return_type::nonvoid_return, 
+            element::{create_break_statement, create_continue_statement}, ops, return_type::{nonvoid_return, void_return}, 
             var
 
         }
@@ -186,34 +186,20 @@ impl IRGenerator {
     }
 
     pub fn generate_return_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
-        // if let Some(symbol_table_arc) = symbol_table_stack.lock().unwrap().peek() {
-        //     let symbol_table = symbol_table_arc.lock().unwrap();
-            std::ptr::null_mut()
-            // match value.get_element() {
-            //     SyntaxElement::Variable => {
-            //         match symbol_table.get(&name) {
-            //             Some(symbol_info) => {
-            //                 let llvm_val: LLVMValueRef = match &symbol_info.get_value() {
-            //                     SymbolValue::StrValue(_) => {
-            //                         unimplemented!("Need to add strvalues to implementation")
-            //                     },
-            //                     SymbolValue::Node(node_val) => {
-            //                         self.ir_router(node_val, symbol_table_stack)
-            //                     },
-            //                 };
+        let children = node.get_children();
     
-            //                 nonvoid_return(self.get_builder(), llvm_val)
-            //             },
-            //             None => panic!("Variable not found in symbol table: {}", name),
-            //         }
-            //     },
-            //     _ => {
-            //         let val: *mut LLVMValue = self.ir_router( value, symbol_table_stack);
-            //         nonvoid_return(self.get_builder(), val)
-            //     }
-            // }
-        // } else {
-        //     panic!("No symbol table found in the stack");
-        // }
+        // Check if there is a return value
+        let value = children.iter().find(|child| matches!(child.get_element(), SyntaxElement::AssignedValue));
+    
+        match value {
+            Some(value_node) => {
+                let llvm_val = self.ir_router(value_node);
+                nonvoid_return(self.get_builder(), llvm_val)
+            },
+            None => {
+                void_return(self.get_builder())
+            }
+        }
     }
+    
 }

@@ -18,22 +18,22 @@ use llvm_sys::{LLVMBasicBlock, LLVMValue};
 impl IRGenerator {
     pub fn generate_block_exp(&mut self, node: &ASTNode) -> LLVMValueRef {
         if let SyntaxElement::BlockExpression = node.get_element() {
-            let children: Vec<ASTNode> = node.get_children();
             self.increment_stack_pointer();
-            for child in children.iter() {
+            for child in node.get_children().iter() {
                 self.ir_router(child);
             }
         }
         std::ptr::null_mut()
     }
+
     /// Generates LLVM IR for a do while loop
     pub fn generate_do_while_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
         if let SyntaxElement::DoWhileLoop = node.get_element() {
             let children: Vec<ASTNode> = node.get_children();
-    
+
             let mut body: Option<&ASTNode> = None;
             let mut condition_node: Option<&ASTNode> = None;
-    
+
             for child in children.iter() {
                 match child.get_element() {
                     SyntaxElement::BlockExpression => {
@@ -42,47 +42,41 @@ impl IRGenerator {
                     SyntaxElement::Condition => {
                         condition_node = Some(child);
                     },
-                    _ => panic!("Unexpected node DoWhileLoop: {:?}", child),
+                    _ => panic!("Unexpected node in DoWhileLoop: {:?}", child),
                 }
             }
-    
+
             let function: *mut LLVMValue = self.get_current_function();
             let do_body_bb: *mut LLVMBasicBlock = create_basic_block(self.get_context(), function, "do_body");
             let do_cond_bb: *mut LLVMBasicBlock = create_basic_block(self.get_context(), function, "do_cond");
             let do_end_bb: *mut LLVMBasicBlock = create_basic_block(self.get_context(), function, "do_end");
-    
-            let entry_bb: *mut LLVMBasicBlock = self.get_current_block();
 
+            let entry_bb: *mut LLVMBasicBlock = self.get_current_block();
             position_builder(self.get_builder(), entry_bb);
             create_br(self.get_builder(), do_body_bb);
-    
-            position_builder(self.get_builder(), do_body_bb);
-
-            match body {
-                Some(block_exp) => {
-                    self.ir_router(block_exp); 
-                }
-                _ => panic!("Missing body")
-            }
             
+            position_builder(self.get_builder(), do_body_bb);
+            if let Some(body_node) = body {
+                self.ir_router(body_node); 
+            }
             create_br(self.get_builder(), do_cond_bb);
-    
-            position_builder(self.get_builder(), do_cond_bb);
 
+            position_builder(self.get_builder(), do_cond_bb);
             if let Some(condition) = condition_node {
-                let condition_val = self.ir_router(condition); // Assuming ir_router returns an LLVMValueRef
+                let condition_val = self.ir_router(condition); 
                 create_cond_br(self.get_builder(), condition_val, do_body_bb, do_end_bb);
             } else {
                 panic!("DoWhileLoop missing condition node");
             }
-    
+
             position_builder(self.get_builder(), do_end_bb);
-    
+
             std::ptr::null_mut()
         } else {
             panic!("Expected DoWhileLoop node, got: {:?}", node.get_element());
         }
     }
+
     
     
     /// Generates LLVM IR for a while loop
@@ -226,7 +220,7 @@ impl IRGenerator {
                     SyntaxElement::Condition => {
                         condition_node = Some(child)
                     }
-                    SyntaxElement::Action => {
+                    SyntaxElement::BlockExpression => {
                         then_branch = Some(child)
                     },
                     SyntaxElement::ElseStatement => {

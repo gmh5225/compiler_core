@@ -8,7 +8,7 @@ use crate::
 
 impl SymbolTableStack {
     /// Drives the symbol table stack generation process returns back the original ast and the generated symbol table stack, else errors
-    pub fn  gen_sym_table_stack(ast: AST) -> Result<(AST, SymbolTableStack), Vec<ErrorType>> {
+    pub fn gen_sym_table_stack(ast: AST) -> Result<(AST, SymbolTableStack), Vec<ErrorType>> {
         let mut sym_table_stack: SymbolTableStack = SymbolTableStack::new();
         let global_scope: SymbolTable = SymbolTable::new(); 
         sym_table_stack.push(global_scope);

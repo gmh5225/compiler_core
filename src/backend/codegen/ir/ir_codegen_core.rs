@@ -196,7 +196,12 @@ impl IRGenerator {
                 std::ptr::null_mut()
             },
             SyntaxElement::Condition => {
-                std::ptr::null_mut()
+                if !node.get_children().len() > 1 {
+                    self.ir_router(&node.get_children()[0])
+                }
+                else {
+                    panic!("Unexpected second node")
+                }
             },
             SyntaxElement::Action => {
                 std::ptr::null_mut()
@@ -205,7 +210,12 @@ impl IRGenerator {
                 std::ptr::null_mut()
             },
             SyntaxElement::AssignedValue => {
-                std::ptr::null_mut()
+                if !node.get_children().len() > 1 {
+                    self.ir_router(&node.get_children()[0])
+                }
+                else {
+                    panic!("Unexpected second node")
+                }
             },
             SyntaxElement::Field => {
                 std::ptr::null_mut()
@@ -232,9 +242,15 @@ impl IRGenerator {
                 std::ptr::null_mut()
             }
             SyntaxElement::ElifStatement => {
+                for child in node.get_children().iter() {
+                    self.ir_router(child);
+                }
                 std::ptr::null_mut()
             }
             SyntaxElement::ElseStatement => {
+                for child in node.get_children().iter() {
+                    self.ir_router(child);
+                }
                 std::ptr::null_mut()
             }
             SyntaxElement::Break => {

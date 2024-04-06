@@ -186,10 +186,9 @@ impl IRGenerator {
     }
 
     pub fn generate_return_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
-        let children = node.get_children();
+        let children: Vec<ASTNode> = node.get_children();
     
-        // Check if there is a return value
-        let value = children.iter().find(|child| matches!(child.get_element(), SyntaxElement::AssignedValue));
+        let value: Option<&ASTNode> = children.iter().find(|child| matches!(child.get_element(), SyntaxElement::AssignedValue));
     
         match value {
             Some(value_node) => {

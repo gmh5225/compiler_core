@@ -123,6 +123,27 @@ impl AST {
 
 }
 
+/// Formats an AST
+fn ast_format(root: &ASTNode, string: &mut String, depth: usize) {
+    let rep: String = std::iter::repeat("\t").take(depth).collect::<String>() + &root.get_element().to_string() + "\n";
+    string.push_str(&rep);
+
+    for child in root.get_children().iter() {
+        ast_format(child, string, depth + 1)
+    }
+
+}
+
+impl fmt::Display for AST {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut output_str = String::from("AST: \n");
+
+        ast_format(&self.get_root(), &mut output_str, 0);
+
+        write!(f, "{}", output_str)
+    }
+}
+
 impl ASTNode {
     /// Creates a new ast node
     pub fn new(element: SyntaxElement) -> Self {

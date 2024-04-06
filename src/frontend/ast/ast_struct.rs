@@ -124,12 +124,12 @@ impl AST {
 }
 
 /// Formats an AST
-fn ast_format(root: &ASTNode, string: &mut String, depth: usize) {
-    let rep: String = std::iter::repeat("\t").take(depth).collect::<String>() + &root.get_element().to_string() + "\n";
-    string.push_str(&rep);
+fn ast_format(root: &ASTNode, output_string_ref: &mut String, depth: usize) {
+    let node_repr_with_depth: String = std::iter::repeat("\t").take(depth).collect::<String>() + &root.get_element().to_string() + "\n";
+    output_string_ref.push_str(&node_repr_with_depth);
 
     for child in root.get_children().iter() {
-        ast_format(child, string, depth + 1)
+        ast_format(child, output_string_ref, depth + 1)
     }
 
 }

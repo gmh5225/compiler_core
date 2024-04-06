@@ -1,10 +1,11 @@
 use compiler_core::frontend::{
     ast::{
-        ast_struct::*,
-        syntax_element::*,
+        ast_struct::AST,
+        ast_struct::ASTNode,
+        syntax_element::SyntaxElement,
     },
-    lexer::token::*,
-    parser::parser_core::*,
+    lexer::token::Token,
+    parser::parser_core::Parser,
 };
 
 #[test]

@@ -522,4 +522,5 @@ fn test_ast_print() {
     let expected_ast: AST = AST::new(top_level_expr);
     println!("Printing expected AST:");
     println!("{}", expected_ast);
+    assert_eq!(ast.to_string(),"AST: \nTopLevelExpression\n\tMatchStatement\n\t\tIdentifier(x)\n\t\tBlockExpression\n")
 }

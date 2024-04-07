@@ -1,63 +1,44 @@
-use llvm_sys::prelude::LLVMValueRef;
+extern crate llvm_sys as llvm;
 
 use crate::{
     backend::{
-        llvm_lib::ir_lib::element,
-        codegen::ir::ir_codegen_core::IRGenerator
+        codegen::ir::ir_codegen_core::IRGenerator, 
+        llvm_lib::ir_lib::{element, types}
     }, 
-    frontend::ast::data_type::DataType
+    frontend::ast::{
+        ast_struct::ASTNode, 
+        data_type::DataType, 
+        syntax_element::SyntaxElement,
+    }
 };
 
+use llvm::prelude::{LLVMTypeRef, LLVMValueRef};
+
 impl IRGenerator {
-    pub fn generate_literal_ir(&self, data_type: DataType, value: String) -> LLVMValueRef {
+    /// Generates LLVM IR for a data type
+    pub fn generate_data_type_ir(&self, data_type: &DataType) -> LLVMTypeRef {
         match data_type {
-            DataType::Integer => {
-                let val: i64 = match value.parse::<i64>() {
-                    Ok(val) => val,
-                    Err(e) => panic!("Failed to parse integer: {}", e),
-                };
-                element::create_integer(val, self.get_context()) 
-            },
-            DataType::Float => {
-                let val: f64 = match value.parse::<f64>() {
-                    Ok(val) => val,
-                    Err(e) => panic!("Failed to parse floating point: {}", e),
-                };
-                element::create_float(val, self.get_context())
-            },
-            DataType::Boolean => {
-                let val: bool = match value.parse::<bool>() {
-                    Ok(val) => val,
-                    Err(e) => panic!("Failed to parse boolean: {}", e),
-                };
-                element::create_boolean(val, self.get_context())
-            },
-            DataType::String => {
-                let val: String = match value.parse::<String>() {
-                    Ok(val) => val,
-                    Err(e) => panic!("Failed to parse string: {}", e),
-                };
-                element::create_string(&val, self.get_builder())
-            },
-            DataType::Unknown => {
-                std::ptr::null_mut() // this is intentional
-            }
-            _ => unimplemented!("Unimplemented data type in literal ir")
+            DataType::Integer => types::int_type(self.get_context()),
+            DataType::Float => types::float_type(self.get_context()),
+            DataType::Boolean => types::boolean_type(self.get_context()),
+            _ => unimplemented!("Unimplemented data type mapping to LLVM IR"),
         }
     }
 
-    pub fn generate_var_ir(&mut self, data_type: &DataType, name: &String) -> LLVMValueRef {
-        match data_type {
-            DataType::Integer => {
-                // let val: i64 = match value.parse::<i64>() {
-                //     Ok(val) => val,
-                //     Err(e) => panic!("Failed to parse integer: {}", e),
-                // };
-                // self.add_named_value(name, value)
-                // create_element::create_integer(val, self.get_context())
-                std::ptr::null_mut()
+    /// Generates LLVM IR for a literal
+    pub fn generate_literal_ir(&self, node: &ASTNode) -> LLVMValueRef {
+        if let SyntaxElement::Literal(value) = node.get_element() {
+            if let Ok(int_val) = value.parse::<i64>() {
+                element::create_integer(int_val, self.get_context())
+            } else if let Ok(float_val) = value.parse::<f64>() {
+                element::create_float(float_val, self.get_context())
+            } else if let Ok(bool_val) = value.parse::<bool>() {
+                element::create_boolean(bool_val, self.get_context())
+            } else {
+                unimplemented!("Unimplemented literal type")
             }
-            _ => unimplemented!("unimplemented var ir")
+        } else {
+            panic!("Expected a literal node, found {:?}", node.get_element());
         }
     }
 }

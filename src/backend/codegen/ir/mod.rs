@@ -1,4 +1,6 @@
+/// Core of the LLVM IR generation process
 pub mod ir_codegen_core;
+
 mod ir_block;
 mod ir_statement;
 mod ir_primitive;

@@ -1,19 +1,19 @@
 use crate::frontend::{ 
-    utils::error::ErrorType,
-    lexer::token::Token,
     ast::{
-        ast_struct::ASTNode, syntax_element::{
-            SyntaxElement, MatchArm
-        }, 
-    },
-    parser::parser_core::Parser, symbol_table::symbol_table::{SymbolTable, SymbolInfo, SymbolValue},
-};
+        ast_struct::ASTNode, syntax_element::SyntaxElement, 
+    }, 
+    lexer::token::Token,
+    parser::parser_core::Parser, 
+    utils::error::ErrorType
+ };
 
 impl Parser {
     /// Creates the children of an expression that changes scope. Used for all scope changing expressions except structs and enums
-    pub fn parse_block(&mut self) -> Result<Vec<ASTNode>, Vec<ErrorType>> {
-        let mut children: Vec<ASTNode> = Vec::new();
+    pub fn parse_block(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         self.consume_token(Token::LBRACKET)?; 
+        let mut block_exp = ASTNode::new(SyntaxElement::BlockExpression);
+
+        let mut children: Vec<ASTNode> = Vec::new();
 
         while self.get_current() < self.get_input().len() && self.get_input().get(self.get_current()) != Some(&Token::RBRACKET) {
             match self.parse_router() {
@@ -29,11 +29,12 @@ impl Parser {
         } else {
             panic!("failed to reach stop token")
         }
-        Ok(children)
+        block_exp.add_children(children);
+
+        Ok(Some(block_exp))
     }
 
     /// Parses the initalization of a variable
-    /// format of initalization of variable currently: let a: bool = true;
     pub fn parse_initialization(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
@@ -58,28 +59,30 @@ impl Parser {
                     let value: ASTNode = match self.parse_router() {
                         Ok(Some(value)) => value, 
                         Ok(None) => {
-                            panic!("initialization value is missing");
+                            panic!("Failed to find initialization value");
                         }
                         Err(_) => {
                             panic!("Failed to parse initialization value");
                         }
-                    };    
+                    };   
 
-                    match self.get_sym_table_stack().peek() {
-                        Some(arc_mutex_symbol_table) => {
-                            let mut symbol_table = arc_mutex_symbol_table.lock().unwrap();
-                    
-                            symbol_table.add(variable_name.clone(), SymbolInfo::new(data_type.clone(), SymbolValue::Node(Box::new(value.clone()))));
-                        },
-                        _ => panic!("sym table missing init")
-                    }
-                    
+                    let mut assigned_value_node: ASTNode = ASTNode::new(SyntaxElement::AssignedValue);
+                    assigned_value_node.add_child(value);
 
-                    Ok(Some(ASTNode::new(SyntaxElement::Initialization {
-                        variable: variable_name,
-                        data_type,
-                        value: Box::new(value),
-                    })))
+                    let mut initialization_node: ASTNode = ASTNode::new(SyntaxElement::Initialization);
+
+                    let identifer_node: ASTNode = ASTNode::new(SyntaxElement::Identifier(variable_name));
+
+                    let type_node: ASTNode = ASTNode::new(SyntaxElement::Type(data_type));
+                    let mut var_node: ASTNode = ASTNode::new(SyntaxElement::Variable);
+
+                    var_node.add_child(identifer_node);
+                    var_node.add_child(type_node);
+
+                    initialization_node.add_child(var_node);
+                    initialization_node.add_child(assigned_value_node);
+
+                    Ok(Some(initialization_node))
                 },
                 _ => panic!("how'd you reach this let panic? this is a tricky one"),
             }
@@ -89,14 +92,11 @@ impl Parser {
     }
 
     /// Parses a match statement
-    /// current match statement format: match foo {a => action, b => actionb}
     pub fn parse_match_statement(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
                 Some(Token::MATCH) => {
                     self.consume_token(Token::MATCH)?;
-
-                    self.get_sym_table_stack().push(SymbolTable::new());
 
                     let value: ASTNode = match self.parse_router() {
                         Ok(Some(value)) => value, 
@@ -107,12 +107,13 @@ impl Parser {
                             panic!("Failed to parse assignment value");
                         }
                     };
-                    let to_match: Box<ASTNode> = Box::new(value);
-                    let arms: Vec<MatchArm> = self.parse_match_arms()?;
-                    let match_node = ASTNode::new(SyntaxElement::MatchStatement {
-                        to_match,
-                        arms,
-                    });
+
+                    let block_exp: ASTNode = self.parse_match_arms()?;
+
+                    let mut match_node: ASTNode = ASTNode::new(SyntaxElement::MatchStatement);
+                    match_node.add_child(value);
+                    match_node.add_child(block_exp);
+
                     return Ok(Some(match_node));
                 }
                 _ => panic!("problem match parsing"),
@@ -121,8 +122,10 @@ impl Parser {
     }
 
     /// Parses the match arms of a match statement
-    pub fn parse_match_arms(&mut self) -> Result<Vec<MatchArm>, Vec<ErrorType>> { 
-        let mut arms: Vec<MatchArm> = Vec::new();
+    pub fn parse_match_arms(&mut self) -> Result<ASTNode, Vec<ErrorType>> { 
+        let mut arms: Vec<ASTNode> = Vec::new();
+
+        let mut block_exp: ASTNode = ASTNode::new(SyntaxElement::BlockExpression);
 
         self.consume_token(Token::LBRACKET)?;
 
@@ -139,10 +142,6 @@ impl Parser {
 
             self.consume_token(Token::ARROW)?;  
 
-            self.consume_token(Token::LBRACKET)?;
-
-            self.get_sym_table_stack().push(SymbolTable::new());
-
             let action: ASTNode = match self.parse_router() {
                 Ok(Some(value)) => value, 
                 Ok(None) => {
@@ -153,10 +152,18 @@ impl Parser {
                 }
             };
 
-            self.consume_token(Token::RBRACKET)?;
+            let mut variant_node: ASTNode = ASTNode::new(SyntaxElement::Variant);
+            variant_node.add_child(variant);
 
-            arms.push(MatchArm::new(variant, action));
+            let mut action_node: ASTNode = ASTNode::new(SyntaxElement::Action);
+            action_node.add_child(action);
 
+            let mut arm_node: ASTNode = ASTNode::new(SyntaxElement::MatchArm);
+            arm_node.add_child(variant_node);
+            arm_node.add_child(action_node);
+
+            arms.push(arm_node);
+            
             if let Some(Token::COMMA) = self.get_input().get(self.get_current()) {
                 self.consume_token(Token::COMMA)?;
             } else if self.get_input().get(self.get_current()) != Some(&Token::RBRACKET) {
@@ -165,19 +172,16 @@ impl Parser {
         }
         self.consume_token(Token::RBRACKET)?;
 
-        Ok(arms)
+        block_exp.add_children(arms);
+        Ok(block_exp)
     }
 
     /// Parses an if statement
-    /// current if statement form: if(condition) {}
     pub fn parse_if_statement(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
                 Some(Token::IF) => {
                     self.consume_token(Token::IF)?;
-                    
-                    self.get_sym_table_stack().push(SymbolTable::new());
-
                     self.consume_token(Token::LPAREN)?;
                     
                     let condition: ASTNode = match self.parse_router() {
@@ -186,19 +190,31 @@ impl Parser {
                     };
                     self.consume_token(Token::RPAREN)?;
 
-                    let then_branch: Vec<ASTNode> = self.parse_block()?;
-                    let else_branch: Option<Box<Vec<ASTNode>>> = if let Some(Token::ELSE) = self.get_input().get(self.get_current()) {
+                    let mut if_node: ASTNode = ASTNode::new(SyntaxElement::IfStatement);
+                    if_node.add_child(condition);
+
+                    match self.parse_router() {
+                        Ok(Some(node)) => {
+                            if_node.add_child(node);
+                        }
+                        _ => {
+                            panic!("Missing then branch")
+                        }
+                    }
+
+
+                    if let Some(Token::ELSE) = self.get_input().get(self.get_current()) {
                         self.consume_token(Token::ELSE)?;
-                        Some(Box::new(self.parse_block()?))
-                        } else {
-                        None
+                        match self.parse_router() {
+                            Ok(Some(node)) => {
+                                if_node.add_child(node);
+                            }
+                            _ => {
+                                panic!("Missing else block exp")
+                            }
+                        }
                     };
 
-                    let if_node: ASTNode = ASTNode::new(SyntaxElement::IfStatement { 
-                        condition: Box::new(condition), 
-                        then_branch: Box::new(then_branch), 
-                        else_branch,
-                    });
                     return Ok(Some(if_node));
                 }
                 _ => panic!("Problem parsing in if statement"),
@@ -207,84 +223,87 @@ impl Parser {
     }
 
     /// Parses a for loop
-    /// current format: for (let i: int = 0; i < 1; i += 1;) {}
     pub fn parse_for_loop(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
-        if self.get_current() < self.get_input().len() {
-            match self.get_input().get(self.get_current()) {
-                Some(Token::FOR) => {
-                    self.consume_token(Token::FOR)?;
-
-                    self.get_sym_table_stack().push(SymbolTable::new());
-
-                    self.consume_token(Token::LPAREN)?;
-        
-                    // let initializer: Option<Box<ASTNode>> = if self.get_input().get(self.get_current()) != Some(&Token::RPAREN) {
-                    //     match self.parse_router() {
-                    //         Ok(node) => {
-                    //             self.consume_token(Token::SEMICOLON)?;
-                    //             node.map(Box::new)
-
-                    //         },
-                    //         _ => panic!("for loop")
-                    //     }
-                    // } else {
-                    //     None
-                    // };
-                    let condition: Box<ASTNode> = if self.get_input().get(self.get_current()) != Some(&Token::RPAREN) {
-                        match self.parse_router() {
-                            Ok(Some(node)) => {
-                                self.consume_token(Token::SEMICOLON)?;
-                                Box::new(node)
-                            },
-                            _ => panic!("for loop condition?"),
-                        }
-                    } else {
-                        panic!("For loop 9");
-                    };
-                    
-                    
-                    let increment: Option<Box<ASTNode>> = if self.get_input().get(self.get_current()) != Some(&Token::RPAREN) {
-                        match self.parse_router() {
-                            Ok(node) => {
-                                self.consume_token(Token::SEMICOLON)?;
-                                node.map(Box::new)
-                            }
-                            _ => panic!("for loop 2")
-                        }
-                    } else {
-                        None
-                    };
-                    
-                    self.consume_token(Token::RPAREN)?;
-        
-                    let body: Box<Vec<ASTNode>> = Box::new(self.parse_block()?);
-
-                    let for_node: ASTNode = ASTNode::new(SyntaxElement::ForLoop {
-                        // initializer, 
-                        initializer: None,
-                        condition,   
-                        increment,
-                        body,
-                    });
-        
-                    return Ok(Some(for_node));
+        if self.get_current() >= self.get_input().len() {
+            panic!("Problem parsing for loop: input exhausted");
+        }
+    
+        if let Some(Token::FOR) = self.get_input().get(self.get_current()) {
+            self.consume_token(Token::FOR)?;
+            self.consume_token(Token::LPAREN)?;
+    
+            let initializer_node = if self.get_input().get(self.get_current()) == Some(&Token::LET) {
+                if let Ok(Some(node)) = self.parse_router() {
+                    let mut init_node = ASTNode::new(SyntaxElement::LoopInitializer);
+                    init_node.add_child(node);
+                    Some(init_node)
+                } else {
+                    panic!("Expected initializer after 'let'");
                 }
-                _ => panic!("Problem parsing in for loop"),
+            } else {
+                None
+            };
+    
+            let condition_node = if self.get_input().get(self.get_current()) != Some(&Token::RPAREN) {
+                if let Ok(Some(node)) = self.parse_router() {
+                    let mut cond_node = ASTNode::new(SyntaxElement::Condition);
+                    cond_node.add_child(node);
+                    Some(cond_node)
+                } else {
+                    panic!("Expected condition in for loop");
+                }
+            } else {
+                None
+            };
+    
+            let increment_node = if self.get_input().get(self.get_current()) != Some(&Token::RPAREN) {
+                if let Ok(Some(node)) = self.parse_router() {
+                    let mut inc_node = ASTNode::new(SyntaxElement::LoopIncrement);
+                    inc_node.add_child(node);
+                    Some(inc_node)
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+    
+            self.consume_token(Token::RPAREN)?;
+    
+            let body = if let Ok(Some(body)) = self.parse_block() {
+                body
+            } else {
+                panic!("Expected for loop body");
+            };
+    
+            let mut for_node = ASTNode::new(SyntaxElement::ForLoop);
+            if let Some(init_node) = initializer_node {
+                for_node.add_child(init_node);
             }
-        } panic!("Problem parsing for loop 2")
+            if let Some(cond_node) = condition_node {
+                for_node.add_child(cond_node);
+            }
+            if let Some(inc_node) = increment_node {
+                for_node.add_child(inc_node);
+            }
+            for_node.add_child(body);
+    
+            Ok(Some(for_node))
+        } else {
+            panic!("Expected 'for' at the beginning of a for loop");
+        }
     }
+    
 
     /// Parses a while loop
-    /// Current format: while(condition) {}
     pub fn parse_while_loop(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
                 Some(Token::WHILE) => {
                     self.consume_token(Token::WHILE)?;
-                    self.get_sym_table_stack().push(SymbolTable::new());
-
                     self.consume_token(Token::LPAREN)?;
-                    let condition: Box<ASTNode> = Box::new(match self.parse_router() {
+
+                    let condition: ASTNode = match self.parse_router() {
                         Ok(Some(value)) => value, 
                         Ok(None) => {
                             panic!("while1");
@@ -292,15 +311,24 @@ impl Parser {
                         Err(_) => {
                             panic!("while2");
                         }
-                    });
-                    self.consume_token(Token::RPAREN)?;
-                    let body: Box<Vec<ASTNode>> = Box::new(self.parse_block()?);
+                    };
+                    let mut condition_node: ASTNode = ASTNode::new(SyntaxElement::Condition);
+                    condition_node.add_child(condition);
 
-                    let while_node = ASTNode::new(SyntaxElement::WhileLoop {
-                        condition,
-                        body,
-                    });
-                    return Ok(Some(while_node));
+                    self.consume_token(Token::RPAREN)?;
+
+                    match self.parse_block() {
+                        Ok(Some(node)) => {
+                            let mut while_node: ASTNode = ASTNode::new(SyntaxElement::WhileLoop);
+                            while_node.add_child(condition_node);
+                            while_node.add_child(node);
+        
+                            return Ok(Some(while_node));
+                        }
+                        _ => {
+                            panic!("Missing while block")
+                        }
+                    }
                 } 
                 _ => panic!("problem while loop parsing"),
             }
@@ -308,30 +336,37 @@ impl Parser {
     }
 
     /// Parses a do while loop
-    /// current format: do{} while()
     pub fn parse_do_while_loop(&mut self) -> Result<Option<ASTNode>, Vec<ErrorType>> {
         if self.get_current() < self.get_input().len() {
             match self.get_input().get(self.get_current()) {
                 Some(Token::DO) => {
                     self.consume_token(Token::DO)?;
 
-                    self.get_sym_table_stack().push(SymbolTable::new());
-
-                    let body: Box<Vec<ASTNode>> = Box::new(self.parse_block()?);
-
-                    self.consume_token(Token::WHILE)?;
-                    self.consume_token(Token::LPAREN)?;
-                    let value: ASTNode = match self.parse_router() {
-                        Ok(Some(node_option)) => node_option,
-                        _ => panic!("missing while condition"), 
-                    };
-                    let condition: Box<ASTNode> = Box::new(value);
-                    self.consume_token(Token::RPAREN)?;
-                    let do_while_node = ASTNode::new(SyntaxElement::DoWhileLoop {
-                        body,
-                        condition,
-                    });
-                    return Ok(Some(do_while_node));
+                    match self.parse_block() {
+                        Ok(Some(body)) => {
+                            self.consume_token(Token::WHILE)?;
+                            self.consume_token(Token::LPAREN)?;
+        
+                            let condition: ASTNode = match self.parse_router() {
+                                Ok(Some(node)) => node,
+                                _ => panic!("missing while condition"), 
+                            };
+        
+                            let mut condition_node: ASTNode = ASTNode::new(SyntaxElement::Condition);
+                            condition_node.add_child(condition);
+        
+                            self.consume_token(Token::RPAREN)?;
+        
+                            let mut do_while_node = ASTNode::new(SyntaxElement::DoWhileLoop);
+                            do_while_node.add_child(body);
+                            do_while_node.add_child(condition_node);
+        
+                            return Ok(Some(do_while_node));
+                        }
+                        _ => {
+                            panic!("missing do block")
+                        }
+                    }
                 }
                 _ => panic!("problem do_while parsing"),
             }

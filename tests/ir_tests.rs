@@ -89,17 +89,18 @@ fn test_function_with_if_else() {
     source_filename = "dummy_module"
 
     define i64 @testFunction() {
-    entry:
+    entry:  
         br i1 true, label %then, label %else
 
     then:                                             ; preds = %entry
+        ret i64 1
         br label %merge
 
     else:                                             ; preds = %entry
+        ret i64 1
         br label %merge
 
     merge:                                            ; preds = %else, %then
-        ret i64 1
     }
 
     */ 
@@ -128,9 +129,11 @@ fn test_function_with_if_else() {
     let mut else_block = ASTNode::new(SyntaxElement::BlockExpression);
 
     let mut return_statement_else = ASTNode::new(SyntaxElement::Return);
+    let mut assigned_value = ASTNode::new(SyntaxElement::AssignedValue);
     let return_value = ASTNode::new(SyntaxElement::Literal("1".to_string()));
-    
-    return_statement_else.add_child(return_value);
+    assigned_value.add_child(return_value);
+
+    return_statement_else.add_child(assigned_value);
 
     else_block.add_child(return_statement_else);
 
@@ -203,7 +206,6 @@ fn test_function_with_while_loop() {
     while_end:                                        ; preds = %while_cond
     }
 
-
     */
     let mut while_condition = ASTNode::new(SyntaxElement::Condition);
     let while_condition_value = ASTNode::new(SyntaxElement::Literal("true".to_string()));
@@ -275,29 +277,37 @@ fn test_function_with_do_while_loop() {
 
     define i64 @testFunctionWithDoWhileLoop() {
     entry:
-        br label %do
+        br label %do_body
 
-    do:                                               ; preds = %entry, %do
-        br i1 true, label %merge, label %do
-
-    merge:                                            ; preds = %do
+    do_body:                                          ; preds = %do_cond, %entry
         ret i64 24
+        br label %do_cond
+
+    do_cond:                                          ; preds = %do_body
+        br i1 true, label %do_body, label %do_end
+
+    do_end:                                           ; preds = %do_cond
     }
+
+
     */
     let mut do_while_condition = ASTNode::new(SyntaxElement::Condition);
     let do_while_condition_value = ASTNode::new(SyntaxElement::Literal("true".to_string()));
     do_while_condition.add_child(do_while_condition_value);
 
     let mut return_statement = ASTNode::new(SyntaxElement::Return);
+    let mut assigned_value = ASTNode::new(SyntaxElement::AssignedValue);
     let return_value = ASTNode::new(SyntaxElement::Literal("24".to_string()));
-    return_statement.add_child(return_value);
+    assigned_value.add_child(return_value);
+    return_statement.add_child(assigned_value);
 
     let mut do_while_body = ASTNode::new(SyntaxElement::BlockExpression);
     do_while_body.add_child(return_statement);
 
     let mut do_while_statement = ASTNode::new(SyntaxElement::DoWhileLoop);
-    do_while_statement.add_child(do_while_condition);
     do_while_statement.add_child(do_while_body);
+    do_while_statement.add_child(do_while_condition);
+
 
     let fn_type = ASTNode::new(SyntaxElement::Type(DataType::Integer));
     let mut fn_block = ASTNode::new(SyntaxElement::BlockExpression);

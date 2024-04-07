@@ -1,12 +1,12 @@
+extern crate llvm_sys as llvm;
+
 use std::sync::{Mutex, Arc};
 
 use crate::{
     backend::{
         codegen::ir::ir_codegen_core::IRGenerator, 
         llvm_lib::ir_lib::{
-            block::position_builder, element::{
-                add_function_to_module, create_function_type
-            }, init_ir::create_basic_block, types::void_type
+            block, element, init_ir, types
         }
     }, 
     frontend::{
@@ -21,6 +21,7 @@ use llvm::prelude::LLVMValueRef;
 use llvm::{LLVMBasicBlock, LLVMType, LLVMValue};
 
 impl IRGenerator {
+    /// Generates LLVM IR for a function declaration
     pub fn generate_fn_declaration_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
         if let SyntaxElement::FunctionDeclaration = node.get_element() {
             let children: Vec<ASTNode> = node.get_children();
@@ -50,7 +51,7 @@ impl IRGenerator {
             let (params, fn_type) = self.extract_function_signature(&fn_id);
     
             let llvm_return_type: *mut LLVMType = fn_type.map_or_else(
-                || void_type(self.get_context()), 
+                || types::void_type(self.get_context()), 
                 |data_type| self.map_data_type(&data_type),
             );
     
@@ -58,11 +59,11 @@ impl IRGenerator {
                 .map(|(_, param_type)| self.map_data_type(param_type))
                 .collect();
     
-            let function_type: *mut LLVMType = create_function_type(llvm_return_type, &llvm_param_types, false);
-            let function: *mut LLVMValue = add_function_to_module(self.get_module(), &fn_id, function_type);
-            let entry_bb: *mut LLVMBasicBlock = create_basic_block(self.get_context(), function, "entry");
+            let function_type: *mut LLVMType = element::create_function_type(llvm_return_type, &llvm_param_types, false);
+            let function: *mut LLVMValue = element::add_function_to_module(self.get_module(), &fn_id, function_type);
+            let entry_bb: *mut LLVMBasicBlock = init_ir::create_basic_block(self.get_context(), function, "entry");
 
-            position_builder(self.get_builder(), entry_bb);
+            block::position_builder(self.get_builder(), entry_bb);
             self.set_current_function(function);
     
             match fn_block {
@@ -98,23 +99,5 @@ impl IRGenerator {
         } else {
             panic!("Missing stack");
         }
-    }
-    
-
-    pub fn generate_enum_declaration_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
-        // let enum_type = int_type(self.get_context()); 
-        // let mut variant_values = Vec::new();
-
-        // for (index, variant) in variants.iter().enumerate() {
-        //     let variant_value = add_constant_to_module(self.get_module(), &enum_type, index as i64, variant);
-        //     variant_values.push(variant_value);
-        // }
-        std::ptr::null_mut()
-    }
-
-    /// TODO
-    pub fn generate_struct_declaration_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
-        std::ptr::null_mut()
-   
     }
 }

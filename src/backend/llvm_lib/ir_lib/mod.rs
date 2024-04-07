@@ -12,6 +12,12 @@ pub mod element;
 
 /// Create operation
 pub mod ops;
+
+/// Create a type
 pub mod types;
+
+/// Create a variable
 pub mod var;
+
+/// Maintain block constructions
 pub mod block;

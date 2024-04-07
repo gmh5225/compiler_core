@@ -151,12 +151,15 @@ impl ASTNode {
     pub fn add_children(&mut self, to_add: Vec<ASTNode>) {
         self.children.extend(to_add);
     }
+
+    /// Checks if the node is a return statement
     pub fn is_return(&self) -> bool {
-        // match &self.element {
-        //     SyntaxElement::Return { value: _ } => true,
-        //     _ => false,
-        // }
-        true
+        match &self.element {
+            SyntaxElement::Return => {
+                return true;
+            }
+            _ => return false,
+        }
     }
 }
 

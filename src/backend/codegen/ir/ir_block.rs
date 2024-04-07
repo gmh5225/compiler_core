@@ -1,21 +1,26 @@
-use std::sync::{Mutex, Arc};
-
 use crate::{
     backend::{
         codegen::ir::ir_codegen_core::IRGenerator, 
         llvm_lib::ir_lib::{
-            block::position_builder, element::{create_br, create_cond_br}, init_ir::create_basic_block
+            block::position_builder, 
+            element::{create_br, create_cond_br}, 
+            init_ir::create_basic_block
         }
-    }, frontend::{
-        ast::{ast_struct::ASTNode, syntax_element::SyntaxElement}, 
-        symbol_table::symbol_table_struct::SymbolTableStack
-    } 
+    }, 
+    frontend::ast::{
+        ast_struct::ASTNode, 
+        syntax_element::SyntaxElement
+    }, 
+    
 };
 
-use llvm::prelude::LLVMValueRef;
-use llvm_sys::{LLVMBasicBlock, LLVMValue};
+use llvm::{
+    prelude::LLVMValueRef,
+    LLVMBasicBlock, LLVMValue
+};
 
 impl IRGenerator {
+    /// Generates LLVM IR for a block expression
     pub fn generate_block_exp(&mut self, node: &ASTNode) -> LLVMValueRef {
         if let SyntaxElement::BlockExpression = node.get_element() {
             self.increment_stack_pointer();
@@ -76,8 +81,6 @@ impl IRGenerator {
             panic!("Expected DoWhileLoop node, got: {:?}", node.get_element());
         }
     }
-
-    
     
     /// Generates LLVM IR for a while loop
     pub fn generate_while_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
@@ -135,8 +138,7 @@ impl IRGenerator {
             panic!("Expected WhileLoop node, got: {:?}", node.get_element());
         }
     }
-
-    
+ 
     /// Generates LLVM IR for a for loop
     pub fn generate_for_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
         if let SyntaxElement::ForLoop = node.get_element() {
@@ -204,7 +206,6 @@ impl IRGenerator {
             panic!("Expected ForLoop node, got: {:?}", node.get_element());
         }
     }
-
 
     /// Generates LLVM IR for an if statement
     pub fn generate_if_ir(&mut self, node: &ASTNode) -> LLVMValueRef {

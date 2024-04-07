@@ -6,7 +6,10 @@ use std::{
     },
     collections::BinaryHeap,
 };
-use llvm::{core, prelude::*}; // change to not use wild star import
+
+use llvm::prelude::{
+    LLVMBasicBlockRef, LLVMBuilderRef, LLVMContextRef, LLVMModuleRef, LLVMValueRef
+};
 
 use crate::{
     backend::{
@@ -17,7 +20,8 @@ use crate::{
         ast::{
             ast_struct::{ASTNode, ModElement, Module, AST},
             syntax_element::SyntaxElement, 
-        }, symbol_table::symbol_table_struct::{SymbolTable, SymbolTableStack}
+        }, 
+        symbol_table::symbol_table_struct::SymbolTableStack
     },
 };
 
@@ -74,30 +78,38 @@ impl IRGenerator {
     pub fn get_current_block(&self) -> LLVMBasicBlockRef {
         block::get_current_block(self.builder)
     }
+
+    /// Retrieves the store
     pub fn get_store(&mut self) -> &Arc<Mutex<Store>> {
         &self.store
     }
 
+    /// Increments the stack pointer
     pub fn increment_stack_pointer(&mut self) {
         self.current_stack_pointer += 1;
     }
 
+    /// Decrements the stack pointer
     pub fn decrement_stack_pointer(&mut self) {
         self.current_stack_pointer -= 1;
     }
 
+    /// Resets the stack pointer
     pub fn reset_stack_pointer(&mut self) {
         self.current_stack_pointer = 0;
     }
     
+    /// Gets the current stack
     pub fn get_stack(&self) -> Option<Arc<Mutex<SymbolTableStack>>> {
         self.current_stack.clone()
     }
 
+    /// Sets the current stack
     pub fn set_stack(&mut self, new_stack: Arc<Mutex<SymbolTableStack>>) {
         self.current_stack = Some(new_stack);
     }
 
+    /// Gets the stack pointer
     pub fn get_stack_pointer(&self) -> usize {
         self.current_stack_pointer
     }
@@ -121,10 +133,11 @@ impl IRGenerator {
     }
 
     /// Routes the LLVM IR generation process
-    pub fn ir_router(&mut self, node: &ASTNode) -> LLVMValueRef {        
+    pub fn ir_router(&mut self, node: &ASTNode) -> LLVMValueRef {
         let node_ir = match &node.get_element() {
-            SyntaxElement::ModuleExpression      |
-            SyntaxElement::NoExpression          |
+            // --- MODULE & SCOPING SECTION --- //
+            SyntaxElement::ModuleExpression |
+            SyntaxElement::NoExpression |
             SyntaxElement::TopLevelExpression => {
                 for child in node.get_children().iter() {
                     self.ir_router(child);
@@ -132,137 +145,71 @@ impl IRGenerator {
                 std::ptr::null_mut()
             },
 
-            // top level expressions
-            SyntaxElement::FunctionDeclaration => {
-                self.generate_fn_declaration_ir(node)
-            },
-            SyntaxElement::EnumDeclaration => {
-                self.generate_enum_declaration_ir(node)
-            },
-            SyntaxElement::StructDeclaration => {
-                self.generate_struct_declaration_ir(node)
-            },
-            
-            // block expresions
-            SyntaxElement::BlockExpression => {
-                self.generate_block_exp(node)
-            }
-            SyntaxElement::DoWhileLoop => { 
-                self.generate_do_while_ir(node)
-            },
-            SyntaxElement::WhileLoop => {
-                self.generate_while_ir(node)
-            },
-            SyntaxElement::ForLoop => {
-                self.generate_for_ir(node)
-            },
-            SyntaxElement::IfStatement => {
-                self.generate_if_ir(node)
-            },
-        
-            // statements
-            SyntaxElement::BinaryExpression => {
-                self.generate_binary_exp_ir(node)
-            },
-            SyntaxElement::MatchStatement => {
-                self.generate_match_ir(node)
-            },
-            SyntaxElement::FunctionCall => {
-                self.generate_fn_call_ir(node)
-            },
-            SyntaxElement::Initialization => {
-                self.generate_initialization_ir(node)
-            },
-            SyntaxElement::Assignment => {
-                self.generate_assignment_ir(node)
-            },
-            SyntaxElement::UnaryExpression => {
-                self.generate_unary_ir(node)
-            },
-            SyntaxElement::Return => {
-                self.generate_return_ir(node)
-            },
-            
-            // primitive
-            SyntaxElement::Literal(_) => {
-                self.generate_literal_ir(node)                        
-            },
-            SyntaxElement::Variable => {
-                self.generate_var_ir(node)
-            },
+            // --- DECLARATION SECTION --- //
+            SyntaxElement::FunctionDeclaration => self.generate_fn_declaration_ir(node),
 
-            // TODO
-            SyntaxElement::LoopIncrement => {
-                std::ptr::null_mut()
-            },
+            // --- BASE EXPRESSION SECTION --- //
+            SyntaxElement::BlockExpression => self.generate_block_exp(node),
+            SyntaxElement::DoWhileLoop => self.generate_do_while_ir(node),
+            SyntaxElement::WhileLoop => self.generate_while_ir(node),
+            SyntaxElement::ForLoop => self.generate_for_ir(node),
+            SyntaxElement::IfStatement => self.generate_if_ir(node),
+
+            // --- CONTROL FLOW SECTION --- //
+            SyntaxElement::Assignment => self.generate_assignment_ir(node),
+            SyntaxElement::Return => self.generate_return_ir(node),
             SyntaxElement::Condition => {
                 if !node.get_children().len() > 1 {
                     self.ir_router(&node.get_children()[0])
-                }
-                else {
+                } else {
                     panic!("Unexpected second node")
                 }
             },
-            SyntaxElement::Action => {
-                std::ptr::null_mut()
-            },
-            SyntaxElement::Variant => {
-                std::ptr::null_mut()
-            },
+
+            // --- LOOP CONTROL SECTION --- //
+            SyntaxElement::LoopIncrement | 
+            SyntaxElement::Action |
+            SyntaxElement::Variant |
             SyntaxElement::AssignedValue => {
                 if !node.get_children().len() > 1 {
                     self.ir_router(&node.get_children()[0])
-                }
-                else {
+                } else {
                     panic!("Unexpected second node")
                 }
             },
-            SyntaxElement::Field => {
+            SyntaxElement::Break => self.generate_break_ir(node),
+            SyntaxElement::Continue => self.generate_continue_ir(node),
+            SyntaxElement::ElifStatement |
+            SyntaxElement::ElseStatement |
+            SyntaxElement::MatchArm => {
+                for child in node.get_children().iter() {
+                    self.ir_router(child);
+                }
                 std::ptr::null_mut()
             },
-            SyntaxElement::Parameter => {
-                std::ptr::null_mut()
-            }
-            SyntaxElement::LoopInitializer => {
-                std::ptr::null_mut()
-            }
-            SyntaxElement::Mutable(_) => {
-                std::ptr::null_mut()
-            }
-            SyntaxElement::Identifier(_) => {
-               std::ptr::null_mut()
-            }
-            SyntaxElement::Operator(_) => {
-                std::ptr::null_mut()
-            }
-            SyntaxElement::Operand => {
-                std::ptr::null_mut()
-            }
-            SyntaxElement::Type(_) => {
-                std::ptr::null_mut()
-            }
-            SyntaxElement::ElifStatement => {
-                for child in node.get_children().iter() {
-                    self.ir_router(child);
-                }
-                std::ptr::null_mut()
-            }
-            SyntaxElement::ElseStatement => {
-                for child in node.get_children().iter() {
-                    self.ir_router(child);
-                }
-                std::ptr::null_mut()
-            }
-            SyntaxElement::Break => {
-                std::ptr::null_mut()
-            }
-            SyntaxElement::Continue => {
-                std::ptr::null_mut()
-            }
-            SyntaxElement::MatchArm => {
-                std::ptr::null_mut()
-            }
+
+            // --- PRIMITIVE SECTION --- //
+            SyntaxElement::Literal(_) => self.generate_literal_ir(node),
+
+            // --- TODO SECTION --- //
+            SyntaxElement::Variable |
+            SyntaxElement::UnaryExpression |
+            SyntaxElement::Field |
+            SyntaxElement::Parameter |
+            SyntaxElement::BinaryExpression |
+            SyntaxElement::MatchStatement |
+            SyntaxElement::FunctionCall |
+            SyntaxElement::EnumDeclaration |
+            SyntaxElement::StructDeclaration |
+            SyntaxElement::Initialization |
+            SyntaxElement::LoopInitializer |
+            SyntaxElement::Mutable(_) |
+            SyntaxElement::Identifier(_) |
+            SyntaxElement::Operator(_) |
+            SyntaxElement::Operand |
+            SyntaxElement::Type(_) => std::ptr::null_mut(),
         };
         node_ir
     }
+
 }

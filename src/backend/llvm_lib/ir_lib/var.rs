@@ -11,9 +11,10 @@ use llvm::{
         }
 };
 
+/// Initializes a variable
 pub fn init_var(
     builder: LLVMBuilderRef,
-    context: LLVMContextRef,
+    _context: LLVMContextRef,
     var_name: &str,
     data_type: LLVMTypeRef,
     initial_value: Option<LLVMValueRef>, 
@@ -30,6 +31,7 @@ pub fn init_var(
     alloca
 }
 
+/// Reassigns a variable
 pub fn reassign_var(
     builder: LLVMBuilderRef,
     variable_alloc: LLVMValueRef,
@@ -40,12 +42,13 @@ pub fn reassign_var(
     }
 }
 
+/// Gets a variable
 pub fn get_var(
     builder: LLVMBuilderRef,
     variable_type: LLVMTypeRef, 
     variable_alloc: LLVMValueRef, 
 ) -> LLVMValueRef {
     unsafe {
-        LLVMBuildLoad2(builder, variable_type, variable_alloc, CString::new("tmpload").unwrap().as_ptr())
+        LLVMBuildLoad2(builder, variable_type, variable_alloc, CString::new("tmpload").unwrap().as_ptr()) // Ignore warning
     }
 }

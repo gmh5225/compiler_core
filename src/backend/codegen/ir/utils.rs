@@ -9,7 +9,7 @@ use crate::{
     frontend::ast::data_type::DataType
 };
 
-impl IRGenerator {
+impl<T> IRGenerator<T> {
     /// Maps data types to LLVM IR
     pub fn map_data_type(&self, data_type: &DataType) -> LLVMTypeRef {
         match data_type {

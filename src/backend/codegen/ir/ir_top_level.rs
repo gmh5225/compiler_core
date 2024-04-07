@@ -20,7 +20,7 @@ use crate::{
 use llvm::prelude::LLVMValueRef;
 use llvm::{LLVMBasicBlock, LLVMType, LLVMValue};
 
-impl IRGenerator {
+impl<T> IRGenerator<T> {
     /// Generates LLVM IR for a function declaration
     pub fn generate_fn_declaration_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
         if let SyntaxElement::FunctionDeclaration = node.get_element() {

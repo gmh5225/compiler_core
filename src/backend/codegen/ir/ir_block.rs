@@ -19,7 +19,7 @@ use llvm::{
     LLVMBasicBlock, LLVMValue
 };
 
-impl IRGenerator {
+impl<T> IRGenerator<T> {
     /// Generates LLVM IR for a block expression
     pub fn generate_block_exp(&mut self, node: &ASTNode) -> LLVMValueRef {
         if let SyntaxElement::BlockExpression = node.get_element() {

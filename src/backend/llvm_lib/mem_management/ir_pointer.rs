@@ -1,29 +1,19 @@
 extern crate llvm_sys as llvm;
 
-use std::ops::Deref;
-
-use llvm::prelude::LLVMValueRef;
-
+use std::marker::PhantomData;
 
 #[derive(Debug, Clone, Copy)]
-pub struct IRPointer {
-    ptr: *mut LLVMValueRef, 
+pub struct IRPointer<T> {
+    ptr: *mut T, 
+    _marker: PhantomData<T>, 
 }
 
-impl IRPointer {
-    fn new(ptr: *mut LLVMValueRef) -> Self {
-        IRPointer { ptr }
+impl<T> IRPointer<T> {
+    pub fn new(ptr: *mut T) -> Self {
+        IRPointer { ptr, _marker: PhantomData }
     }
 
-    fn as_ref(&self) -> LLVMValueRef {
-        unsafe { *self.ptr }
-    }
-}
-
-impl Deref for IRPointer {
-    type Target = LLVMValueRef;
-
-    fn deref(&self) -> &Self::Target {
-        self
+    pub fn as_ref(&self) -> *mut T {
+        self.ptr 
     }
 }

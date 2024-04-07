@@ -22,7 +22,7 @@ use llvm::{
     LLVMValue, LLVMBuilder
 };
 
-impl IRGenerator {
+impl<T> IRGenerator<T> {
     /// Generates LLVM IR for an assignment
     pub fn generate_assignment_ir(&mut self, node: &ASTNode) -> LLVMValueRef {
         if let SyntaxElement::Assignment = node.get_element() {

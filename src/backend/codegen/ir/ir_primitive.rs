@@ -14,7 +14,7 @@ use crate::{
 
 use llvm::prelude::{LLVMTypeRef, LLVMValueRef};
 
-impl IRGenerator {
+impl<T> IRGenerator<T> {
     /// Generates LLVM IR for a data type
     pub fn generate_data_type_ir(&self, data_type: &DataType) -> LLVMTypeRef {
         match data_type {

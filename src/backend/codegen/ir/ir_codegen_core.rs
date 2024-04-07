@@ -14,7 +14,10 @@ use llvm::prelude::{
 use crate::{
     backend::{
         codegen::store::Store,
-        llvm_lib::ir_lib::{block, init_ir},
+        llvm_lib::{
+            ir_lib::{block, init_ir}, 
+            mem_management::resource_pools::LLVMResourcePools
+        },
     },
     frontend::{
         ast::{
@@ -26,27 +29,30 @@ use crate::{
 };
 
 /// Generates LLVM IR for a module
-pub struct IRGenerator {
+pub struct IRGenerator<T> {
     context: LLVMContextRef,
     module: LLVMModuleRef,
     builder: LLVMBuilderRef,
     store: Arc<Mutex<Store>>,
+    resource_pools: LLVMResourcePools<T>,
     current_function: Option<LLVMValueRef>,
     current_stack: Option<Arc<Mutex<SymbolTableStack>>>,
     current_stack_pointer: usize,
 }
 
-impl IRGenerator {
+impl<T> IRGenerator<T> {
     fn new() -> Self {
         let context: LLVMContextRef = init_ir::create_context();
         let module: LLVMModuleRef = init_ir::create_module("dummy_module", context);
         let builder: LLVMBuilderRef = init_ir::create_builder(context);
         let store: Arc<Mutex<Store>> = Arc::new(Mutex::new(Store::new()));
+        let resource_pools = LLVMResourcePools::new();
         Self {
             context,
             module,
             builder,
             store,
+            resource_pools,
             current_function: None,
             current_stack: None,
             current_stack_pointer: 0,
@@ -116,7 +122,7 @@ impl IRGenerator {
 
     /// Generates LLVM IR from a module
     pub fn generate_ir(mut input: Module) -> LLVMModuleRef {
-        let mut ir_generator: IRGenerator = IRGenerator::new();
+        let mut ir_generator: IRGenerator<T> = IRGenerator::new();
 
         let module: &mut BinaryHeap<ModElement> = input.get_children();
 

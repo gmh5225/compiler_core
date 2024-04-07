@@ -2,17 +2,15 @@ use llvm::prelude::LLVMContextRef;
 use llvm::core::*;
 use llvm::execution_engine::*;
 use llvm::LLVMModule;
-use llvm_sys::ir_reader::LLVMParseIRInContext;
-use std::ffi::CStr;
 use std::ffi::CString;
-use std::fs;
-use std::path::PathBuf;
+
 
 use crate::backend::llvm_lib::{
     ir_lib::init_ir,
     ee_lib::init_ee
 };
 
+/// JIT compiler for LLVM IR
 pub struct ExecutionEngine {
     engine: LLVMExecutionEngineRef,
     context: LLVMContextRef,
@@ -36,6 +34,7 @@ impl ExecutionEngine {
         ExecutionEngine { engine, context }
     }
 
+    /// Executes LLVM IR
     pub fn execute_ir(module: *mut LLVMModule, args: &[String]) -> Result<i64, String> {
         let mut ee: ExecutionEngine = ExecutionEngine::new();
         ee.run_file(module, "main", args)

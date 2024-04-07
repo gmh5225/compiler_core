@@ -4,12 +4,14 @@ use std::fs;
 use llvm_sys::core;
 use llvm_sys::prelude::LLVMModuleRef;
 
+/// Gets the parameter of a function
 pub fn get_param(function: *mut llvm::LLVMValue, index: u32) -> *mut llvm::LLVMValue{
     unsafe {
         core::LLVMGetParam(function, index)
     }
 }
 
+/// Writes an LLVM module to a file
 pub fn write_to_file(module: &LLVMModuleRef, file_name: &str) -> Result<(), String> {
     if module.is_null() {
         return Err("LLVM module reference is null".into());
@@ -41,10 +43,4 @@ fn path_to_cstring(path: &Path) -> Result<CString, NulError> {
     let path_str = path.to_str()
         .ok_or_else(|| CString::new("").unwrap_err())?; 
     CString::new(path_str) 
-}
-
-pub fn position_builder(builder: *mut llvm::LLVMBuilder, bb: *mut llvm::LLVMBasicBlock) {
-    unsafe {
-        core::LLVMPositionBuilderAtEnd(builder, bb)
-    }
 }

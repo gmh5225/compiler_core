@@ -16,10 +16,3 @@ pub fn binop_precedence() -> &'static once_cell::sync::Lazy<HashMap<char, i32>> 
     });
     &PRECEDENCE
 }
-
-pub fn get_precedence(cur_tok: char) -> i32 {
-    if !cur_tok.is_ascii() {
-        return -1;
-    }
-    *binop_precedence().get(&cur_tok).unwrap_or(&-1)
-}

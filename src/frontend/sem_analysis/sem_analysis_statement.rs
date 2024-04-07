@@ -1,78 +1,94 @@
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::f32::consts::E;
 
 use crate::frontend::{
     ast::{
-        ast_struct::ASTNode, 
-        data_type::DataType, 
-        syntax_element::MatchArm
+        ast_struct::ASTNode, syntax_element::SyntaxElement, 
     }, 
     sem_analysis::sem_analysis_core::SemAnalysis, 
-    symbol_table::symbol_table::{ 
-        SymbolTable, 
-        SymbolTableStack
-    }, 
+    symbol_table::symbol_table_struct::SymbolTable, 
     utils::error::ErrorType,
 };
 
-impl<'a> SemAnalysis {
-    pub fn sem_assignment(&mut self, 
-                        variable: &String, 
-                        value: &Box<ASTNode>, 
-                        symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) 
-                            -> Option<Vec<ErrorType>> {
+impl SemAnalysis {
+    /// Completes semantic analysis of variable assignment
+    pub fn sem_assignment(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
         let mut errors: Vec<ErrorType> = Vec::new();
-        let stack: MutexGuard<'_, SymbolTableStack> = symbol_table_stack.lock().unwrap();
         
-        let mut var_found: bool = false;
+        match self.get_current_sym_table() {
+            Ok(table) => {
+                let locked_table = table.lock().unwrap();
+                    
+                if let SyntaxElement::Assignment = node.get_element() {
+                    for child in node.get_children() {
+                        match child.get_element() {
+                            SyntaxElement::Identifier(name) => {
+                                if let Some(e) = self.check_if_assigned(&name, &locked_table) {
+                                    errors.push(e);
+                                }
+                            }
+                            SyntaxElement::AssignedValue => {
+                                if let Some(child_errors) = self.sem_analysis_router(&child) {
+                                    errors.extend(child_errors);
+                                }
+                            }
+                            _ => errors.push(ErrorType::DevError{})
+                        }
+                    }
+                } else {
+                    errors.push(ErrorType::DevError{});
+                }
+            
 
-        for symbol_table_arc in stack.get_elements().iter().rev() {
-            let sym_table: MutexGuard<'_, SymbolTable> = symbol_table_arc.lock().unwrap();
-
-            if sym_table.get(variable).is_some() {
-                var_found = true;
-                break;
             }
-        }
+            Err(e) => {
+                return Some(vec![e]);
+            }
+    }
+    if !errors.is_empty() {
+        return Some(errors);
+    }
+    None
+    }
+    
 
-        if !var_found {
-            errors.push(ErrorType::DevError{})
-        }
-        if !errors.is_empty() {
-            return Some(errors);
-        }
+    /// TODO
+    pub fn sem_bin_exp(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
         None
     }
 
-    pub fn sem_bin_exp(&mut self, left: &Box<ASTNode>, operator: &String, right: &Box<ASTNode>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        unimplemented!("Sem analysis bin exp unimplemented")
+    /// TODO
+    pub fn sem_initialization(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
+        None
     }
 
-    pub fn sem_initialization(&mut self, variable: &String, data_type: &DataType, value: &Box<ASTNode>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        unimplemented!("Sem analysis init unimplemented")
+    /// TODO
+    pub fn sem_match_statement(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
+        None
     }
 
-    pub fn sem_match_statement(&mut self, to_match: &Box<ASTNode>, arms: &Vec<MatchArm>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        unimplemented!("Sem analysis match unimplemented")
+    /// TODO
+    pub fn sem_function_call(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
+        None
     }
 
-    pub fn sem_function_call(&mut self, name: &String, arguments: &Vec<ASTNode>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        unimplemented!("Sem analysis fn call unimplemented")
+    /// TODO
+    pub fn sem_unary_exp(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
+        None
     }
 
-    pub fn sem_unary_exp(&mut self, operator: &String, operand: &Box<ASTNode>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        unimplemented!("Sem analysis unary op unimplemented")
+    /// TODO
+    pub fn sem_return(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
+        None
     }
 
-    pub fn sem_return(&mut self, value: &Box<ASTNode>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        unimplemented!("Sem analysis return unimplemented")
+    /// TODO
+    pub fn sem_break(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
+        None
     }
 
-    pub fn sem_break(&mut self, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        unimplemented!("Sem analysis break unimplemented")
-    }
-
-    pub fn sem_continue(&mut self, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        unimplemented!("Sem analysis continue unimplemented")
+    /// TODO
+    pub fn sem_continue(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
+        None
     }
 
 }

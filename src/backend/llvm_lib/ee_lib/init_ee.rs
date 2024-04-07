@@ -16,6 +16,7 @@ use llvm::{
     }, core::{LLVMModuleCreateWithNameInContext, LLVMDisposeMessage},
 };
 
+/// Initialize targets of JIT
 pub fn init_ee_targets() {
     unsafe {
         LLVM_InitializeAllTargetInfos();
@@ -30,6 +31,7 @@ pub fn init_ee_targets() {
     };
 }
 
+/// Initializes execution engine
 pub fn init_engine(context: *mut llvm::LLVMContext, mut engine: *mut LLVMOpaqueExecutionEngine)
         -> (*mut llvm::LLVMContext, *mut LLVMOpaqueExecutionEngine) {
     unsafe {

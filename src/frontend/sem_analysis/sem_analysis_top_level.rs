@@ -1,63 +1,61 @@
-use std::{collections::HashSet, sync::{Arc, Mutex, MutexGuard}};
-
 use crate::frontend::{
-    ast::{
-        data_type::DataType, 
-        syntax_element::FunctionParameter
-    }, 
+    ast::{ast_struct::ASTNode, data_type::DataType, syntax_element::SyntaxElement}, 
     sem_analysis::sem_analysis_core::SemAnalysis, 
-    symbol_table::symbol_table::SymbolTableStack, 
-    utils::error::ErrorType
+    symbol_table::symbol_table_struct::SymbolTable, utils::error::ErrorType
 };
 
-impl<'a> SemAnalysis {
-    pub fn sem_function_dec(&mut self, 
-                            name: &String, 
-                            parameters: &Vec<FunctionParameter>, 
-                            return_type: &Option<DataType>, 
-                            symbol_table_stack: &Arc<Mutex<SymbolTableStack>>) 
-                                -> Option<Vec<ErrorType>> {
+impl SemAnalysis {
+    /// Completes semantic analysis on a function declaration
+    pub fn sem_function_dec(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
         let mut errors: Vec<ErrorType> = Vec::new();
 
-        // can be mutable but doesn't need to be for now
-        let stack: MutexGuard<'_, SymbolTableStack> = symbol_table_stack.lock().unwrap();
+        let mut has_body: bool = false;
 
-        // deny functional polymorphism
-        if let Some(current_symbol_table) = stack.peek() {
-            let table = current_symbol_table.lock().unwrap();
-            if table.get(name).is_some() {
-                errors.push(ErrorType::DevError{})
-            }
-        }
+        match self.get_current_sym_table() {
+            Ok(table) => {
+                let locked_table = table.lock().unwrap();
 
-        // ensure unique parameter names
-        let mut param_names: HashSet<String> = HashSet::new();
-        for param in parameters {
-            if !param_names.insert(param.get_name()) {
-                errors.push(ErrorType::DevError{})
-            }
-        }
+                for child in node.get_children() {
+                    match child.get_element() {
+                        SyntaxElement::Parameter => {},
+                        SyntaxElement::Type(_fn_type) => {},
+                        SyntaxElement::FunctionDeclaration => {},
 
-        // deny unknown return types
-        if let Some(return_type) = return_type{
-            match return_type {
-                DataType::Unknown => {
+                        SyntaxElement::BlockExpression => {
+                            has_body = true;
+
+                            match self.increment_sym_table_stack_pointer() {
+                                Ok(_) => {}
+                                Err(e) => errors.push(e)
+                            }
+
+                            self.sem_analysis_router(&child);
+                        }
+                        _ => panic!("Unexpected node: {:?}", child)
+                    }
+                }
+                if !has_body {
                     errors.push(ErrorType::DevError{})
                 }
-                _ => {}
+        
+                if !errors.is_empty() {
+                    return Some(errors);
+                }
             }
-        }
-
-        if !errors.is_empty() {
-            return Some(errors);
+            Err(e) => {
+                panic!("Missing symbol table")
+            }
         }
         None
     }
     
-    pub fn sem_struct_dec(&mut self, name: &String, fields: &Vec<(String, DataType)>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        unimplemented!("Sem analysis of structs unimplemented")
+    /// TODO
+    pub fn sem_struct_dec(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
+        None
     }
-    pub fn sem_enum_dec(&mut self, name: &String, variants: &Vec<String>, symbol_table: &Arc<Mutex<SymbolTableStack>>) -> Option<Vec<ErrorType>> {
-        unimplemented!("Sem analysis of enums unimplemented")
+
+    /// TODO
+    pub fn sem_enum_dec(&mut self, node: &ASTNode) -> Option<Vec<ErrorType>> {
+        None
     }
 }

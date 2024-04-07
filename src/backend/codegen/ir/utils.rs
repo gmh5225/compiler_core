@@ -10,6 +10,7 @@ use crate::{
 };
 
 impl IRGenerator {
+    /// Maps data types to LLVM IR
     pub fn map_data_type(&self, data_type: &DataType) -> LLVMTypeRef {
         match data_type {
             DataType::Boolean => boolean_type(self.get_context()),
